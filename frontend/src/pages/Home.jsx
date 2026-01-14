@@ -611,62 +611,67 @@ const Home = () => {
 
       {/* Our Team / Leadership */}
       <section id="team" className="py-20 px-4 bg-gradient-to-br from-slate-100 to-blue-50">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-12">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-16">
             <h3 className="text-4xl font-bold text-slate-900 mb-4">Our Leadership Team</h3>
             <div className="w-20 h-1 bg-gradient-to-r from-blue-600 to-blue-400 mx-auto mb-4"></div>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">Meet the professionals driving excellence in audit and assurance services</p>
           </div>
           
-          <div className="space-y-16">
+          <div className="space-y-20">
             {teamMembers.map((member, index) => (
-              <div key={index} className="relative">
-                {/* Name and Designation - Top */}
-                <div className="mb-6">
-                  <h4 className="text-3xl font-bold text-slate-900 mb-2">{member.name}</h4>
-                  <p className="text-xl text-blue-600 font-semibold">{member.role}</p>
-                  <div className="w-16 h-1 bg-gradient-to-r from-blue-600 to-blue-400 mt-2"></div>
-                </div>
-                
-                {/* Photo and Skills Section */}
-                <div className="grid md:grid-cols-3 gap-8 items-start mb-6">
-                  {/* Photo - Left 2/3 */}
-                  <div className="md:col-span-2">
-                    <div className="relative overflow-hidden rounded-2xl shadow-2xl">
+              <div key={index} className="grid md:grid-cols-5 gap-10 items-start">
+                {/* Photo Section - 2/5 width */}
+                <div className="md:col-span-2">
+                  <div className="relative group">
+                    {/* 3D Photo Container */}
+                    <div className="relative overflow-hidden rounded-3xl shadow-2xl transform transition-all duration-500 hover:scale-105 hover:rotate-1">
                       <img 
                         src={member.image} 
                         alt={member.name} 
-                        className="w-full h-96 object-cover object-top hover:scale-105 transition-transform duration-500"
+                        className="w-full h-[500px] object-cover object-top transition-transform duration-700 group-hover:scale-110"
                         style={{ objectPosition: 'center 20%' }}
                       />
-                      {/* Gradient overlay at bottom */}
-                      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
+                      {/* 3D Effect Layers */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="absolute -bottom-1 -right-1 w-full h-full bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl -z-10 transform translate-x-2 translate-y-2"></div>
                     </div>
                   </div>
+                </div>
+                
+                {/* Content Section - 3/5 width */}
+                <div className="md:col-span-3 space-y-6">
+                  {/* Name & Designation */}
+                  <div>
+                    <h4 className="text-4xl font-black text-slate-900 mb-2 leading-tight">{member.name}</h4>
+                    <p className="text-2xl font-semibold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">{member.role}</p>
+                    <div className="w-24 h-1.5 bg-gradient-to-r from-blue-600 to-blue-400 mt-3 rounded-full"></div>
+                  </div>
                   
-                  {/* Skills - Right 1/3 with 3D Effects */}
-                  <div className="space-y-3">
-                    <h5 className="text-lg font-bold text-slate-900 mb-4">Areas of Expertise</h5>
-                    {member.expertise.map((skill, idx) => (
-                      <div 
-                        key={idx} 
-                        className="skill-badge-3d bg-gradient-to-br from-blue-600 to-blue-700 text-white px-4 py-3 rounded-xl shadow-lg hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105 transition-all cursor-default"
-                      >
-                        <p className="font-semibold text-sm">{skill}</p>
-                      </div>
-                    ))}
+                  {/* Experience Description */}
+                  <div>
+                    <p className="text-lg text-slate-700 leading-relaxed">{member.experience}</p>
+                  </div>
+                  
+                  {/* Skills with 3D Effects */}
+                  <div>
+                    <h5 className="text-xl font-bold text-slate-900 mb-4 flex items-center">
+                      <span className="mr-2">Areas of Expertise</span>
+                      <div className="flex-1 h-px bg-gradient-to-r from-slate-300 to-transparent"></div>
+                    </h5>
+                    <div className="grid grid-cols-2 gap-3">
+                      {member.expertise.map((skill, idx) => (
+                        <div 
+                          key={idx} 
+                          className="skill-badge-3d bg-gradient-to-br from-blue-600 to-blue-700 text-white px-5 py-3 rounded-xl shadow-lg hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105 transition-all cursor-default relative overflow-hidden group"
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-blue-400/0 via-white/20 to-blue-400/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                          <p className="font-semibold text-sm relative z-10">{skill}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                
-                {/* Description - Bottom, No Boxes */}
-                <div className="mt-6">
-                  <p className="text-lg text-slate-700 leading-relaxed">{member.experience}</p>
-                </div>
-                
-                {/* Separator Line */}
-                {index < teamMembers.length - 1 && (
-                  <div className="mt-16 border-t-2 border-slate-300"></div>
-                )}
               </div>
             ))}
           </div>
