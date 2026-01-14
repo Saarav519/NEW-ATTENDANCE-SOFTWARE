@@ -301,8 +301,10 @@ const Home = () => {
             <div className="w-20 h-1 bg-gradient-to-r from-blue-600 to-blue-400 mx-auto mb-4"></div>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">Comprehensive audit solutions tailored to your business needs</p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map((service, index) => (
+          
+          {/* First 6 Services in Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            {services.slice(0, 6).map((service, index) => (
               <Card key={index} className="overflow-hidden hover:shadow-2xl transition-all transform hover:-translate-y-2 border-0 shadow-lg">
                 <div className="h-48 overflow-hidden">
                   <img 
@@ -323,6 +325,36 @@ const Home = () => {
               </Card>
             ))}
           </div>
+          
+          {/* Manpower Sourcing - Full Width Landscape Card */}
+          {services.slice(6).map((service, index) => (
+            <Card key={index} className="overflow-hidden hover:shadow-2xl transition-all transform hover:-translate-y-1 border-0 shadow-lg">
+              <div className="grid md:grid-cols-3 gap-0">
+                {/* Image Section - 1/3 width */}
+                <div className="h-64 md:h-auto overflow-hidden">
+                  <img 
+                    src={service.image} 
+                    alt={service.title} 
+                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
+                {/* Content Section - 2/3 width */}
+                <div className="md:col-span-2 p-8">
+                  <div className="flex items-start space-x-4 mb-4">
+                    <div className="h-14 w-14 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <service.icon className="h-7 w-7 text-blue-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl mb-2">{service.title}</CardTitle>
+                      <CardDescription className="text-slate-600 leading-relaxed text-base">
+                        {service.description}
+                      </CardDescription>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
         </div>
       </section>
 
