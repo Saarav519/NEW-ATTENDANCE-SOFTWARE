@@ -144,3 +144,47 @@ button.bg-blue-600:hover {
     transform: translateY(-8px) scale(1.03);
   }
 }
+
+/* 3D Effect for Company Name */
+.company-name-3d {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 
+    2px 2px 0px rgba(59, 130, 246, 0.3),
+    4px 4px 0px rgba(59, 130, 246, 0.2),
+    6px 6px 0px rgba(59, 130, 246, 0.1),
+    8px 8px 15px rgba(0, 0, 0, 0.2);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+  letter-spacing: -0.5px;
+  position: relative;
+  transform: perspective(500px) rotateX(2deg);
+  transition: all 0.3s ease;
+}
+
+.company-name-3d::before {
+  content: 'AudiX Solutions & Co.';
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transform: translate(2px, 2px);
+  opacity: 0.5;
+}
+
+.company-name-3d:hover {
+  transform: perspective(500px) rotateX(0deg) scale(1.02);
+  filter: drop-shadow(0 8px 16px rgba(59, 130, 246, 0.3));
+}
+
+/* Enhanced text rendering */
+@supports (font-variation-settings: normal) {
+  .company-name-3d {
+    font-variation-settings: 'wght' 900;
+  }
+}
