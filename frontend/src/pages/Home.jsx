@@ -103,23 +103,36 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-b border-slate-200 z-50 shadow-sm">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+      <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-b border-slate-200 z-50 shadow-lg">
+        <div className="container mx-auto px-4 py-6 relative overflow-hidden">
+          {/* Background Logo Watermark */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
+            <img 
+              src="https://customer-assets.emergentagent.com/job_company-profile-52/artifacts/j06th8bc_Audix%20Logo.png" 
+              alt="Background Logo" 
+              className="h-32 w-auto"
+            />
+          </div>
+          
+          <div className="flex items-center justify-between relative z-10">
+            <div className="flex items-center space-x-4">
               <img 
                 src="https://customer-assets.emergentagent.com/job_company-profile-52/artifacts/j06th8bc_Audix%20Logo.png" 
                 alt="AudiX Solutions Logo" 
-                className="h-12 w-auto"
+                className="h-16 w-auto"
               />
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-slate-900">AudiX Solutions & Co.</h1>
+                <p className="text-xs md:text-sm text-slate-600 font-medium">Where Audits Meet Exceptional X-ceptionalism</p>
+              </div>
             </div>
             <div className="hidden md:flex items-center space-x-6">
-              <a href="#services" className="text-slate-700 hover:text-blue-600 transition-colors font-medium">Services</a>
-              <a href="#about" className="text-slate-700 hover:text-blue-600 transition-colors font-medium">About</a>
-              <a href="#team" className="text-slate-700 hover:text-blue-600 transition-colors font-medium">Team</a>
-              <a href="#contact" className="text-slate-700 hover:text-blue-600 transition-colors font-medium">Contact</a>
-              <Button onClick={handleCall} variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700 shadow-md">
-                <Phone className="h-4 w-4 mr-2" />
+              <a href="#services" className="text-slate-700 hover:text-blue-600 transition-colors font-semibold text-lg">Services</a>
+              <a href="#about" className="text-slate-700 hover:text-blue-600 transition-colors font-semibold text-lg">About</a>
+              <a href="#team" className="text-slate-700 hover:text-blue-600 transition-colors font-semibold text-lg">Team</a>
+              <a href="#contact" className="text-slate-700 hover:text-blue-600 transition-colors font-semibold text-lg">Contact</a>
+              <Button onClick={handleCall} variant="default" size="lg" className="bg-blue-600 hover:bg-blue-700 shadow-lg">
+                <Phone className="h-5 w-5 mr-2" />
                 Call Us
               </Button>
             </div>
