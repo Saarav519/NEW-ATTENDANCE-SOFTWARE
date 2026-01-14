@@ -188,3 +188,67 @@ button.bg-blue-600:hover {
     font-variation-settings: 'wght' 900;
   }
 }
+
+/* 3D Effect for Client Cards */
+.client-card-3d {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.client-card-3d::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(147, 197, 253, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  transform: translateZ(-1px);
+}
+
+.client-card-3d:hover::before {
+  opacity: 1;
+}
+
+.client-card-3d:hover {
+  transform: translateY(-16px) rotateX(8deg) rotateY(2deg) scale(1.08);
+  box-shadow: 
+    0 25px 50px rgba(59, 130, 246, 0.4),
+    0 10px 20px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Glowing effect on hover */
+.client-card-3d:hover {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 25px 50px rgba(59, 130, 246, 0.4),
+      0 10px 20px rgba(0, 0, 0, 0.3),
+      0 0 30px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 
+      0 25px 50px rgba(59, 130, 246, 0.6),
+      0 10px 20px rgba(0, 0, 0, 0.3),
+      0 0 50px rgba(59, 130, 246, 0.5);
+  }
+}
+
+/* Icon container 3D effect */
+.client-card-3d .h-16,
+.client-card-3d .h-12 {
+  transition: all 0.3s ease;
+}
+
+.client-card-3d:hover .h-16,
+.client-card-3d:hover .h-12 {
+  transform: translateZ(20px) scale(1.1) rotateY(360deg);
+}
