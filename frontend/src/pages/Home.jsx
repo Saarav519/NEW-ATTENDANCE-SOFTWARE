@@ -535,11 +535,12 @@ const Home = () => {
           <div className="grid md:grid-cols-2 gap-8">
             {teamMembers.map((member, index) => (
               <Card key={index} className="overflow-hidden shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-2 border-0">
-                <div className="h-80 overflow-hidden">
+                <div className="h-80 overflow-hidden bg-slate-100">
                   <img 
                     src={member.image} 
                     alt={member.name} 
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-cover object-top hover:scale-110 transition-transform duration-500"
+                    style={{ objectPosition: 'center 20%' }}
                   />
                 </div>
                 <CardHeader className="bg-gradient-to-br from-blue-600 to-blue-800 text-white">
