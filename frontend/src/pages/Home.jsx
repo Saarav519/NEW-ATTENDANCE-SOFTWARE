@@ -351,6 +351,110 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Our Clients */}
+      <section className="py-20 px-4 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.3) 0%, transparent 50%)' }}></div>
+        </div>
+        <div className="container mx-auto max-w-6xl relative z-10">
+          <div className="text-center mb-12">
+            <h3 className="text-4xl font-bold mb-4">Our Esteemed Clients</h3>
+            <div className="w-20 h-1 bg-blue-400 mx-auto mb-4"></div>
+            <p className="text-lg text-slate-300 max-w-3xl mx-auto">Trusted by leading brands across India for reliable audit and assurance services</p>
+          </div>
+
+          {/* Main Clients */}
+          <div className="mb-16">
+            <div className="text-center mb-8">
+              <h4 className="text-2xl font-bold text-blue-400 mb-2">Main Clients</h4>
+              <p className="text-slate-300">Direct audit and assurance engagements with leading retail brands</p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6">
+              {[
+                { name: 'Fabindia', category: 'Retail & Lifestyle' },
+                { name: 'Nicobar', category: 'Home & Fashion' },
+                { name: 'Miniso', category: 'Lifestyle Products' },
+                { name: '24 Seven', category: 'Convenience Retail' },
+                { name: 'Storeex 24/7', category: 'Retail Chain' },
+                { name: 'Kickers', category: 'Footwear Brand' },
+                { name: 'Kothari', category: 'Business Group' }
+              ].map((client, index) => (
+                <div 
+                  key={index} 
+                  className="client-card-3d bg-white/10 backdrop-blur-md p-6 rounded-2xl border-2 border-white/20 hover:border-blue-400 transition-all transform hover:-translate-y-3 hover:scale-105 shadow-xl hover:shadow-2xl group"
+                  style={{
+                    perspective: '1000px',
+                    transformStyle: 'preserve-3d'
+                  }}
+                >
+                  <div className="text-center">
+                    <div className="h-16 w-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:shadow-blue-500/50 transition-all">
+                      <Building2 className="h-8 w-8 text-white" />
+                    </div>
+                    <h5 className="text-xl font-bold text-white mb-1 group-hover:text-blue-300 transition-colors">{client.name}</h5>
+                    <p className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">{client.category}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Vendor Clients */}
+          <div>
+            <div className="text-center mb-8">
+              <h4 className="text-2xl font-bold text-green-400 mb-2">Vendor Support Clients</h4>
+              <p className="text-slate-300">Strategic audit support partnerships with leading organizations</p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+              {[
+                { name: 'Blinkit', category: 'Quick Commerce' },
+                { name: 'Healthkart', category: 'Health & Wellness' },
+                { name: 'Campus', category: 'Footwear' },
+                { name: 'VLCC', category: 'Wellness' },
+                { name: 'Rare Rabbit', category: 'Fashion' },
+                { name: 'Trendz', category: 'Retail' },
+                { name: 'OYO', category: 'Hospitality' },
+                { name: 'Protiviti', category: 'Consulting' },
+                { name: 'Adjectus', category: 'Professional Services' }
+              ].map((client, index) => (
+                <div 
+                  key={index} 
+                  className="client-card-3d bg-white/10 backdrop-blur-md p-5 rounded-xl border-2 border-white/20 hover:border-green-400 transition-all transform hover:-translate-y-3 hover:scale-105 shadow-xl hover:shadow-2xl group"
+                  style={{
+                    perspective: '1000px',
+                    transformStyle: 'preserve-3d'
+                  }}
+                >
+                  <div className="text-center">
+                    <div className="h-12 w-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg group-hover:shadow-green-500/50 transition-all">
+                      <Users className="h-6 w-6 text-white" />
+                    </div>
+                    <h5 className="text-lg font-bold text-white mb-1 group-hover:text-green-300 transition-colors">{client.name}</h5>
+                    <p className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">{client.category}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Trust Indicators */}
+          <div className="mt-16 grid md:grid-cols-3 gap-6 text-center">
+            <div className="bg-white/5 backdrop-blur-sm p-6 rounded-xl border border-white/10">
+              <div className="text-4xl font-bold text-blue-400 mb-2">16+</div>
+              <p className="text-slate-300">Trusted Client Relationships</p>
+            </div>
+            <div className="bg-white/5 backdrop-blur-sm p-6 rounded-xl border border-white/10">
+              <div className="text-4xl font-bold text-blue-400 mb-2">100%</div>
+              <p className="text-slate-300">Client Satisfaction Rate</p>
+            </div>
+            <div className="bg-white/5 backdrop-blur-sm p-6 rounded-xl border border-white/10">
+              <div className="text-4xl font-bold text-blue-400 mb-2">Pan-India</div>
+              <p className="text-slate-300">Service Coverage</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Our Approach */}
       <section className="py-20 px-4 bg-white">
         <div className="container mx-auto max-w-6xl">
