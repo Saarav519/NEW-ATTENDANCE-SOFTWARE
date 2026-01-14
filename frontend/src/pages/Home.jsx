@@ -87,16 +87,16 @@ const Home = () => {
     {
       name: 'Arvind Singh',
       role: 'Founder & Lead Auditor',
-      image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf',
-      experience: '10+ years of hands-on experience in audit, assurance, inventory management, and fixed asset verification. Led numerous large-scale audit engagements across India.',
-      expertise: ['Internal Audit', 'Inventory Management', 'Fixed Asset Verification', 'Risk Assessment']
+      image: 'https://customer-assets.emergentagent.com/job_company-profile-52/artifacts/qwj5paje_My%20own%20Pic.jpeg',
+      experience: 'Graduate with 10+ years of extensive experience across multiple leading audit firms including Future Group and NHBS. Specialized in execution-driven audit solutions, inventory management, and fixed asset verification with proven track record in managing large-scale multi-location audit engagements.',
+      expertise: ['Stock & Inventory Audit', 'Fixed Asset Verification', 'Internal Audit', 'Warehouse Audit', 'Process Audit', 'Multi-location Audits']
     },
     {
-      name: 'CA Professional',
-      role: 'Chartered Accountant',
-      image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2',
-      experience: '8+ years of experience in statutory audits, taxation, and compliance. Specialized in corporate governance and financial reporting standards.',
-      expertise: ['Statutory Audit', 'Tax Compliance', 'Financial Reporting', 'Corporate Governance']
+      name: 'Vikas Punia',
+      role: 'CA Professional Advisor',
+      image: 'https://customer-assets.emergentagent.com/job_company-profile-52/artifacts/wm7jfmgm_Vikas%20%20punia%20ca%20Pic.jpeg',
+      experience: 'A finance and audit professional with 6+ years of experience, including Big 4 firm exposure, with strong expertise across assurance, advisory, and compliance functions. Specialized in statutory audits, ICFR, IFRS, US GAAP process reviews, and IPO listing support.',
+      expertise: ['Statutory & Tax Audits', 'ICFR & IFRS', 'Due Diligence', 'Virtual CFO Services', 'IPO Listing Support', 'Global Accounting']
     }
   ];
 
