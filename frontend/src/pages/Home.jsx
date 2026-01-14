@@ -119,7 +119,7 @@ const Home = () => {
               <img 
                 src="https://customer-assets.emergentagent.com/job_company-profile-52/artifacts/j06th8bc_Audix%20Logo.png" 
                 alt="AudiX Solutions Logo" 
-                className="h-16 w-auto"
+                className="h-20 w-auto"
               />
               <div>
                 <h1 className="text-3xl md:text-4xl font-black text-slate-900 company-name-3d">
