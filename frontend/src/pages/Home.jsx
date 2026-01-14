@@ -53,6 +53,12 @@ const Home = () => {
       title: 'Risk & Compliance Review',
       description: 'Evaluation of compliance risks, control weaknesses, and exposure areas to support informed management decision-making.',
       image: 'https://images.unsplash.com/photo-1752118464988-2914fb27d0f0'
+    },
+    {
+      icon: Users,
+      title: 'Manpower Sourcing (Audit Support Services)',
+      description: 'We provide trained audit manpower support to larger audit firms for on-ground audit execution and operational assistance. Our team supports audit engagements by assisting with stock verification, retail and warehouse audits, data validation, MIS support, and process checks, working strictly under the scope and supervision defined by the lead audit firm. This collaboration model allows partner firms to scale audit operations efficiently, while enabling our team to gain structured exposure, hands-on experience, and continuous training in real audit environments. We focus on professional conduct, data confidentiality, and process discipline, ensuring audit work is executed accurately and in line with engagement requirements.',
+      image: 'https://images.unsplash.com/photo-1622675363311-3e1904dc1885'
     }
   ];
 
