@@ -403,37 +403,82 @@ const Home = () => {
           <div>
             <div className="text-center mb-8">
               <h4 className="text-2xl font-bold text-green-400 mb-2">Vendor Support Clients</h4>
-              <p className="text-slate-300">Strategic audit support partnerships with leading organizations</p>
+              <p className="text-slate-300">Strategic audit support partnerships through leading consulting firms</p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-              {[
-                { name: 'Blinkit', category: 'Quick Commerce' },
-                { name: 'Healthkart', category: 'Health & Wellness' },
-                { name: 'Campus', category: 'Footwear' },
-                { name: 'VLCC', category: 'Wellness' },
-                { name: 'Rare Rabbit', category: 'Fashion' },
-                { name: 'Trendz', category: 'Retail' },
-                { name: 'OYO', category: 'Hospitality' },
-                { name: 'Protiviti', category: 'Consulting' },
-                { name: 'Adjectus', category: 'Professional Services' }
-              ].map((client, index) => (
-                <div 
-                  key={index} 
-                  className="client-card-3d bg-white/10 backdrop-blur-md p-5 rounded-xl border-2 border-white/20 hover:border-green-400 transition-all transform hover:-translate-y-3 hover:scale-105 shadow-xl hover:shadow-2xl group"
-                  style={{
-                    perspective: '1000px',
-                    transformStyle: 'preserve-3d'
-                  }}
-                >
-                  <div className="text-center">
-                    <div className="h-12 w-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg group-hover:shadow-green-500/50 transition-all">
-                      <Users className="h-6 w-6 text-white" />
-                    </div>
-                    <h5 className="text-lg font-bold text-white mb-1 group-hover:text-green-300 transition-colors">{client.name}</h5>
-                    <p className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">{client.category}</p>
-                  </div>
+            
+            {/* Protiviti Division */}
+            <div className="mb-12">
+              <div className="text-center mb-6">
+                <div className="inline-block bg-gradient-to-r from-purple-500 to-purple-600 px-6 py-3 rounded-full shadow-lg">
+                  <h5 className="text-xl font-bold text-white">Protiviti</h5>
                 </div>
-              ))}
+                <p className="text-slate-400 mt-2 text-sm">Internal Audit & Risk Management Consulting</p>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                {[
+                  { name: 'Blinkit', category: 'Quick Commerce' },
+                  { name: 'Zomato', category: 'Food Delivery' },
+                  { name: 'Britannia', category: 'FMCG' },
+                  { name: 'Pharma Implant', category: 'Healthcare' },
+                  { name: 'Tata Group', category: 'Conglomerate' }
+                ].map((client, index) => (
+                  <div 
+                    key={index} 
+                    className="client-card-3d bg-gradient-to-br from-purple-900/30 to-purple-800/20 backdrop-blur-md p-5 rounded-xl border-2 border-purple-400/30 hover:border-purple-400 transition-all transform hover:-translate-y-3 hover:scale-105 shadow-xl hover:shadow-2xl group"
+                    style={{
+                      perspective: '1000px',
+                      transformStyle: 'preserve-3d'
+                    }}
+                  >
+                    <div className="text-center">
+                      <div className="h-12 w-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg group-hover:shadow-purple-500/50 transition-all">
+                        <Building2 className="h-6 w-6 text-white" />
+                      </div>
+                      <h5 className="text-lg font-bold text-white mb-1 group-hover:text-purple-300 transition-colors">{client.name}</h5>
+                      <p className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">{client.category}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Adjectus Division */}
+            <div>
+              <div className="text-center mb-6">
+                <div className="inline-block bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 rounded-full shadow-lg">
+                  <h5 className="text-xl font-bold text-white">Adjectus</h5>
+                </div>
+                <p className="text-slate-400 mt-2 text-sm">Audit & Assurance Services</p>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6">
+                {[
+                  { name: 'Rare Rabbit', category: 'Fashion' },
+                  { name: 'Campus', category: 'Footwear' },
+                  { name: 'Firstcry', category: 'Baby & Kids' },
+                  { name: 'Healthkart', category: 'Health & Wellness' },
+                  { name: 'OYO', category: 'Hospitality' },
+                  { name: 'VLCC', category: 'Wellness' },
+                  { name: 'Eveready', category: 'Consumer Goods' },
+                  { name: 'Snitch', category: 'Fashion' }
+                ].map((client, index) => (
+                  <div 
+                    key={index} 
+                    className="client-card-3d bg-gradient-to-br from-emerald-900/30 to-emerald-800/20 backdrop-blur-md p-5 rounded-xl border-2 border-emerald-400/30 hover:border-emerald-400 transition-all transform hover:-translate-y-3 hover:scale-105 shadow-xl hover:shadow-2xl group"
+                    style={{
+                      perspective: '1000px',
+                      transformStyle: 'preserve-3d'
+                    }}
+                  >
+                    <div className="text-center">
+                      <div className="h-12 w-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg group-hover:shadow-emerald-500/50 transition-all">
+                        <Users className="h-6 w-6 text-white" />
+                      </div>
+                      <h5 className="text-lg font-bold text-white mb-1 group-hover:text-emerald-300 transition-colors">{client.name}</h5>
+                      <p className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">{client.category}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
