@@ -141,7 +141,7 @@ const Home = () => {
       </header>
 
       {/* Hero Section with Background Image */}
-      <section className="relative pt-32 pb-24 px-4 overflow-hidden">
+      <section className="relative pt-40 pb-24 px-4 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900/95 via-blue-900/90 to-slate-800/95 z-10"></div>
           <img 
