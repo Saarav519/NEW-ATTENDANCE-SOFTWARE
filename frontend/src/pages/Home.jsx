@@ -228,19 +228,67 @@ const Home = () => {
       </section>
 
       {/* Why Choose AudiX */}
-      <section className="py-20 px-4 bg-gradient-to-br from-slate-100 to-blue-50">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <h3 className="text-4xl font-bold text-slate-900 mb-4">Why Choose AudiX</h3>
-            <div className="w-20 h-1 bg-gradient-to-r from-blue-600 to-blue-400 mx-auto"></div>
+      <section className="py-20 px-4 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-300 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        </div>
+        
+        <div className="container mx-auto max-w-6xl relative z-10">
+          <div className="text-center mb-16">
+            <div className="inline-block mb-4">
+              <div className="flex items-center justify-center space-x-2 bg-white/20 backdrop-blur-sm px-6 py-2 rounded-full">
+                <Award className="h-5 w-5 text-yellow-300" />
+                <span className="text-sm font-bold text-white">Your Trusted Audit Partner</span>
+              </div>
+            </div>
+            <h3 className="text-5xl font-bold mb-6">Why Choose AudiX</h3>
+            <div className="w-24 h-1.5 bg-yellow-400 mx-auto mb-6 rounded-full"></div>
+            <p className="text-xl text-blue-100 max-w-3xl mx-auto">Experience the difference of working with audit professionals who combine expertise, integrity, and execution excellence</p>
           </div>
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          
+          <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
             {whyChoose.map((item, index) => (
-              <div key={index} className="flex items-start space-x-3 bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all transform hover:-translate-y-1">
-                <CheckCircle className="h-6 w-6 text-blue-600 flex-shrink-0 mt-1" />
-                <p className="text-slate-700 text-lg">{item}</p>
+              <div 
+                key={index} 
+                className="why-choose-card bg-white/10 backdrop-blur-lg p-8 rounded-2xl border-2 border-white/30 hover:border-yellow-400 transition-all transform hover:-translate-y-3 hover:scale-105 shadow-2xl hover:shadow-yellow-500/30 group relative overflow-hidden"
+              >
+                {/* Gradient overlay on hover */}
+                <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/0 to-yellow-400/0 group-hover:from-yellow-400/10 group-hover:to-transparent transition-all duration-300 rounded-2xl"></div>
+                
+                <div className="flex items-start space-x-4 relative z-10">
+                  <div className="flex-shrink-0">
+                    <div className="h-14 w-14 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-yellow-500/50 transition-all group-hover:rotate-12 group-hover:scale-110">
+                      <CheckCircle className="h-7 w-7 text-blue-900" strokeWidth={2.5} />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-white text-lg font-semibold leading-relaxed group-hover:text-yellow-100 transition-colors">{item}</p>
+                  </div>
+                </div>
               </div>
             ))}
+          </div>
+          
+          {/* Trust badges */}
+          <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+            <div className="text-center p-6 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+              <div className="text-3xl font-bold text-yellow-400 mb-2">10+</div>
+              <p className="text-sm text-blue-100">Years Experience</p>
+            </div>
+            <div className="text-center p-6 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+              <div className="text-3xl font-bold text-yellow-400 mb-2">16+</div>
+              <p className="text-sm text-blue-100">Trusted Clients</p>
+            </div>
+            <div className="text-center p-6 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+              <div className="text-3xl font-bold text-yellow-400 mb-2">100%</div>
+              <p className="text-sm text-blue-100">Compliance</p>
+            </div>
+            <div className="text-center p-6 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+              <div className="text-3xl font-bold text-yellow-400 mb-2">Pan-India</div>
+              <p className="text-sm text-blue-100">Coverage</p>
+            </div>
           </div>
         </div>
       </section>
