@@ -428,7 +428,6 @@ const Home = () => {
                 { name: 'Fabindia', category: 'Retail & Lifestyle' },
                 { name: 'Nicobar', category: 'Home & Fashion' },
                 { name: 'Miniso', category: 'Lifestyle Products' },
-                { name: '24 Seven', category: 'Convenience Retail' },
                 { name: 'Storeex 24/7', category: 'Retail Chain' },
                 { name: 'Kickers', category: 'Footwear Brand' },
                 { name: 'Kothari', category: 'Business Group' }
