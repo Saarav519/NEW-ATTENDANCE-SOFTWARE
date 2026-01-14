@@ -252,3 +252,31 @@ button.bg-blue-600:hover {
 .client-card-3d:hover .h-12 {
   transform: translateZ(20px) scale(1.1) rotateY(360deg);
 }
+
+/* Why Choose AudiX Card Effects */
+.why-choose-card {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+}
+
+.why-choose-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 1rem;
+  padding: 2px;
+  background: linear-gradient(135deg, rgba(250, 204, 21, 0.5), rgba(59, 130, 246, 0.5));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.why-choose-card:hover::before {
+  opacity: 1;
+}
+
+.why-choose-card:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
