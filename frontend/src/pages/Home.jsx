@@ -122,8 +122,10 @@ const Home = () => {
                 className="h-16 w-auto"
               />
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-slate-900">AudiX Solutions & Co.</h1>
-                <p className="text-xs md:text-sm text-slate-600 font-medium">Where Audits Meet Exceptional X-ceptionalism</p>
+                <h1 className="text-3xl md:text-4xl font-black text-slate-900 company-name-3d">
+                  AudiX Solutions & Co.
+                </h1>
+                <p className="text-xs md:text-sm text-slate-600 font-semibold">Where Audits Meet Exceptional X-ceptionalism</p>
               </div>
             </div>
             <div className="hidden md:flex items-center space-x-6">
