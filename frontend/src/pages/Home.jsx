@@ -91,7 +91,7 @@ const Home = () => {
 
   const teamMembers = [
     {
-      name: 'Arvind Singh',
+      name: 'Arvind Singh Bora',
       role: 'Founder & Lead Auditor',
       image: 'https://customer-assets.emergentagent.com/job_company-profile-52/artifacts/qwj5paje_My%20own%20Pic.jpeg',
       experience: 'Graduate with 10+ years of extensive experience across multiple leading audit firms including Future Group and NHBS. Specialized in execution-driven audit solutions, inventory management, and fixed asset verification with proven track record in managing large-scale multi-location audit engagements.',
