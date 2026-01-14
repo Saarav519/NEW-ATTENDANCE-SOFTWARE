@@ -617,35 +617,57 @@ const Home = () => {
             <div className="w-20 h-1 bg-gradient-to-r from-blue-600 to-blue-400 mx-auto mb-4"></div>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">Meet the professionals driving excellence in audit and assurance services</p>
           </div>
-          <div className="grid md:grid-cols-2 gap-8">
+          
+          <div className="space-y-16">
             {teamMembers.map((member, index) => (
-              <Card key={index} className="overflow-hidden shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-2 border-0">
-                <div className="h-80 overflow-hidden bg-slate-100">
-                  <img 
-                    src={member.image} 
-                    alt={member.name} 
-                    className="w-full h-full object-cover object-top hover:scale-110 transition-transform duration-500"
-                    style={{ objectPosition: 'center 20%' }}
-                  />
+              <div key={index} className="relative">
+                {/* Name and Designation - Top */}
+                <div className="mb-6">
+                  <h4 className="text-3xl font-bold text-slate-900 mb-2">{member.name}</h4>
+                  <p className="text-xl text-blue-600 font-semibold">{member.role}</p>
+                  <div className="w-16 h-1 bg-gradient-to-r from-blue-600 to-blue-400 mt-2"></div>
                 </div>
-                <CardHeader className="bg-gradient-to-br from-blue-600 to-blue-800 text-white">
-                  <CardTitle className="text-2xl">{member.name}</CardTitle>
-                  <CardDescription className="text-blue-100 text-lg">{member.role}</CardDescription>
-                </CardHeader>
-                <CardContent className="p-6 bg-white">
-                  <p className="text-slate-700 leading-relaxed mb-4">{member.experience}</p>
-                  <div className="mt-4">
-                    <p className="font-semibold text-slate-900 mb-2">Areas of Expertise:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {member.expertise.map((skill, idx) => (
-                        <Badge key={idx} variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">
-                          {skill}
-                        </Badge>
-                      ))}
+                
+                {/* Photo and Skills Section */}
+                <div className="grid md:grid-cols-3 gap-8 items-start mb-6">
+                  {/* Photo - Left 2/3 */}
+                  <div className="md:col-span-2">
+                    <div className="relative overflow-hidden rounded-2xl shadow-2xl">
+                      <img 
+                        src={member.image} 
+                        alt={member.name} 
+                        className="w-full h-96 object-cover object-top hover:scale-105 transition-transform duration-500"
+                        style={{ objectPosition: 'center 20%' }}
+                      />
+                      {/* Gradient overlay at bottom */}
+                      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                  
+                  {/* Skills - Right 1/3 with 3D Effects */}
+                  <div className="space-y-3">
+                    <h5 className="text-lg font-bold text-slate-900 mb-4">Areas of Expertise</h5>
+                    {member.expertise.map((skill, idx) => (
+                      <div 
+                        key={idx} 
+                        className="skill-badge-3d bg-gradient-to-br from-blue-600 to-blue-700 text-white px-4 py-3 rounded-xl shadow-lg hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105 transition-all cursor-default"
+                      >
+                        <p className="font-semibold text-sm">{skill}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Description - Bottom, No Boxes */}
+                <div className="mt-6">
+                  <p className="text-lg text-slate-700 leading-relaxed">{member.experience}</p>
+                </div>
+                
+                {/* Separator Line */}
+                {index < teamMembers.length - 1 && (
+                  <div className="mt-16 border-t-2 border-slate-300"></div>
+                )}
+              </div>
             ))}
           </div>
         </div>
