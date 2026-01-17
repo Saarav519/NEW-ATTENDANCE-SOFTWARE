@@ -196,7 +196,7 @@ const HeroSection = () => {
                       <Users size={14} className="text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold">Wesoftek</p>
+                      <p className="text-xs font-semibold">Audix Solutions</p>
                       <p className="text-[10px] text-gray-500">Business</p>
                     </div>
                   </div>
