@@ -16,7 +16,7 @@ export const employees = [
   {
     id: "EMP001",
     name: "Rahul Kumar",
-    email: "rahul@wesoftek.com",
+    email: "rahul@audixsolutions.com",
     phone: "+91 98765 43211",
     role: "employee",
     department: "Development",
@@ -30,7 +30,7 @@ export const employees = [
   {
     id: "EMP002",
     name: "Priya Singh",
-    email: "priya@wesoftek.com",
+    email: "priya@audixsolutions.com",
     phone: "+91 98765 43212",
     role: "employee",
     department: "Design",
@@ -44,7 +44,7 @@ export const employees = [
   {
     id: "EMP003",
     name: "Amit Sharma",
-    email: "amit@wesoftek.com",
+    email: "amit@audixsolutions.com",
     phone: "+91 98765 43213",
     role: "employee",
     department: "Development",
@@ -58,7 +58,7 @@ export const employees = [
   {
     id: "EMP004",
     name: "Sneha Patel",
-    email: "sneha@wesoftek.com",
+    email: "sneha@audixsolutions.com",
     phone: "+91 98765 43214",
     role: "employee",
     department: "HR",
@@ -72,7 +72,7 @@ export const employees = [
   {
     id: "EMP005",
     name: "Vikram Reddy",
-    email: "vikram@wesoftek.com",
+    email: "vikram@audixsolutions.com",
     phone: "+91 98765 43215",
     role: "employee",
     department: "Marketing",
@@ -89,7 +89,7 @@ export const employees = [
 export const adminUser = {
   id: "ADMIN001",
   name: "Admin User",
-  email: "admin@wesoftek.com",
+  email: "admin@audixsolutions.com",
   role: "admin",
   password: "admin123"
 };
