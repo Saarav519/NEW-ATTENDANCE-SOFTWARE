@@ -87,12 +87,12 @@ const DownloadSection = () => {
                           <Users size={18} className="text-blue-600" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold">Wesoftek</p>
+                          <p className="text-sm font-semibold">Audix Solutions</p>
                           <p className="text-[10px] text-gray-500">Business</p>
                         </div>
                       </div>
                       <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-sm">
-                        WS
+                        AS
                       </div>
                     </div>
 
