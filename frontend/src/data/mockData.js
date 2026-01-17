@@ -3,9 +3,9 @@
 // Business Info
 export const businessInfo = {
   id: "1",
-  name: "Wesoftek Solutions",
+  name: "Audix Solutions & Co.",
   type: "Information Technology",
-  email: "admin@wesoftek.com",
+  email: "admin@audixsolutions.com",
   phone: "+91 98765 43210",
   address: "Bangalore, India",
   logo: null
