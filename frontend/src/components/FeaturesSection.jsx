@@ -59,7 +59,7 @@ const MobilePlatformMockup = () => (
       <div className="flex items-center gap-2">
         <div className="w-8 h-8 bg-blue-100 rounded-lg"></div>
         <div>
-          <p className="text-xs font-semibold">Wesoftek</p>
+          <p className="text-xs font-semibold">Audix Solutions</p>
           <p className="text-[10px] text-gray-500">Business</p>
         </div>
       </div>
