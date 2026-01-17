@@ -1,160 +1,198 @@
-export const stats = [
+// Mock Data for SuperManage App
+
+// Business Info
+export const businessInfo = {
+  id: "1",
+  name: "Wesoftek Solutions",
+  type: "Information Technology",
+  email: "admin@wesoftek.com",
+  phone: "+91 98765 43210",
+  address: "Bangalore, India",
+  logo: null
+};
+
+// Users/Employees
+export const employees = [
   {
-    id: 1,
-    value: "850k+",
-    label: "Registered Businesses",
-    icon: "users"
+    id: "EMP001",
+    name: "Rahul Kumar",
+    email: "rahul@wesoftek.com",
+    phone: "+91 98765 43211",
+    role: "employee",
+    department: "Development",
+    designation: "Software Engineer",
+    joiningDate: "2023-01-15",
+    salary: 50000,
+    salaryType: "monthly",
+    status: "active",
+    avatar: null
   },
   {
-    id: 2,
-    value: "4.5",
-    label: "Play Store & App Store Rating",
-    icon: "star"
+    id: "EMP002",
+    name: "Priya Singh",
+    email: "priya@wesoftek.com",
+    phone: "+91 98765 43212",
+    role: "employee",
+    department: "Design",
+    designation: "UI/UX Designer",
+    joiningDate: "2023-03-20",
+    salary: 45000,
+    salaryType: "monthly",
+    status: "active",
+    avatar: null
   },
   {
-    id: 3,
-    value: "150+",
-    label: "Countries",
-    icon: "globe"
+    id: "EMP003",
+    name: "Amit Sharma",
+    email: "amit@wesoftek.com",
+    phone: "+91 98765 43213",
+    role: "employee",
+    department: "Development",
+    designation: "Senior Developer",
+    joiningDate: "2022-06-10",
+    salary: 75000,
+    salaryType: "monthly",
+    status: "active",
+    avatar: null
+  },
+  {
+    id: "EMP004",
+    name: "Sneha Patel",
+    email: "sneha@wesoftek.com",
+    phone: "+91 98765 43214",
+    role: "employee",
+    department: "HR",
+    designation: "HR Manager",
+    joiningDate: "2022-01-05",
+    salary: 55000,
+    salaryType: "monthly",
+    status: "active",
+    avatar: null
+  },
+  {
+    id: "EMP005",
+    name: "Vikram Reddy",
+    email: "vikram@wesoftek.com",
+    phone: "+91 98765 43215",
+    role: "employee",
+    department: "Marketing",
+    designation: "Marketing Executive",
+    joiningDate: "2023-07-01",
+    salary: 40000,
+    salaryType: "monthly",
+    status: "inactive",
+    avatar: null
   }
 ];
 
-export const features = [
-  {
-    id: 1,
-    title: "Mobile-First Business Management Platform",
-    description: [
-      "Everything stored on cloud access anytime, anywhere",
-      "Manage your business operations from your smartphone",
-      "Available on both iOS and Android"
-    ],
-    image: "mobile-platform",
-    imagePosition: "left"
-  },
-  {
-    id: 2,
-    title: "Workforce Management",
-    description: [
-      "Unified platform to store employee records",
-      "Manage employee attendance with real-time data",
-      "Track and calculate overtime hours",
-      "Manage employee fines",
-      "Mark punch-in and punch-out for accurate time tracking"
-    ],
-    image: "workforce",
-    imagePosition: "right"
-  },
-  {
-    id: 3,
-    title: "Payroll and Advance",
-    description: [
-      "Calculate payroll with attendance and leave data for accurate salary",
-      "Supports all types of payroll calculations (hourly, weekly, monthly)",
-      "Ensures error-free payroll calculations, minimizing manual efforts",
-      "Manage employee advances easily"
-    ],
-    image: "payroll",
-    imagePosition: "left"
-  },
-  {
-    id: 4,
-    title: "Cashbook",
-    description: [
-      "Effectively manage cash-in and cash-out transactions",
-      "Record daily financial transactions easily",
-      "Generate detailed cash-in and cash-out reports instantly"
-    ],
-    image: "cashbook",
-    imagePosition: "right"
-  },
-  {
-    id: 5,
-    title: "Vehicle Management",
-    description: [
-      "Easily record and manage all vehicle-related expenses",
-      "Record and track fuel, service and other vehicle related expenses",
-      "Download detailed vehicle expense reports"
-    ],
-    image: "vehicle",
-    imagePosition: "left"
-  },
-  {
-    id: 6,
-    title: "Reports",
-    description: [
-      "Customizable reports on the basis of your business needs",
-      "Generate multiple reports which can be downloaded later",
-      "Export reports for a specific period"
-    ],
-    image: "reports",
-    imagePosition: "right"
-  }
+// Admin user
+export const adminUser = {
+  id: "ADMIN001",
+  name: "Admin User",
+  email: "admin@wesoftek.com",
+  role: "admin",
+  password: "admin123"
+};
+
+// Attendance Records
+export const attendanceRecords = [
+  { id: "ATT001", empId: "EMP001", date: "2025-07-14", punchIn: "09:05", punchOut: "18:30", status: "present", workHours: 9.42 },
+  { id: "ATT002", empId: "EMP002", date: "2025-07-14", punchIn: "09:15", punchOut: "18:00", status: "present", workHours: 8.75 },
+  { id: "ATT003", empId: "EMP003", date: "2025-07-14", punchIn: "08:45", punchOut: "19:00", status: "present", workHours: 10.25 },
+  { id: "ATT004", empId: "EMP004", date: "2025-07-14", punchIn: null, punchOut: null, status: "leave", workHours: 0 },
+  { id: "ATT005", empId: "EMP001", date: "2025-07-13", punchIn: "09:00", punchOut: "18:00", status: "present", workHours: 9 },
+  { id: "ATT006", empId: "EMP002", date: "2025-07-13", punchIn: "09:30", punchOut: "17:30", status: "present", workHours: 8 },
+  { id: "ATT007", empId: "EMP003", date: "2025-07-13", punchIn: null, punchOut: null, status: "absent", workHours: 0 },
 ];
 
-export const testimonials = [
-  {
-    id: 1,
-    name: "Own Supermarket",
-    rating: 5,
-    text: "Excellent, I am searching for an app which can save the advance amount which I am paying to my staff. Every app automatically calculates amounts based on their attendance, but this app gives me the option to save it manually. Thank you team!",
-    avatar: "OS"
-  },
-  {
-    id: 2,
-    name: "v2creators Vinoth",
-    rating: 5,
-    text: "A wonderful app. It's very easy to handle and saves our time. Thank you!",
-    avatar: "VV"
-  },
-  {
-    id: 3,
-    name: "Deepak Dwivedi",
-    rating: 5,
-    text: "This application is top in the list for staff attendance and managing your business. The backend team is amazing and always ready to help. Really a fantastic app. No need to search anymore; just download and start using it.",
-    avatar: "DD"
-  },
-  {
-    id: 4,
-    name: "Tapas Kanti Paul",
-    rating: 5,
-    text: "I am fully satisfied. The custom date range feature for attendance reports is great. I can now work as per my Bengali calendar.",
-    avatar: "TP"
-  },
-  {
-    id: 5,
-    name: "Goldi Chandok",
-    rating: 5,
-    text: "This is the first app on the Play Store that listens to user feedback and makes changes accordingly.",
-    avatar: "GC"
-  }
+// Leave Requests
+export const leaveRequests = [
+  { id: "LV001", empId: "EMP001", empName: "Rahul Kumar", type: "Sick Leave", fromDate: "2025-07-20", toDate: "2025-07-21", days: 2, reason: "Fever and cold", status: "pending", appliedOn: "2025-07-14" },
+  { id: "LV002", empId: "EMP002", empName: "Priya Singh", type: "Casual Leave", fromDate: "2025-07-18", toDate: "2025-07-18", days: 1, reason: "Personal work", status: "approved", appliedOn: "2025-07-12" },
+  { id: "LV003", empId: "EMP004", empName: "Sneha Patel", type: "Vacation", fromDate: "2025-07-25", toDate: "2025-07-30", days: 6, reason: "Family trip", status: "pending", appliedOn: "2025-07-10" },
 ];
 
-export const navLinks = [
-  { id: 1, label: "Home", href: "/" },
-  { id: 2, label: "About us", href: "/about" },
-  { id: 3, label: "Plans and Pricing", href: "/pricing" },
-  { id: 4, label: "FAQs", href: "/faqs" },
-  { id: 5, label: "Contact", href: "/contact" }
+// Overtime Records
+export const overtimeRecords = [
+  { id: "OT001", empId: "EMP001", empName: "Rahul Kumar", date: "2025-07-12", hours: 3, rate: 250, amount: 750, reason: "Project deadline", status: "approved" },
+  { id: "OT002", empId: "EMP003", empName: "Amit Sharma", date: "2025-07-13", hours: 2, rate: 350, amount: 700, reason: "Client call", status: "approved" },
+  { id: "OT003", empId: "EMP002", empName: "Priya Singh", date: "2025-07-14", hours: 1.5, rate: 200, amount: 300, reason: "Design review", status: "pending" },
 ];
 
-export const dashboardWidgets = [
-  { id: 1, label: "Total Employee", value: "56", icon: "users", color: "#E8F0FE" },
-  { id: 2, label: "Total Leave", value: "24", icon: "calendar", color: "#E8F5E9" },
-  { id: 3, label: "Overtime", value: "20 Hrs", icon: "clock", color: "#FFF3E0" },
-  { id: 4, label: "Advance", value: "5,883", icon: "wallet", color: "#F3E5F5" }
+// Advances
+export const advances = [
+  { id: "ADV001", empId: "EMP001", empName: "Rahul Kumar", amount: 10000, date: "2025-07-01", reason: "Medical emergency", status: "approved", deductFrom: "July 2025" },
+  { id: "ADV002", empId: "EMP003", empName: "Amit Sharma", amount: 15000, date: "2025-07-05", reason: "House rent", status: "approved", deductFrom: "July 2025" },
+  { id: "ADV003", empId: "EMP002", empName: "Priya Singh", amount: 5000, date: "2025-07-10", reason: "Personal", status: "pending", deductFrom: "August 2025" },
 ];
 
-export const mobileMenuItems = [
-  { id: 1, label: "Employee", icon: "users" },
-  { id: 2, label: "Attendance", icon: "calendar" },
-  { id: 3, label: "Overtime", icon: "clock" },
-  { id: 4, label: "Advance", icon: "wallet" },
-  { id: 5, label: "Remark", icon: "message" },
-  { id: 6, label: "Payroll", icon: "banknote" },
-  { id: 7, label: "Holidays", icon: "gift" },
-  { id: 8, label: "Vehicle Management", icon: "car" },
-  { id: 9, label: "Inactive Employee", icon: "user-x" },
-  { id: 10, label: "Employee Documents", icon: "file-text" },
-  { id: 11, label: "Fines", icon: "alert-circle" },
-  { id: 12, label: "Expense Management", icon: "receipt" }
+// Payroll
+export const payrollRecords = [
+  { id: "PAY001", empId: "EMP001", empName: "Rahul Kumar", month: "June 2025", basicSalary: 50000, overtime: 1500, bonus: 0, deductions: 5000, advance: 0, netSalary: 46500, status: "paid", paidOn: "2025-07-01" },
+  { id: "PAY002", empId: "EMP002", empName: "Priya Singh", month: "June 2025", basicSalary: 45000, overtime: 600, bonus: 2000, deductions: 4500, advance: 0, netSalary: 43100, status: "paid", paidOn: "2025-07-01" },
+  { id: "PAY003", empId: "EMP003", empName: "Amit Sharma", month: "June 2025", basicSalary: 75000, overtime: 2100, bonus: 0, deductions: 7500, advance: 10000, netSalary: 59600, status: "paid", paidOn: "2025-07-01" },
+];
+
+// Cashbook Entries
+export const cashbookEntries = [
+  { id: "CB001", type: "in", category: "Client Payment", description: "Project Alpha payment", amount: 150000, date: "2025-07-01", paymentMode: "Bank Transfer" },
+  { id: "CB002", type: "out", category: "Salary", description: "June salaries", amount: 225000, date: "2025-07-01", paymentMode: "Bank Transfer" },
+  { id: "CB003", type: "out", category: "Rent", description: "Office rent July", amount: 50000, date: "2025-07-05", paymentMode: "Bank Transfer" },
+  { id: "CB004", type: "in", category: "Client Payment", description: "Project Beta milestone", amount: 75000, date: "2025-07-10", paymentMode: "Cheque" },
+  { id: "CB005", type: "out", category: "Utilities", description: "Electricity bill", amount: 15000, date: "2025-07-12", paymentMode: "Cash" },
+  { id: "CB006", type: "out", category: "Office Supplies", description: "Stationery and supplies", amount: 5000, date: "2025-07-14", paymentMode: "Cash" },
+];
+
+// Vehicles
+export const vehicles = [
+  { id: "VH001", name: "Mahindra XUV 500", registrationNo: "KA01AB1234", type: "SUV", fuelType: "Diesel", assignedTo: "Company" },
+  { id: "VH002", name: "Honda City", registrationNo: "KA01CD5678", type: "Sedan", fuelType: "Petrol", assignedTo: "Amit Sharma" },
+];
+
+// Vehicle Expenses
+export const vehicleExpenses = [
+  { id: "VE001", vehicleId: "VH001", vehicleName: "Mahindra XUV 500", type: "Fuel", amount: 5000, date: "2025-07-10", description: "Full tank", odometer: 45230 },
+  { id: "VE002", vehicleId: "VH001", vehicleName: "Mahindra XUV 500", type: "Service", amount: 8500, date: "2025-07-05", description: "Regular service", odometer: 45000 },
+  { id: "VE003", vehicleId: "VH002", vehicleName: "Honda City", type: "Fuel", amount: 3000, date: "2025-07-12", description: "Fuel refill", odometer: 32100 },
+  { id: "VE004", vehicleId: "VH002", vehicleName: "Honda City", type: "Insurance", amount: 15000, date: "2025-07-01", description: "Annual insurance renewal", odometer: 32000 },
+];
+
+// Business Holidays
+export const holidays = [
+  { id: "HOL001", name: "New Year", date: "2025-01-01", type: "National" },
+  { id: "HOL002", name: "Republic Day", date: "2025-01-26", type: "National" },
+  { id: "HOL003", name: "Holi", date: "2025-03-14", type: "Festival" },
+  { id: "HOL004", name: "Independence Day", date: "2025-08-15", type: "National" },
+  { id: "HOL005", name: "Diwali", date: "2025-10-20", type: "Festival" },
+  { id: "HOL006", name: "Christmas", date: "2025-12-25", type: "Festival" },
+];
+
+// Dashboard Stats
+export const dashboardStats = {
+  totalEmployees: 5,
+  activeEmployees: 4,
+  presentToday: 3,
+  absentToday: 1,
+  onLeaveToday: 1,
+  pendingLeaves: 2,
+  pendingOvertime: 1,
+  totalAdvancesPending: 5000,
+  cashBalance: 30000,
+  thisMonthExpenses: 295000,
+  thisMonthIncome: 225000
+};
+
+// Sidebar Navigation
+export const sidebarNavItems = [
+  { id: "dashboard", label: "Dashboard", icon: "LayoutDashboard", path: "/dashboard" },
+  { id: "employees", label: "Employees", icon: "Users", path: "/employees" },
+  { id: "attendance", label: "Attendance", icon: "CalendarCheck", path: "/attendance" },
+  { id: "leaves", label: "Leaves", icon: "CalendarOff", path: "/leaves" },
+  { id: "overtime", label: "Overtime", icon: "Clock", path: "/overtime" },
+  { id: "advances", label: "Advances", icon: "Wallet", path: "/advances" },
+  { id: "payroll", label: "Payroll", icon: "Banknote", path: "/payroll" },
+  { id: "cashbook", label: "Cashbook", icon: "BookOpen", path: "/cashbook" },
+  { id: "vehicles", label: "Vehicles", icon: "Car", path: "/vehicles" },
+  { id: "holidays", label: "Holidays", icon: "Gift", path: "/holidays" },
+  { id: "reports", label: "Reports", icon: "BarChart3", path: "/reports" },
 ];
