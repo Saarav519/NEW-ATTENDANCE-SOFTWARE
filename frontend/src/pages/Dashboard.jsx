@@ -318,7 +318,7 @@ const AdminDashboard = ({ user }) => {
   const presentToday = 5;
   const onLeave = 1;
   const pendingLeaves = leaveRequests.filter(l => l.status === 'pending').length;
-  const pendingOT = overtimeRecords.filter(o => o.status === 'pending').length;
+  const pendingBills = 1; // Pending bill submissions count
 
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
