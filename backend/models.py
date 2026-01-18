@@ -366,7 +366,10 @@ class AuditExpenseResponse(BaseModel):
     remarks: Optional[str] = None
     status: AuditExpenseStatus = AuditExpenseStatus.PENDING
     approved_amount: float = 0
+    remaining_balance: float = 0  # Track unpaid balance for partial payments
     submitted_on: str
     approved_by: Optional[str] = None
     approved_on: Optional[str] = None
     rejection_reason: Optional[str] = None
+    revalidation_reason: Optional[str] = None  # Why Admin requested revalidation
+    payment_history: Optional[List[dict]] = []  # Track multiple partial payments
