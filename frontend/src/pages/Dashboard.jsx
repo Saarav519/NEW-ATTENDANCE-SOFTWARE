@@ -724,11 +724,45 @@ const TeamLeadDashboard = ({ user }) => {
 // Admin Dashboard - Desktop Focused
 const AdminDashboard = ({ user }) => {
   const navigate = useNavigate();
-  const activeEmployees = users.filter(u => u.role !== 'admin' && u.status === 'active');
-  const presentToday = 5;
-  const onLeave = 1;
-  const pendingLeaves = leaveRequests.filter(l => l.status === 'pending').length;
-  const pendingBills = 1; // Pending bill submissions count
+  const [stats, setStats] = useState({
+    totalEmployees: 0,
+    presentToday: 0,
+    onLeave: 0,
+    pendingLeaves: 0,
+    pendingBills: 0
+  });
+
+  useEffect(() => {
+    loadDashboardStats();
+  }, []);
+
+  const loadDashboardStats = async () => {
+    try {
+      const [usersData, leavesData, billsData] = await Promise.all([
+        usersAPI.getAll(),
+        leaveAPI.getAll(),
+        billAPI.getAll()
+      ]);
+      
+      const employees = (usersData || []).filter(u => u.role !== 'admin' && u.status === 'active');
+      const pendingLeaves = (leavesData || []).filter(l => l.status === 'pending').length;
+      const approvedLeavesToday = (leavesData || []).filter(l => {
+        const today = new Date().toISOString().split('T')[0];
+        return l.status === 'approved' && l.from_date <= today && l.to_date >= today;
+      }).length;
+      const pendingBills = (billsData || []).filter(b => b.status === 'pending').length;
+      
+      setStats({
+        totalEmployees: employees.length,
+        presentToday: Math.max(0, employees.length - approvedLeavesToday),
+        onLeave: approvedLeavesToday,
+        pendingLeaves,
+        pendingBills
+      });
+    } catch (error) {
+      console.error('Error loading dashboard stats:', error);
+    }
+  };
 
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
