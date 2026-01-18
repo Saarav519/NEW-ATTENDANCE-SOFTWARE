@@ -207,5 +207,14 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 
 ---
 
+## Changelog
+
+### January 18, 2026
+- **Fixed:** Team Lead payslip showing empty - Added payslip seed data for TL001 and TL002
+- **Added:** Leave balances for Team Leads in database seed
+- **Verified:** Team Lead can now view full payslip with salary breakdown, attendance summary, and PDF download
+
+---
+
 ## Last Updated
-January 18, 2026 - Verified Team Lead payslip access is working
+January 18, 2026
