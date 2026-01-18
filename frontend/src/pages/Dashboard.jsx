@@ -136,8 +136,6 @@ const EmployeeDashboard = ({ user }) => {
   };
 
   const handleQRScanned = async (qrData) => {
-    setShowQRScanner(false);
-    
     try {
       console.log('QR Data scanned:', qrData);
       
@@ -145,12 +143,18 @@ const EmployeeDashboard = ({ user }) => {
       try {
         JSON.parse(qrData);
       } catch (e) {
+        setShowQRScanner(false);
+        setIsProcessingQR(false);
         alert('Invalid QR Code format. Please scan a valid attendance QR code.');
         return;
       }
       
       const result = await attendanceAPI.punchIn(user.id, qrData);
       console.log('Punch-in result:', result);
+      
+      // Close scanner first
+      setShowQRScanner(false);
+      setIsProcessingQR(false);
       
       if (result && result.punch_in) {
         setTodayAttendance(result);
@@ -167,6 +171,8 @@ const EmployeeDashboard = ({ user }) => {
       }
     } catch (error) {
       console.error('Punch-in error:', error);
+      setShowQRScanner(false);
+      setIsProcessingQR(false);
       alert(error.message || 'Failed to punch in. Please try again.');
     }
   };
