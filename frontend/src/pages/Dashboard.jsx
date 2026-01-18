@@ -441,16 +441,16 @@ const AdminDashboard = ({ user }) => {
                 <span className="bg-yellow-500 text-white text-sm px-3 py-1 rounded-full font-bold">{pendingLeaves}</span>
               </div>
               <div 
-                onClick={() => navigate('/overtime')}
+                onClick={() => navigate('/bills')}
                 className="flex items-center justify-between p-4 bg-blue-50 rounded-xl cursor-pointer hover:bg-blue-100 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <Clock size={20} className="text-blue-600" />
+                    <Receipt size={20} className="text-blue-600" />
                   </div>
-                  <span className="font-medium">Overtime</span>
+                  <span className="font-medium">Bill Submissions</span>
                 </div>
-                <span className="bg-blue-500 text-white text-sm px-3 py-1 rounded-full font-bold">{pendingOT}</span>
+                <span className="bg-blue-500 text-white text-sm px-3 py-1 rounded-full font-bold">{pendingBills}</span>
               </div>
               <div 
                 onClick={() => navigate('/advances')}
