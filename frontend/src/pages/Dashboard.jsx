@@ -267,12 +267,12 @@ const TeamLeadDashboard = ({ user }) => {
               </div>
             </div>
             <div 
-              onClick={() => navigate('/overtime')}
+              onClick={() => navigate('/bills')}
               className="flex items-center justify-between p-3 bg-blue-50 rounded-xl cursor-pointer hover:bg-blue-100 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <Clock size={20} className="text-blue-600" />
-                <span className="font-medium">Overtime</span>
+                <Receipt size={20} className="text-blue-600" />
+                <span className="font-medium">Bill Submissions</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">{pendingOT}</span>
