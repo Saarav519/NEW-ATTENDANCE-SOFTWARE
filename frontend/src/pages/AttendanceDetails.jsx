@@ -195,12 +195,15 @@ const AttendanceDetails = () => {
                 const date = new Date(record.date);
                 const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
                 const dayNum = date.getDate();
+                const statusDisplay = getAttendanceStatusDisplay(record);
+                const StatusIcon = statusDisplay.icon;
                 
                 return (
                   <div 
                     key={record.id} 
                     className={`p-4 rounded-xl border ${
-                      record.status === 'present' ? 'border-green-200 bg-green-50/50' :
+                      record.attendance_status === 'full_day' || record.status === 'present' ? 'border-green-200 bg-green-50/50' :
+                      record.attendance_status === 'half_day' ? 'border-yellow-200 bg-yellow-50/50' :
                       record.status === 'leave' ? 'border-orange-200 bg-orange-50/50' :
                       'border-red-200 bg-red-50/50'
                     }`}
@@ -214,13 +217,21 @@ const AttendanceDetails = () => {
                           <p className="text-2xl font-bold text-gray-800">{dayNum}</p>
                         </div>
                         <div>
-                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                            record.status === 'present' ? 'bg-green-100 text-green-700' :
-                            record.status === 'leave' ? 'bg-orange-100 text-orange-700' :
-                            'bg-red-100 text-red-700'
-                          }`}>
-                            {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1 ${statusDisplay.color}`}>
+                              <StatusIcon size={12} />
+                              {statusDisplay.label}
+                            </span>
+                            {/* Shift Badge */}
+                            {record.shift_type && (
+                              <span className={`text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1 ${
+                                record.shift_type === 'day' ? 'bg-yellow-100 text-yellow-700' : 'bg-indigo-100 text-indigo-700'
+                              }`}>
+                                {record.shift_type === 'day' ? <Sun size={12} /> : <Moon size={12} />}
+                                {record.shift_type === 'day' ? 'Day' : 'Night'}
+                              </span>
+                            )}
+                          </div>
                           {record.punch_in && (
                             <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
                               <Clock size={14} />
@@ -231,6 +242,12 @@ const AttendanceDetails = () => {
                                 </span>
                               )}
                             </div>
+                          )}
+                          {/* Shift Timing */}
+                          {record.shift_start && record.shift_end && (
+                            <p className="text-xs text-gray-400 mt-1">
+                              Shift: {record.shift_start} - {record.shift_end}
+                            </p>
                           )}
                         </div>
                       </div>
