@@ -287,6 +287,65 @@ const Team = () => {
                   onChange={(e) => setQrForm({...qrForm, date: e.target.value})}
                 />
               </div>
+              
+              {/* Shift Selection */}
+              <div className="space-y-2">
+                <Label>Shift Type</Label>
+                <Select value={qrForm.shift_type} onValueChange={handleShiftChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select shift" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="day">
+                      <div className="flex items-center gap-2">
+                        <Sun size={16} className="text-yellow-500" />
+                        Day Shift (10:00 AM - 7:00 PM)
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="night">
+                      <div className="flex items-center gap-2">
+                        <Moon size={16} className="text-blue-500" />
+                        Night Shift (9:00 PM - 6:00 AM)
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Custom Shift Timing */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1">
+                    <Clock size={14} /> Shift Start
+                  </Label>
+                  <Input
+                    type="time"
+                    value={qrForm.shift_start}
+                    onChange={(e) => setQrForm({...qrForm, shift_start: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1">
+                    <Clock size={14} /> Shift End
+                  </Label>
+                  <Input
+                    type="time"
+                    value={qrForm.shift_end}
+                    onChange={(e) => setQrForm({...qrForm, shift_end: e.target.value})}
+                  />
+                </div>
+              </div>
+              
+              {/* Attendance Rules Info */}
+              <div className="bg-blue-50 rounded-lg p-3 text-xs text-blue-800">
+                <p className="font-semibold mb-1">Attendance Rules:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>On time (within 30 min) → <span className="text-green-600 font-medium">Full Day</span></li>
+                  <li>Late (30 min - 3 hours) → <span className="text-yellow-600 font-medium">Half Day</span></li>
+                  <li>Very Late (after 3 hours) → <span className="text-red-600 font-medium">Absent</span></li>
+                </ul>
+              </div>
+              
               <div className="space-y-2">
                 <Label>Location</Label>
                 <Input
@@ -307,7 +366,7 @@ const Team = () => {
                   onChange={(e) => setQrForm({...qrForm, conveyance_amount: e.target.value})}
                 />
                 <p className="text-xs text-gray-500">
-                  This amount will be added to employee's salary for this day
+                  Full amount for Full Day, half for Half Day
                 </p>
               </div>
               
