@@ -1132,7 +1132,7 @@ async def seed_database():
     await db.shift_templates.delete_many({})
     await db.shift_templates.insert_many(shift_templates)
     
-    # Seed leave balances for employees
+    # Seed leave balances for employees and team leads
     leave_balances = [
         {
             "emp_id": "EMP001",
@@ -1163,6 +1163,26 @@ async def seed_database():
             "casual_used": 0,
             "sick_used": 2,
             "vacation_used": 3
+        },
+        {
+            "emp_id": "TL001",
+            "year": 2026,
+            "casual_leave": 15,
+            "sick_leave": 8,
+            "vacation": 18,
+            "casual_used": 1,
+            "sick_used": 0,
+            "vacation_used": 2
+        },
+        {
+            "emp_id": "TL002",
+            "year": 2026,
+            "casual_leave": 15,
+            "sick_leave": 8,
+            "vacation": 18,
+            "casual_used": 2,
+            "sick_used": 1,
+            "vacation_used": 0
         }
     ]
     
