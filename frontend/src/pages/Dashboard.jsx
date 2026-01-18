@@ -52,7 +52,9 @@ const EmployeeDashboard = ({ user }) => {
       initScanner();
     }
     return () => {
-      if (scannerRef.current) {
+      // Only stop if scanner is actually running
+      if (scannerRef.current && isScannerRunning.current) {
+        isScannerRunning.current = false;
         scannerRef.current.stop().catch(() => {});
       }
     };
