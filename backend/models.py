@@ -236,3 +236,86 @@ class BusinessInfo(BaseModel):
     email: str = "admin@audixsolutions.com"
     phone: str = "+91 98765 43210"
     address: str = "Bangalore, India"
+
+# Profile Update Model
+class ProfileUpdate(BaseModel):
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    emergency_contact: Optional[str] = None
+    bank_account: Optional[str] = None
+    bank_ifsc: Optional[str] = None
+
+# Leave Balance Model
+class LeaveBalance(BaseModel):
+    casual_leave: int = 12
+    sick_leave: int = 6
+    vacation: int = 15
+    casual_used: int = 0
+    sick_used: int = 0
+    vacation_used: int = 0
+
+class LeaveBalanceResponse(LeaveBalance):
+    emp_id: str
+    year: int
+
+# Salary Advance Models
+class AdvanceStatus(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    DISBURSED = "disbursed"
+
+class SalaryAdvanceCreate(BaseModel):
+    emp_id: str
+    emp_name: str
+    amount: float
+    reason: str
+    repayment_months: int = 3  # Number of months to repay
+
+class SalaryAdvanceResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    emp_id: str
+    emp_name: str
+    amount: float
+    reason: str
+    repayment_months: int
+    monthly_deduction: float
+    status: AdvanceStatus
+    requested_on: str
+    approved_by: Optional[str] = None
+    approved_on: Optional[str] = None
+
+# Shift Template Models
+class ShiftTemplateCreate(BaseModel):
+    name: str
+    shift_type: ShiftType
+    shift_start: str
+    shift_end: str
+    grace_period_minutes: int = 30
+    half_day_cutoff_hours: int = 3
+    default_conveyance: float = 0
+
+class ShiftTemplateResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    shift_type: ShiftType
+    shift_start: str
+    shift_end: str
+    grace_period_minutes: int
+    half_day_cutoff_hours: int
+    default_conveyance: float
+    is_active: bool = True
+    created_by: str
+    created_at: str
+
+# Bulk Action Models
+class BulkApproveRequest(BaseModel):
+    ids: List[str]
+    approved_by: str
+
+class BulkRejectRequest(BaseModel):
+    ids: List[str]
+    rejected_by: str
+    reason: Optional[str] = None
