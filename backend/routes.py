@@ -359,7 +359,7 @@ async def create_bill_submission(bill: BillSubmissionCreate, emp_id: str, emp_na
     }
     
     await db.bills.insert_one(bill_doc)
-    del bill_doc["_id"] if "_id" in bill_doc else None
+    bill_doc.pop("_id", None)
     
     return BillSubmissionResponse(**bill_doc)
 
