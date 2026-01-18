@@ -49,6 +49,18 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 - Shows only **settled payslips**
 - PDF download using jsPDF
 
+### Phase 6: Attendance Details Section (Completed ✅) - January 2026
+- Year/Month dropdown selectors
+- Date-wise attendance records
+- Shows QR details (location, conveyance) per entry
+- Monthly summary stats
+
+### Phase 7: UI/UX Refinements (Completed ✅) - January 2026
+- **Attendance Details moved to Home page** - Inline section on Employee dashboard
+- **Payslip visible in mobile navigation** - 5-item bottom nav: Home, Attendance, Leaves, Bills, Payslip
+- **Punch In only on Home page** - Attendance page shows only records
+- **Back camera only for QR scan** - Using `facingMode: "environment"`
+
 ### Phase 8: Shift-Based Attendance & Salary (Completed ✅) - January 2026
 **Two Shift Types:**
 - **Day Shift**: Default 10:00 AM – 7:00 PM
@@ -70,17 +82,20 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 - Payslip shows: full_days, half_days, absent_days, attendance_adjustment
 - PDF includes attendance summary
 
-### Phase 6: Attendance Details Section (Completed ✅) - January 2026
-- Year/Month dropdown selectors
-- Date-wise attendance records
-- Shows QR details (location, conveyance) per entry
-- Monthly summary stats
+### Phase 9: Nice to Have Features (Completed ✅) - January 2026
+**Employee Self-Service:**
+- Profile editing page (`/profile`)
+- Leave balance viewing
+- Salary advance requests
 
-### Phase 7: UI/UX Refinements (Completed ✅) - January 2026
-- **Attendance Details moved to Home page** - Inline section on Employee dashboard
-- **Payslip visible in mobile navigation** - 5-item bottom nav: Home, Attendance, Leaves, Bills, Payslip
-- **Punch In only on Home page** - Attendance page shows only records
-- **Back camera only for QR scan** - Using `facingMode: "environment"`
+**Admin Controls:**
+- Bulk approve/reject leave requests
+- Shift templates management (`/shift-templates`)
+
+**Team Leader Capabilities:**
+- Direct punch-in without QR scan
+- Approve/reject leaves and bills for team
+- Access to own payslip ✅
 
 ---
 
@@ -109,6 +124,8 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 │   ├── Team.jsx              # QR generation
 │   ├── BillSubmission.jsx    # Expenses
 │   ├── Payslip.jsx           # PDF download
+│   ├── Profile.jsx           # User profile editing
+│   ├── ShiftTemplates.jsx    # Admin shift management
 │   └── ...
 └── components/
     └── Layout/
@@ -122,12 +139,17 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 |----------|--------|-------------|
 | /api/auth/login | POST | User authentication |
 | /api/users | GET/POST | User management |
+| /api/users/profile | PUT | Update user profile |
 | /api/qr-codes | GET/POST | QR generation |
 | /api/attendance/punch-in | POST | QR-based punch in |
+| /api/attendance/punch-in/direct | POST | Team Leader direct punch in |
 | /api/attendance/punch-out | POST | Punch out |
 | /api/attendance/{id}/monthly | GET | Monthly records |
 | /api/bills | GET/POST | Bill submission |
 | /api/bills/{id}/approve | PUT | Approve bill |
+| /api/leaves | GET/POST | Leave management |
+| /api/admin/leaves/bulk-action | POST | Bulk leave approval |
+| /api/admin/shift-templates | GET/POST | Shift template management |
 | /api/payslips/{id}/settled | GET | Settled payslips |
 | /api/payslips/{id}/download | GET | Download PDF |
 | /api/seed | POST | Seed database |
@@ -152,28 +174,38 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 
 ## Prioritized Backlog
 
-### P0 (Critical)
+### P0 (Critical) - All Completed ✅
 - ✅ QR-based attendance
 - ✅ Bill Submission module
 - ✅ Payslip PDF download
 - ✅ Salary Breakdown update
+- ✅ Shift-based attendance calculation
+- ✅ Team Leader payslip access
 
 ### P1 (Important)
+- [ ] Swipe gestures for approvals (Admin/Team Lead)
+- [ ] Offline QR scanning with sync
 - [ ] Real-time attendance sync
 - [ ] Push notifications for approvals
-- [ ] Admin payroll generation workflow
-- [ ] Employee profile edit
 
 ### P2 (Nice to Have)
+- [ ] Admin Dashboard analytics (charts/graphs)
 - [ ] Reports/Analytics dashboard
 - [ ] Export data to Excel
 - [ ] Multi-language support
 - [ ] Dark mode
+- [ ] Refactor Dashboard.jsx into role-specific components
+
+### Code Quality
+- [ ] Fix ESLint warnings (react-hooks/exhaustive-deps)
 
 ---
 
 ## Known Issues
 - None critical
+- Minor: Dashboard.jsx is 900+ lines - consider refactoring
+
+---
 
 ## Last Updated
-January 18, 2026
+January 18, 2026 - Verified Team Lead payslip access is working
