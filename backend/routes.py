@@ -155,7 +155,7 @@ async def create_qr_code(qr_data: QRCodeCreate):
     }
     
     await db.qr_codes.insert_one(qr_doc)
-    del qr_doc["_id"] if "_id" in qr_doc else None
+    qr_doc.pop("_id", None)
     
     return QRCodeResponse(**qr_doc)
 
