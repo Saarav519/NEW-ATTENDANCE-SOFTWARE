@@ -29,6 +29,7 @@ const EmployeeDashboard = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const scannerRef = useRef(null);
+  const isScannerRunning = useRef(false);
 
   const currentDate = new Date();
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 
