@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { attendanceAPI } from '../services/api';
 import { Card, CardContent } from '../components/ui/card';
+import { Button } from '../components/ui/button';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '../components/ui/select';
-import { Calendar, Clock, MapPin, IndianRupee, ChevronRight, Sun, Moon, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import { Calendar, Clock, MapPin, IndianRupee, ChevronRight, Sun, Moon, CheckCircle, AlertCircle, XCircle, Download } from 'lucide-react';
+import { exportAttendanceToExcel } from '../utils/exportUtils';
+import toast from 'react-hot-toast';
 
 const AttendanceDetails = () => {
   const { user } = useAuth();
