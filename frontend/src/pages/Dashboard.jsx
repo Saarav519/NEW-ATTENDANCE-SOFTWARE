@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import {
   Clock, Calendar, CalendarOff, Gift, LogIn, LogOut,
   CheckCircle, XCircle, TrendingUp, Users, UserCheck, UserX,
-  ArrowRight, ChevronRight
+  ArrowRight, ChevronRight, Receipt
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
