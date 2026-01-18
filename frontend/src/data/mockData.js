@@ -252,6 +252,7 @@ export const sidebarNavItems = {
     { id: "bills", label: "Bills", icon: "Receipt", path: "/bills" },
     { id: "advances", label: "Advances", icon: "Wallet", path: "/advances" },
     { id: "payroll", label: "Payroll", icon: "Banknote", path: "/payroll" },
+    { id: "shift-templates", label: "Shift Templates", icon: "Clock", path: "/shift-templates" },
     { id: "cashbook", label: "Cashbook", icon: "BookOpen", path: "/cashbook" },
     { id: "vehicles", label: "Vehicles", icon: "Car", path: "/vehicles" },
     { id: "holidays", label: "Holidays", icon: "Gift", path: "/holidays" },
@@ -263,6 +264,7 @@ export const sidebarNavItems = {
     { id: "team", label: "My Team", icon: "Users", path: "/team" },
     { id: "leaves", label: "Leaves", icon: "CalendarOff", path: "/leaves" },
     { id: "bills", label: "Bills", icon: "Receipt", path: "/bills" },
+    { id: "profile", label: "Profile", icon: "User", path: "/profile" },
   ],
   employee: [
     { id: "dashboard", label: "Home", icon: "Home", path: "/dashboard" },
@@ -270,5 +272,6 @@ export const sidebarNavItems = {
     { id: "leaves", label: "Leaves", icon: "CalendarOff", path: "/leaves" },
     { id: "bills", label: "Bills", icon: "Receipt", path: "/bills" },
     { id: "payslip", label: "Payslip", icon: "FileText", path: "/payslip" },
+    { id: "profile", label: "Profile", icon: "User", path: "/profile" },
   ]
 };
