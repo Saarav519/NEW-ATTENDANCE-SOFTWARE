@@ -585,6 +585,37 @@ const TeamLeadDashboard = ({ user }) => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Upcoming Holidays */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-gray-800">Upcoming Holidays</h3>
+            <button onClick={() => navigate('/holidays')} className="text-xs text-[#1E2A5E] flex items-center">
+              View All <ChevronRight size={14} />
+            </button>
+          </div>
+          <div className="space-y-2">
+            {holidays
+              .filter(h => new Date(h.date) >= new Date())
+              .sort((a, b) => new Date(a.date) - new Date(b.date))
+              .slice(0, 3)
+              .map((holiday) => (
+                <div key={holiday.id} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                  <div className="w-10 h-10 bg-white rounded-lg flex flex-col items-center justify-center shadow-sm">
+                    <span className="text-[10px] text-gray-500">{new Date(holiday.date).toLocaleString('default', { month: 'short' })}</span>
+                    <span className="text-sm font-bold text-gray-800">{new Date(holiday.date).getDate()}</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-sm text-gray-800">{holiday.name}</p>
+                    <p className="text-[10px] text-gray-500">{holiday.type}</p>
+                  </div>
+                  <Gift size={16} className="text-purple-500" />
+                </div>
+              ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
