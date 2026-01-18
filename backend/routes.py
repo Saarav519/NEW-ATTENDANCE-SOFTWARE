@@ -323,6 +323,55 @@ async def punch_in(data: AttendanceCreate, emp_id: str):
     
     return AttendanceResponse(**attendance_doc)
 
+# Direct punch-in for Team Leaders (without QR)
+@router.post("/attendance/direct-punch-in", response_model=AttendanceResponse)
+async def direct_punch_in(emp_id: str, location: str = "Office", shift_type: str = "day", shift_start: str = "10:00", shift_end: str = "19:00", conveyance_amount: float = 200):
+    """
+    Direct punch-in for Team Leaders without QR code.
+    Same attendance rules apply (full_day/half_day/absent based on punch time).
+    """
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    
+    # Check if already punched in today
+    existing = await db.attendance.find_one({"emp_id": emp_id, "date": today}, {"_id": 0})
+    if existing:
+        return AttendanceResponse(**existing)
+    
+    punch_in_time = datetime.now(timezone.utc).strftime("%H:%M")
+    
+    # Calculate attendance status based on punch-in time and shift
+    attendance_status = calculate_attendance_status(punch_in_time, shift_start, shift_end, shift_type)
+    
+    # Determine conveyance based on attendance status
+    if attendance_status == "full_day":
+        actual_conveyance = conveyance_amount
+    elif attendance_status == "half_day":
+        actual_conveyance = conveyance_amount / 2
+    else:
+        actual_conveyance = 0
+    
+    attendance_doc = {
+        "id": generate_id(),
+        "emp_id": emp_id,
+        "date": today,
+        "punch_in": punch_in_time,
+        "punch_out": None,
+        "status": "present" if attendance_status != "absent" else "absent",
+        "attendance_status": attendance_status,
+        "work_hours": 0,
+        "qr_code_id": None,
+        "location": location,
+        "conveyance_amount": actual_conveyance,
+        "shift_type": shift_type,
+        "shift_start": shift_start,
+        "shift_end": shift_end
+    }
+    
+    await db.attendance.insert_one(attendance_doc)
+    attendance_doc.pop("_id", None)
+    
+    return AttendanceResponse(**attendance_doc)
+
 @router.post("/attendance/punch-out", response_model=AttendanceResponse)
 async def punch_out(data: AttendancePunchOut):
     attendance = await db.attendance.find_one(
