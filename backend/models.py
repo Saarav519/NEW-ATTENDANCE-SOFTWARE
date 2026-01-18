@@ -35,6 +35,16 @@ class PayslipStatus(str, Enum):
     PAID = "paid"
     SETTLED = "settled"
 
+class ShiftType(str, Enum):
+    DAY = "day"
+    NIGHT = "night"
+
+class AttendanceStatus(str, Enum):
+    FULL_DAY = "full_day"
+    HALF_DAY = "half_day"
+    ABSENT = "absent"
+    PRESENT = "present"  # Legacy status
+
 # User Models
 class UserBase(BaseModel):
     name: str
