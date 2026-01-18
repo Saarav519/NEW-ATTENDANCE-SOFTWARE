@@ -271,6 +271,12 @@ const Payslip = () => {
                         <span className="font-semibold text-blue-600">+₹{breakdown.extra_conveyance.toLocaleString()}</span>
                       </div>
                     )}
+                    {(breakdown.audit_expenses || 0) > 0 && (
+                      <div className="flex justify-between items-center p-3 bg-purple-50 rounded-xl">
+                        <span className="text-gray-700">Audit Expenses (Reimbursement)</span>
+                        <span className="font-semibold text-purple-600">+₹{breakdown.audit_expenses.toLocaleString()}</span>
+                      </div>
+                    )}
                     {(breakdown.previous_pending_allowances || 0) > 0 && (
                       <div className="flex justify-between items-center p-3 bg-green-50 rounded-xl">
                         <span className="text-gray-700">Previous Pending Allowances</span>
