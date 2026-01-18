@@ -169,10 +169,14 @@ const EmployeeDashboard = ({ user }) => {
   };
 
   const closeScanner = async () => {
-    if (scannerRef.current) {
+    // Only stop if scanner is actually running
+    if (scannerRef.current && isScannerRunning.current) {
+      isScannerRunning.current = false;
       try {
         await scannerRef.current.stop();
-      } catch (e) {}
+      } catch (e) {
+        // Ignore stop errors
+      }
     }
     setShowQRScanner(false);
   };
