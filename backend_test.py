@@ -229,6 +229,165 @@ def test_qr_code_apis():
     except Exception as e:
         log_test("Get QR Codes", False, f"Exception: {str(e)}")
 
+def test_shift_based_qr_codes():
+    """Test new shift-based QR code features"""
+    print("=" * 60)
+    print("TESTING: Shift-Based QR Code Features")
+    print("=" * 60)
+    
+    global qr_code_data
+    
+    # Test 1: Create Day Shift QR (10:00-19:00)
+    try:
+        day_shift_qr = {
+            "location": "Main Office",
+            "conveyance_amount": 200,
+            "date": "2026-01-18",
+            "created_by": "TL001",
+            "shift_type": "day",
+            "shift_start": "10:00",
+            "shift_end": "19:00"
+        }
+        response = requests.post(f"{API_URL}/qr-codes", json=day_shift_qr)
+        if response.status_code == 200:
+            qr_response = response.json()
+            # Verify shift info is included in response
+            if (qr_response.get("shift_type") == "day" and 
+                qr_response.get("shift_start") == "10:00" and 
+                qr_response.get("shift_end") == "19:00"):
+                qr_code_data = qr_response.get("qr_data")
+                log_test("Create Day Shift QR", True, f"Day shift QR created with shift info: {qr_response.get('shift_type')} {qr_response.get('shift_start')}-{qr_response.get('shift_end')}")
+            else:
+                log_test("Create Day Shift QR", False, "Shift information missing in response")
+        else:
+            log_test("Create Day Shift QR", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Create Day Shift QR", False, f"Exception: {str(e)}")
+    
+    # Test 2: Create Night Shift QR (21:00-06:00)
+    try:
+        night_shift_qr = {
+            "location": "Night Site",
+            "conveyance_amount": 300,
+            "date": "2026-01-18",
+            "created_by": "TL001",
+            "shift_type": "night",
+            "shift_start": "21:00",
+            "shift_end": "06:00"
+        }
+        response = requests.post(f"{API_URL}/qr-codes", json=night_shift_qr)
+        if response.status_code == 200:
+            qr_response = response.json()
+            # Verify shift info is included in response
+            if (qr_response.get("shift_type") == "night" and 
+                qr_response.get("shift_start") == "21:00" and 
+                qr_response.get("shift_end") == "06:00"):
+                log_test("Create Night Shift QR", True, f"Night shift QR created with shift info: {qr_response.get('shift_type')} {qr_response.get('shift_start')}-{qr_response.get('shift_end')}")
+            else:
+                log_test("Create Night Shift QR", False, "Shift information missing in response")
+        else:
+            log_test("Create Night Shift QR", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Create Night Shift QR", False, f"Exception: {str(e)}")
+    
+    # Test 3: Verify QR data includes shift information
+    if qr_code_data:
+        try:
+            qr_info = json.loads(qr_code_data)
+            required_fields = ["shift_type", "shift_start", "shift_end"]
+            missing_fields = [field for field in required_fields if field not in qr_info]
+            
+            if not missing_fields:
+                log_test("QR Data Contains Shift Info", True, f"QR includes: shift_type={qr_info.get('shift_type')}, shift_start={qr_info.get('shift_start')}, shift_end={qr_info.get('shift_end')}")
+            else:
+                log_test("QR Data Contains Shift Info", False, f"Missing fields in QR data: {missing_fields}")
+        except Exception as e:
+            log_test("QR Data Contains Shift Info", False, f"Exception parsing QR data: {str(e)}")
+
+def test_shift_based_attendance():
+    """Test shift-based attendance status calculation"""
+    print("=" * 60)
+    print("TESTING: Shift-Based Attendance Status")
+    print("=" * 60)
+    
+    if not qr_code_data:
+        log_test("Shift-Based Attendance Tests", False, "No QR code data available for testing")
+        return
+    
+    # Test attendance with different scan times to verify status calculation
+    try:
+        punch_in_data = {"qr_data": qr_code_data}
+        response = requests.post(f"{API_URL}/attendance/punch-in?emp_id=EMP001", json=punch_in_data)
+        if response.status_code == 200:
+            attendance = response.json()
+            
+            # Verify attendance_status field exists and has valid value
+            attendance_status = attendance.get("attendance_status")
+            valid_statuses = ["full_day", "half_day", "absent"]
+            
+            if attendance_status in valid_statuses:
+                log_test("Attendance Status Calculation", True, f"Attendance status: {attendance_status}, Conveyance: ₹{attendance.get('conveyance_amount', 0)}")
+                
+                # Verify conveyance adjustment based on status
+                original_conveyance = 200  # From day shift QR
+                actual_conveyance = attendance.get("conveyance_amount", 0)
+                
+                if attendance_status == "full_day" and actual_conveyance == original_conveyance:
+                    log_test("Full Day Conveyance", True, f"Full conveyance ₹{actual_conveyance} for full_day status")
+                elif attendance_status == "half_day" and actual_conveyance == original_conveyance / 2:
+                    log_test("Half Day Conveyance", True, f"Half conveyance ₹{actual_conveyance} for half_day status")
+                elif attendance_status == "absent" and actual_conveyance == 0:
+                    log_test("Absent Conveyance", True, f"No conveyance ₹{actual_conveyance} for absent status")
+                else:
+                    log_test("Conveyance Adjustment", False, f"Incorrect conveyance ₹{actual_conveyance} for status {attendance_status}")
+                
+            else:
+                log_test("Attendance Status Calculation", False, f"Invalid attendance status: {attendance_status}")
+        else:
+            log_test("Attendance Status Calculation", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Attendance Status Calculation", False, f"Exception: {str(e)}")
+
+def test_shift_based_payslip():
+    """Test payslip generation with shift-based attendance breakdown"""
+    print("=" * 60)
+    print("TESTING: Shift-Based Payslip Generation")
+    print("=" * 60)
+    
+    try:
+        payslip_data = {
+            "emp_id": "EMP001",
+            "month": "January",
+            "year": 2026
+        }
+        response = requests.post(f"{API_URL}/payslips/generate", json=payslip_data)
+        if response.status_code == 200:
+            payslip = response.json()
+            breakdown = payslip.get("breakdown", {})
+            
+            # Verify new attendance breakdown fields
+            required_fields = ["full_days", "half_days", "absent_days", "attendance_adjustment"]
+            missing_fields = [field for field in required_fields if field not in breakdown]
+            
+            if not missing_fields:
+                log_test("Payslip Attendance Breakdown", True, 
+                        f"Full days: {breakdown.get('full_days')}, Half days: {breakdown.get('half_days')}, "
+                        f"Absent days: {breakdown.get('absent_days')}, Adjustment: ₹{breakdown.get('attendance_adjustment')}")
+            else:
+                log_test("Payslip Attendance Breakdown", False, f"Missing fields in payslip breakdown: {missing_fields}")
+                
+            # Verify net pay calculation includes attendance adjustment
+            net_pay = breakdown.get("net_pay", 0)
+            if net_pay > 0:
+                log_test("Payslip Net Pay Calculation", True, f"Net pay calculated: ₹{net_pay}")
+            else:
+                log_test("Payslip Net Pay Calculation", False, "Net pay calculation failed")
+                
+        else:
+            log_test("Shift-Based Payslip Generation", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Shift-Based Payslip Generation", False, f"Exception: {str(e)}")
+
 def test_attendance_apis():
     """Test attendance APIs"""
     print("=" * 60)
