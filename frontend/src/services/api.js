@@ -313,6 +313,11 @@ export const auditExpenseAPI = {
     return apiCall(`/audit-expenses?${params}`);
   },
   getById: (expenseId) => apiCall(`/audit-expenses/${expenseId}`),
+  update: (expenseId, expenseData, empId) => 
+    apiCall(`/audit-expenses/${expenseId}?emp_id=${empId}`, {
+      method: 'PUT',
+      body: JSON.stringify(expenseData),
+    }),
   approve: (expenseId, approvedBy, approvedAmount) => {
     const params = new URLSearchParams();
     params.append('approved_by', approvedBy);
