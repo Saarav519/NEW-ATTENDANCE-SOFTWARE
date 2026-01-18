@@ -263,8 +263,8 @@ export const sidebarNavItems = {
     { id: "team", label: "My Team", icon: "Users", path: "/team" },
     { id: "leaves", label: "Leaves", icon: "CalendarOff", path: "/leaves" },
     { id: "bills", label: "Bills", icon: "Receipt", path: "/bills" },
+    { id: "payslip", label: "Payslip", icon: "FileText", path: "/payslip" },
     { id: "profile", label: "Profile", icon: "User", path: "/profile" },
-    { id: "my-attendance", label: "My Attendance", icon: "CalendarCheck", path: "/my-attendance" },
   ],
   employee: [
     { id: "dashboard", label: "Home", icon: "Home", path: "/dashboard" },
