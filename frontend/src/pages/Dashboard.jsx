@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { attendanceAPI } from '../services/api';
-import { leaveRequests, holidays, users } from '../data/mockData';
+import { attendanceAPI, leaveAPI, holidayAPI } from '../services/api';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import {
@@ -17,6 +16,7 @@ import {
   ArrowRight, ChevronRight, Receipt, QrCode, MapPin, IndianRupee, Camera, X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 // Employee Dashboard - Mobile First with QR Punch In & Attendance Details
 const EmployeeDashboard = ({ user }) => {
