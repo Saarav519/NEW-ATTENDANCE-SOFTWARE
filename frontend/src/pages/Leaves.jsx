@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { leaveAPI, bulkAPI } from '../services/api';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -46,7 +46,6 @@ const Leaves = () => {
     }
     
     try {
-      // Admin/TL sees all leaves, employee sees only their own
       const empId = (isAdmin || isTeamLead) ? null : user.id;
       const data = await leaveAPI.getAll(empId);
       setLeaves(data || []);
@@ -90,7 +89,7 @@ const Leaves = () => {
     
     setSubmitting(true);
     try {
-      const leaveData = {
+      await leaveAPI.create({
         emp_id: user.id,
         emp_name: user.name,
         type: newLeave.type,
@@ -98,9 +97,7 @@ const Leaves = () => {
         to_date: newLeave.to_date,
         days,
         reason: newLeave.reason
-      };
-      
-      await leaveAPI.create(leaveData);
+      });
       toast.success('Leave request submitted successfully!');
       setNewLeave({ type: 'Casual Leave', from_date: '', to_date: '', reason: '' });
       setIsAddDialogOpen(false);
@@ -115,10 +112,10 @@ const Leaves = () => {
   const handleApprove = async (id) => {
     try {
       await leaveAPI.approve(id, user.id);
-      toast.success('Leave approved successfully!');
+      toast.success('Leave approved!');
       await loadLeaves();
     } catch (error) {
-      toast.error(error.message || 'Failed to approve leave');
+      toast.error(error.message || 'Failed to approve');
     }
   };
 
@@ -128,29 +125,21 @@ const Leaves = () => {
       toast.success('Leave rejected');
       await loadLeaves();
     } catch (error) {
-      toast.error(error.message || 'Failed to reject leave');
+      toast.error(error.message || 'Failed to reject');
     }
   };
 
-  // Bulk actions
   const handleSelectAll = () => {
     const pendingIds = filteredLeaves.filter(l => l.status === 'pending').map(l => l.id);
-    if (selectedIds.length === pendingIds.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(pendingIds);
-    }
+    setSelectedIds(selectedIds.length === pendingIds.length ? [] : pendingIds);
   };
 
   const handleSelect = (id) => {
-    setSelectedIds(prev => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    );
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
   const handleBulkApprove = async () => {
     if (selectedIds.length === 0) return;
-    
     setBulkProcessing(true);
     try {
       const result = await bulkAPI.approveLeaves(selectedIds, user.id);
@@ -158,7 +147,7 @@ const Leaves = () => {
       setSelectedIds([]);
       await loadLeaves();
     } catch (error) {
-      toast.error(error.message || 'Failed to approve leaves');
+      toast.error(error.message || 'Failed to approve');
     } finally {
       setBulkProcessing(false);
     }
@@ -166,7 +155,6 @@ const Leaves = () => {
 
   const handleBulkReject = async () => {
     if (selectedIds.length === 0) return;
-    
     setBulkProcessing(true);
     try {
       const result = await bulkAPI.rejectLeaves(selectedIds, user.id);
@@ -174,7 +162,7 @@ const Leaves = () => {
       setSelectedIds([]);
       await loadLeaves();
     } catch (error) {
-      toast.error(error.message || 'Failed to reject leaves');
+      toast.error(error.message || 'Failed to reject');
     } finally {
       setBulkProcessing(false);
     }
@@ -197,12 +185,7 @@ const Leaves = () => {
           <p className="text-gray-500">{(isAdmin || isTeamLead) ? 'Manage employee leaves' : 'Apply for leave'}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => loadLeaves(true)}
-            disabled={refreshing}
-          >
+          <Button variant="outline" size="icon" onClick={() => loadLeaves(true)} disabled={refreshing}>
             <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
           </Button>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -216,74 +199,55 @@ const Leaves = () => {
                 <DialogTitle>Apply for Leave</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Leave Type</Label>
-                <Select value={newLeave.type} onValueChange={(v) => setNewLeave({...newLeave, type: v})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select leave type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Casual Leave">Casual Leave</SelectItem>
-                    <SelectItem value="Sick Leave">Sick Leave</SelectItem>
-                    <SelectItem value="Vacation">Vacation</SelectItem>
-                    <SelectItem value="Personal">Personal</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>From Date</Label>
-                  <Input
-                    type="date"
-                    value={newLeave.from_date}
-                    onChange={(e) => setNewLeave({...newLeave, from_date: e.target.value})}
-                  />
+                  <Label>Leave Type</Label>
+                  <Select value={newLeave.type} onValueChange={(v) => setNewLeave({...newLeave, type: v})}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Casual Leave">Casual Leave</SelectItem>
+                      <SelectItem value="Sick Leave">Sick Leave</SelectItem>
+                      <SelectItem value="Vacation">Vacation</SelectItem>
+                      <SelectItem value="Personal">Personal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>From Date</Label>
+                    <Input type="date" value={newLeave.from_date} onChange={(e) => setNewLeave({...newLeave, from_date: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>To Date</Label>
+                    <Input type="date" value={newLeave.to_date} onChange={(e) => setNewLeave({...newLeave, to_date: e.target.value})} />
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>To Date</Label>
-                  <Input
-                    type="date"
-                    value={newLeave.to_date}
-                    onChange={(e) => setNewLeave({...newLeave, to_date: e.target.value})}
-                  />
+                  <Label>Reason</Label>
+                  <Textarea placeholder="Enter reason" value={newLeave.reason} onChange={(e) => setNewLeave({...newLeave, reason: e.target.value})} />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Reason</Label>
-                <Textarea
-                  placeholder="Enter reason for leave"
-                  value={newLeave.reason}
-                  onChange={(e) => setNewLeave({...newLeave, reason: e.target.value})}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-              </DialogClose>
-              <Button 
-                onClick={handleAddLeave} 
-                className="bg-[#1E2A5E] hover:bg-[#2D3A8C]"
-                disabled={submitting}
-              >
-                {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                Submit Request
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <DialogFooter>
+                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                <Button onClick={handleAddLeave} className="bg-[#1E2A5E] hover:bg-[#2D3A8C]" disabled={submitting}>
+                  {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                  Submit
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats - Admin/TL only */}
       {(isAdmin || isTeamLead) && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <Card>
             <CardContent className="p-4 flex items-center gap-4">
               <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
                 <Clock size={24} className="text-yellow-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-800">{totalPendingCount}</p>
+                <p className="text-2xl font-bold">{totalPendingCount}</p>
                 <p className="text-sm text-gray-500">Pending</p>
               </div>
             </CardContent>
@@ -294,7 +258,7 @@ const Leaves = () => {
                 <Check size={24} className="text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-800">{approvedCount}</p>
+                <p className="text-2xl font-bold">{approvedCount}</p>
                 <p className="text-sm text-gray-500">Approved</p>
               </div>
             </CardContent>
@@ -305,7 +269,7 @@ const Leaves = () => {
                 <X size={24} className="text-red-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-800">{rejectedCount}</p>
+                <p className="text-2xl font-bold">{rejectedCount}</p>
                 <p className="text-sm text-gray-500">Rejected</p>
               </div>
             </CardContent>
@@ -318,9 +282,7 @@ const Leaves = () => {
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Filter" />
-              </SelectTrigger>
+              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Requests</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
@@ -329,38 +291,20 @@ const Leaves = () => {
               </SelectContent>
             </Select>
             
-            {/* Bulk Actions - Admin/TL only */}
             {(isAdmin || isTeamLead) && pendingCount > 0 && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSelectAll}
-                  className="flex items-center gap-2"
-                >
-                  <CheckSquare size={16} />
-                  {selectedIds.length === pendingCount ? 'Deselect All' : 'Select All Pending'}
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button variant="outline" size="sm" onClick={handleSelectAll}>
+                  <CheckSquare size={16} className="mr-1" />
+                  {selectedIds.length === pendingCount ? 'Deselect' : 'Select All'}
                 </Button>
                 {selectedIds.length > 0 && (
                   <>
                     <span className="text-sm text-gray-500">{selectedIds.length} selected</span>
-                    <Button
-                      size="sm"
-                      onClick={handleBulkApprove}
-                      className="bg-green-600 hover:bg-green-700"
-                      disabled={bulkProcessing}
-                    >
-                      {bulkProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check size={16} />}
-                      <span className="ml-1">Approve All</span>
+                    <Button size="sm" onClick={handleBulkApprove} className="bg-green-600 hover:bg-green-700" disabled={bulkProcessing}>
+                      <Check size={16} className="mr-1" /> Approve
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={handleBulkReject}
-                      disabled={bulkProcessing}
-                    >
-                      {bulkProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <X size={16} />}
-                      <span className="ml-1">Reject All</span>
+                    <Button size="sm" variant="destructive" onClick={handleBulkReject} disabled={bulkProcessing}>
+                      <X size={16} className="mr-1" /> Reject
                     </Button>
                   </>
                 )}
@@ -370,7 +314,7 @@ const Leaves = () => {
         </CardContent>
       </Card>
 
-      {/* Leave Requests */}
+      {/* Leave List */}
       <div className="space-y-4">
         {filteredLeaves.length === 0 ? (
           <Card>
@@ -385,13 +329,8 @@ const Leaves = () => {
               <CardContent className="p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-start gap-4">
-                    {/* Checkbox for bulk selection */}
                     {(isAdmin || isTeamLead) && leave.status === 'pending' && (
-                      <Checkbox
-                        checked={selectedIds.includes(leave.id)}
-                        onCheckedChange={() => handleSelect(leave.id)}
-                        className="mt-3"
-                      />
+                      <Checkbox checked={selectedIds.includes(leave.id)} onCheckedChange={() => handleSelect(leave.id)} className="mt-3" />
                     )}
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold">
                       {leave.emp_name?.split(' ').map(n => n[0]).join('') || 'U'}
@@ -400,10 +339,7 @@ const Leaves = () => {
                       <h3 className="font-semibold text-gray-800">{leave.emp_name}</h3>
                       <p className="text-sm text-gray-500">{leave.type}</p>
                       <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-                        <span className="flex items-center gap-1">
-                          <Calendar size={14} />
-                          {leave.from_date} to {leave.to_date}
-                        </span>
+                        <span className="flex items-center gap-1"><Calendar size={14} /> {leave.from_date} to {leave.to_date}</span>
                         <span className="bg-gray-100 px-2 py-0.5 rounded">{leave.days} day(s)</span>
                       </div>
                       <p className="text-sm text-gray-600 mt-2">{leave.reason}</p>
@@ -412,25 +348,16 @@ const Leaves = () => {
                   <div className="flex items-center gap-3">
                     <span className={`text-xs px-3 py-1 rounded-full font-medium ${
                       leave.status === 'approved' ? 'bg-green-100 text-green-700' :
-                      leave.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-red-100 text-red-700'
+                      leave.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
                     }`}>
                       {leave.status}
                     </span>
                     {(isAdmin || isTeamLead) && leave.status === 'pending' && (
                       <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => handleApprove(leave.id)}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
+                        <Button size="sm" onClick={() => handleApprove(leave.id)} className="bg-green-600 hover:bg-green-700">
                           <Check size={16} />
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleReject(leave.id)}
-                        >
+                        <Button size="sm" variant="destructive" onClick={() => handleReject(leave.id)}>
                           <X size={16} />
                         </Button>
                       </div>
