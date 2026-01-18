@@ -334,6 +334,7 @@ class AuditExpenseStatus(str, Enum):
     APPROVED = "approved"
     REJECTED = "rejected"
     PARTIALLY_APPROVED = "partially_approved"
+    REVALIDATION = "revalidation"  # Admin requests Team Lead to fix and resubmit
 
 class AuditExpenseItemBase(BaseModel):
     date: str
