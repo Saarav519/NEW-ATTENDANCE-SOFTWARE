@@ -8,10 +8,11 @@ import Dashboard from "./pages/Dashboard";
 import Employees from "./pages/Employees";
 import Attendance from "./pages/Attendance";
 import MyAttendance from "./pages/MyAttendance";
+import AttendanceDetails from "./pages/AttendanceDetails";
 import Team from "./pages/Team";
 import TeamAttendance from "./pages/TeamAttendance";
 import Leaves from "./pages/Leaves";
-import Overtime from "./pages/Overtime";
+import BillSubmission from "./pages/BillSubmission";
 import Advances from "./pages/Advances";
 import Payroll from "./pages/Payroll";
 import Payslip from "./pages/Payslip";
@@ -32,10 +33,11 @@ function App() {
             <Route path="employees" element={<Employees />} />
             <Route path="attendance" element={<Attendance />} />
             <Route path="my-attendance" element={<MyAttendance />} />
+            <Route path="attendance-details" element={<AttendanceDetails />} />
             <Route path="team" element={<Team />} />
             <Route path="team-attendance" element={<TeamAttendance />} />
             <Route path="leaves" element={<Leaves />} />
-            <Route path="overtime" element={<Overtime />} />
+            <Route path="bills" element={<BillSubmission />} />
             <Route path="advances" element={<Advances />} />
             <Route path="payroll" element={<Payroll />} />
             <Route path="payslip" element={<Payslip />} />
