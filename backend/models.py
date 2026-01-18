@@ -319,3 +319,52 @@ class BulkRejectRequest(BaseModel):
     ids: List[str]
     rejected_by: str
     reason: Optional[str] = None
+
+# Audit Expense Models
+class AuditExpenseCategory(str, Enum):
+    TICKETS = "tickets"  # Flight/Train/Bus
+    TRAVEL = "travel"    # Local transport/Cab
+    FOOD = "food"
+    HOTEL = "hotel"      # Accommodation
+    OTHER = "other"
+
+class AuditExpenseStatus(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    PARTIALLY_APPROVED = "partially_approved"
+
+class AuditExpenseItemBase(BaseModel):
+    date: str
+    category: AuditExpenseCategory
+    location: str
+    amount: float
+    description: str
+    receipt_url: Optional[str] = None
+
+class AuditExpenseCreate(BaseModel):
+    items: List[AuditExpenseItemBase]
+    trip_purpose: str
+    trip_location: str
+    trip_start_date: str
+    trip_end_date: str
+    remarks: Optional[str] = None
+
+class AuditExpenseResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    emp_id: str
+    emp_name: str
+    items: List[AuditExpenseItemBase]
+    total_amount: float
+    trip_purpose: str
+    trip_location: str
+    trip_start_date: str
+    trip_end_date: str
+    remarks: Optional[str] = None
+    status: AuditExpenseStatus = AuditExpenseStatus.PENDING
+    approved_amount: float = 0
+    submitted_on: str
+    approved_by: Optional[str] = None
+    approved_on: Optional[str] = None
+    rejection_reason: Optional[str] = None
