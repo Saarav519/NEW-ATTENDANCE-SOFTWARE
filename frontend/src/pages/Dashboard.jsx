@@ -783,7 +783,7 @@ const AdminDashboard = ({ user }) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Total Staff</p>
-                <p className="text-2xl lg:text-3xl font-bold text-gray-800">{activeEmployees.length}</p>
+                <p className="text-2xl lg:text-3xl font-bold text-gray-800">{stats.totalEmployees}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
                 <Users size={24} className="text-blue-600" />
@@ -796,7 +796,7 @@ const AdminDashboard = ({ user }) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Present Today</p>
-                <p className="text-2xl lg:text-3xl font-bold text-green-600">{presentToday}</p>
+                <p className="text-2xl lg:text-3xl font-bold text-green-600">{stats.presentToday}</p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
                 <UserCheck size={24} className="text-green-600" />
@@ -809,7 +809,7 @@ const AdminDashboard = ({ user }) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">On Leave</p>
-                <p className="text-2xl lg:text-3xl font-bold text-orange-600">{onLeave}</p>
+                <p className="text-2xl lg:text-3xl font-bold text-orange-600">{stats.onLeave}</p>
               </div>
               <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
                 <CalendarOff size={24} className="text-orange-600" />
@@ -817,12 +817,12 @@ const AdminDashboard = ({ user }) => {
             </div>
           </CardContent>
         </Card>
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/attendance')}>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/leaves')}>
           <CardContent className="p-4 lg:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Absent</p>
-                <p className="text-2xl lg:text-3xl font-bold text-red-600">1</p>
+                <p className="text-sm text-gray-500">Pending Leaves</p>
+                <p className="text-2xl lg:text-3xl font-bold text-red-600">{stats.pendingLeaves}</p>
               </div>
               <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
                 <UserX size={24} className="text-red-600" />
