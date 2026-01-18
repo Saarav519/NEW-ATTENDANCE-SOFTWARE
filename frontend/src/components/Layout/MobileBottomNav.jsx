@@ -17,8 +17,9 @@ const iconMap = {
 const MobileBottomNav = () => {
   const { role } = useAuth();
   
-  // Get nav items based on role
-  const navItems = sidebarNavItems[role] || sidebarNavItems.employee;
+  // Get nav items based on role - limit to 5 for mobile
+  const allNavItems = sidebarNavItems[role] || sidebarNavItems.employee;
+  const navItems = allNavItems.slice(0, 5);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 lg:hidden z-50 safe-area-bottom">
