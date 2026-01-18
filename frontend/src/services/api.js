@@ -81,6 +81,17 @@ export const attendanceAPI = {
       method: 'POST',
       body: JSON.stringify({ qr_data: qrData }),
     }),
+  directPunchIn: (empId, location, shiftType, shiftStart, shiftEnd, conveyance) => {
+    const params = new URLSearchParams({
+      emp_id: empId,
+      location: location || 'Office',
+      shift_type: shiftType || 'day',
+      shift_start: shiftStart || '10:00',
+      shift_end: shiftEnd || '19:00',
+      conveyance_amount: conveyance || 200
+    });
+    return apiCall(`/attendance/direct-punch-in?${params}`, { method: 'POST' });
+  },
   punchOut: (empId, date) => 
     apiCall('/attendance/punch-out', {
       method: 'POST',
