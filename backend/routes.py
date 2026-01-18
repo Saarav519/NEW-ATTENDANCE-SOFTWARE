@@ -953,4 +953,381 @@ async def seed_database():
     
     await db.payslips.insert_many(settled_payslips)
     
+    # Seed default shift templates
+    shift_templates = [
+        {
+            "id": "SHIFT001",
+            "name": "Day Shift (Standard)",
+            "shift_type": "day",
+            "shift_start": "10:00",
+            "shift_end": "19:00",
+            "grace_period_minutes": 30,
+            "half_day_cutoff_hours": 3,
+            "default_conveyance": 200,
+            "is_active": True,
+            "created_by": "ADMIN001",
+            "created_at": get_utc_now_str()
+        },
+        {
+            "id": "SHIFT002",
+            "name": "Night Shift (Standard)",
+            "shift_type": "night",
+            "shift_start": "21:00",
+            "shift_end": "06:00",
+            "grace_period_minutes": 30,
+            "half_day_cutoff_hours": 3,
+            "default_conveyance": 300,
+            "is_active": True,
+            "created_by": "ADMIN001",
+            "created_at": get_utc_now_str()
+        },
+        {
+            "id": "SHIFT003",
+            "name": "Morning Shift",
+            "shift_type": "day",
+            "shift_start": "06:00",
+            "shift_end": "14:00",
+            "grace_period_minutes": 15,
+            "half_day_cutoff_hours": 2,
+            "default_conveyance": 150,
+            "is_active": True,
+            "created_by": "ADMIN001",
+            "created_at": get_utc_now_str()
+        }
+    ]
+    
+    await db.shift_templates.delete_many({})
+    await db.shift_templates.insert_many(shift_templates)
+    
+    # Seed leave balances for employees
+    leave_balances = [
+        {
+            "emp_id": "EMP001",
+            "year": 2026,
+            "casual_leave": 12,
+            "sick_leave": 6,
+            "vacation": 15,
+            "casual_used": 2,
+            "sick_used": 1,
+            "vacation_used": 0
+        },
+        {
+            "emp_id": "EMP002",
+            "year": 2026,
+            "casual_leave": 12,
+            "sick_leave": 6,
+            "vacation": 15,
+            "casual_used": 3,
+            "sick_used": 0,
+            "vacation_used": 5
+        },
+        {
+            "emp_id": "EMP003",
+            "year": 2026,
+            "casual_leave": 12,
+            "sick_leave": 6,
+            "vacation": 15,
+            "casual_used": 0,
+            "sick_used": 2,
+            "vacation_used": 3
+        }
+    ]
+    
+    await db.leave_balances.delete_many({})
+    await db.leave_balances.insert_many(leave_balances)
+    
     return {"message": "Database seeded successfully"}
+
+# ==================== PROFILE ROUTES ====================
+
+@router.put("/users/{user_id}/profile")
+async def update_profile(user_id: str, profile: ProfileUpdate):
+    """Update user profile (phone, address, etc.)"""
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    update_data = {k: v for k, v in profile.dict().items() if v is not None}
+    if update_data:
+        await db.users.update_one({"id": user_id}, {"$set": update_data})
+    
+    updated_user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
+    return updated_user
+
+@router.post("/users/{user_id}/photo")
+async def upload_profile_photo(user_id: str, photo: UploadFile = File(...)):
+    """Upload profile photo"""
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Read and encode photo
+    contents = await photo.read()
+    if len(contents) > 2 * 1024 * 1024:  # 2MB limit
+        raise HTTPException(status_code=400, detail="Photo size must be less than 2MB")
+    
+    photo_base64 = base64.b64encode(contents).decode()
+    photo_data = f"data:{photo.content_type};base64,{photo_base64}"
+    
+    await db.users.update_one({"id": user_id}, {"$set": {"photo": photo_data}})
+    
+    return {"message": "Photo uploaded successfully", "photo": photo_data}
+
+# ==================== LEAVE BALANCE ROUTES ====================
+
+@router.get("/leave-balance/{emp_id}", response_model=LeaveBalanceResponse)
+async def get_leave_balance(emp_id: str, year: int = None):
+    """Get employee leave balance for a year"""
+    if year is None:
+        year = datetime.now().year
+    
+    balance = await db.leave_balances.find_one(
+        {"emp_id": emp_id, "year": year}, {"_id": 0}
+    )
+    
+    if not balance:
+        # Return default balance
+        balance = {
+            "emp_id": emp_id,
+            "year": year,
+            "casual_leave": 12,
+            "sick_leave": 6,
+            "vacation": 15,
+            "casual_used": 0,
+            "sick_used": 0,
+            "vacation_used": 0
+        }
+        await db.leave_balances.insert_one(balance)
+    
+    return LeaveBalanceResponse(**balance)
+
+@router.put("/leave-balance/{emp_id}")
+async def update_leave_balance(emp_id: str, leave_type: str, days: int, year: int = None):
+    """Update leave balance when leave is approved"""
+    if year is None:
+        year = datetime.now().year
+    
+    field_map = {
+        "Casual Leave": "casual_used",
+        "Sick Leave": "sick_used",
+        "Vacation": "vacation_used",
+        "Personal": "casual_used"
+    }
+    
+    field = field_map.get(leave_type, "casual_used")
+    
+    await db.leave_balances.update_one(
+        {"emp_id": emp_id, "year": year},
+        {"$inc": {field: days}},
+        upsert=True
+    )
+    
+    return {"message": "Leave balance updated"}
+
+# ==================== SALARY ADVANCE ROUTES ====================
+
+@router.post("/advances", response_model=SalaryAdvanceResponse)
+async def create_advance_request(data: SalaryAdvanceCreate):
+    """Create a salary advance request"""
+    advance_doc = {
+        "id": generate_id(),
+        "emp_id": data.emp_id,
+        "emp_name": data.emp_name,
+        "amount": data.amount,
+        "reason": data.reason,
+        "repayment_months": data.repayment_months,
+        "monthly_deduction": round(data.amount / data.repayment_months, 2),
+        "status": AdvanceStatus.PENDING,
+        "requested_on": get_utc_now_str(),
+        "approved_by": None,
+        "approved_on": None
+    }
+    
+    await db.advances.insert_one(advance_doc)
+    advance_doc.pop("_id", None)
+    
+    return SalaryAdvanceResponse(**advance_doc)
+
+@router.get("/advances")
+async def get_advances(emp_id: str = None, status: str = None):
+    """Get salary advance requests"""
+    query = {}
+    if emp_id:
+        query["emp_id"] = emp_id
+    if status:
+        query["status"] = status
+    
+    advances = await db.advances.find(query, {"_id": 0}).to_list(100)
+    return advances
+
+@router.put("/advances/{advance_id}/approve")
+async def approve_advance(advance_id: str, approved_by: str):
+    """Approve a salary advance request"""
+    result = await db.advances.update_one(
+        {"id": advance_id, "status": AdvanceStatus.PENDING},
+        {"$set": {
+            "status": AdvanceStatus.APPROVED,
+            "approved_by": approved_by,
+            "approved_on": get_utc_now_str()
+        }}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Advance not found or already processed")
+    
+    advance = await db.advances.find_one({"id": advance_id}, {"_id": 0})
+    return advance
+
+@router.put("/advances/{advance_id}/reject")
+async def reject_advance(advance_id: str, rejected_by: str):
+    """Reject a salary advance request"""
+    result = await db.advances.update_one(
+        {"id": advance_id, "status": AdvanceStatus.PENDING},
+        {"$set": {
+            "status": AdvanceStatus.REJECTED,
+            "approved_by": rejected_by,
+            "approved_on": get_utc_now_str()
+        }}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Advance not found or already processed")
+    
+    advance = await db.advances.find_one({"id": advance_id}, {"_id": 0})
+    return advance
+
+# ==================== SHIFT TEMPLATE ROUTES ====================
+
+@router.get("/shift-templates")
+async def get_shift_templates(active_only: bool = True):
+    """Get all shift templates"""
+    query = {"is_active": True} if active_only else {}
+    templates = await db.shift_templates.find(query, {"_id": 0}).to_list(100)
+    return templates
+
+@router.post("/shift-templates", response_model=ShiftTemplateResponse)
+async def create_shift_template(data: ShiftTemplateCreate, created_by: str):
+    """Create a new shift template"""
+    template_doc = {
+        "id": generate_id(),
+        "name": data.name,
+        "shift_type": data.shift_type,
+        "shift_start": data.shift_start,
+        "shift_end": data.shift_end,
+        "grace_period_minutes": data.grace_period_minutes,
+        "half_day_cutoff_hours": data.half_day_cutoff_hours,
+        "default_conveyance": data.default_conveyance,
+        "is_active": True,
+        "created_by": created_by,
+        "created_at": get_utc_now_str()
+    }
+    
+    await db.shift_templates.insert_one(template_doc)
+    template_doc.pop("_id", None)
+    
+    return ShiftTemplateResponse(**template_doc)
+
+@router.put("/shift-templates/{template_id}")
+async def update_shift_template(template_id: str, data: ShiftTemplateCreate):
+    """Update a shift template"""
+    update_data = data.dict()
+    result = await db.shift_templates.update_one(
+        {"id": template_id},
+        {"$set": update_data}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    template = await db.shift_templates.find_one({"id": template_id}, {"_id": 0})
+    return template
+
+@router.delete("/shift-templates/{template_id}")
+async def delete_shift_template(template_id: str):
+    """Soft delete a shift template"""
+    result = await db.shift_templates.update_one(
+        {"id": template_id},
+        {"$set": {"is_active": False}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    return {"message": "Template deleted successfully"}
+
+# ==================== BULK ACTION ROUTES ====================
+
+@router.post("/leaves/bulk-approve")
+async def bulk_approve_leaves(data: BulkApproveRequest):
+    """Bulk approve multiple leave requests"""
+    result = await db.leaves.update_many(
+        {"id": {"$in": data.ids}, "status": "pending"},
+        {"$set": {
+            "status": LeaveStatus.APPROVED,
+            "approved_by": data.approved_by,
+            "approved_on": get_utc_now_str()
+        }}
+    )
+    
+    # Update leave balances for each approved leave
+    for leave_id in data.ids:
+        leave = await db.leaves.find_one({"id": leave_id})
+        if leave:
+            await update_leave_balance(leave["emp_id"], leave["type"], leave["days"])
+    
+    return {"message": f"{result.modified_count} leaves approved", "count": result.modified_count}
+
+@router.post("/leaves/bulk-reject")
+async def bulk_reject_leaves(data: BulkRejectRequest):
+    """Bulk reject multiple leave requests"""
+    result = await db.leaves.update_many(
+        {"id": {"$in": data.ids}, "status": "pending"},
+        {"$set": {
+            "status": LeaveStatus.REJECTED,
+            "rejected_by": data.rejected_by,
+            "rejected_on": get_utc_now_str(),
+            "rejection_reason": data.reason
+        }}
+    )
+    
+    return {"message": f"{result.modified_count} leaves rejected", "count": result.modified_count}
+
+@router.post("/bills/bulk-approve")
+async def bulk_approve_bills(data: BulkApproveRequest):
+    """Bulk approve multiple bill submissions"""
+    result = await db.bills.update_many(
+        {"id": {"$in": data.ids}, "status": "pending"},
+        {"$set": {
+            "status": BillStatus.APPROVED,
+            "approved_by": data.approved_by,
+            "approved_on": get_utc_now_str()
+        }}
+    )
+    
+    # Set approved_amount = total_amount for each approved bill
+    for bill_id in data.ids:
+        bill = await db.bills.find_one({"id": bill_id})
+        if bill:
+            await db.bills.update_one(
+                {"id": bill_id},
+                {"$set": {"approved_amount": bill.get("total_amount", 0)}}
+            )
+    
+    return {"message": f"{result.modified_count} bills approved", "count": result.modified_count}
+
+@router.post("/bills/bulk-reject")
+async def bulk_reject_bills(data: BulkRejectRequest):
+    """Bulk reject multiple bill submissions"""
+    result = await db.bills.update_many(
+        {"id": {"$in": data.ids}, "status": "pending"},
+        {"$set": {
+            "status": BillStatus.REJECTED,
+            "rejected_by": data.rejected_by,
+            "rejected_on": get_utc_now_str(),
+            "rejection_reason": data.reason,
+            "approved_amount": 0
+        }}
+    )
+    
+    return {"message": f"{result.modified_count} bills rejected", "count": result.modified_count}
+
