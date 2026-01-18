@@ -299,6 +299,37 @@ export const bulkAPI = {
     }),
 };
 
+// Audit Expense API
+export const auditExpenseAPI = {
+  create: (expenseData, empId) => 
+    apiCall(`/audit-expenses?emp_id=${empId}`, {
+      method: 'POST',
+      body: JSON.stringify(expenseData),
+    }),
+  getAll: (empId, status) => {
+    const params = new URLSearchParams();
+    if (empId) params.append('emp_id', empId);
+    if (status) params.append('status', status);
+    return apiCall(`/audit-expenses?${params}`);
+  },
+  getById: (expenseId) => apiCall(`/audit-expenses/${expenseId}`),
+  approve: (expenseId, approvedBy, approvedAmount) => {
+    const params = new URLSearchParams();
+    params.append('approved_by', approvedBy);
+    if (approvedAmount !== undefined) params.append('approved_amount', approvedAmount);
+    return apiCall(`/audit-expenses/${expenseId}/approve?${params}`, { method: 'PUT' });
+  },
+  reject: (expenseId, rejectedBy, reason) => {
+    const params = new URLSearchParams();
+    params.append('rejected_by', rejectedBy);
+    if (reason) params.append('reason', reason);
+    return apiCall(`/audit-expenses/${expenseId}/reject?${params}`, { method: 'PUT' });
+  },
+  delete: (expenseId) => 
+    apiCall(`/audit-expenses/${expenseId}`, { method: 'DELETE' }),
+  getSummary: (empId) => apiCall(`/audit-expenses/summary/${empId}`),
+};
+
 export default {
   auth: authAPI,
   users: usersAPI,
@@ -315,4 +346,5 @@ export default {
   advance: advanceAPI,
   shiftTemplate: shiftTemplateAPI,
   bulk: bulkAPI,
+  auditExpense: auditExpenseAPI,
 };
