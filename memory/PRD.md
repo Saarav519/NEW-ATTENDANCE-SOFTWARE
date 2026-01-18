@@ -49,6 +49,27 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 - Shows only **settled payslips**
 - PDF download using jsPDF
 
+### Phase 8: Shift-Based Attendance & Salary (Completed ✅) - January 2026
+**Two Shift Types:**
+- **Day Shift**: Default 10:00 AM – 7:00 PM
+- **Night Shift**: Default 9:00 PM – 6:00 AM
+
+**QR Code Generation (Team Leader):**
+- Includes shift_type, shift_start, shift_end
+- Customizable shift timings
+- Visual indicators for Day/Night shifts
+
+**Attendance Status Calculation (Based on Scan Time):**
+- **Full Day**: Scanned within 30 minutes of shift start → Full conveyance
+- **Half Day**: Scanned 30 min to 3 hours late → Half conveyance
+- **Absent**: Scanned more than 3 hours late → No conveyance
+
+**Salary Calculation:**
+- Automatic deduction for half days (0.5 × daily rate)
+- Automatic deduction for absents (1 × daily rate)
+- Payslip shows: full_days, half_days, absent_days, attendance_adjustment
+- PDF includes attendance summary
+
 ### Phase 6: Attendance Details Section (Completed ✅) - January 2026
 - Year/Month dropdown selectors
 - Date-wise attendance records
