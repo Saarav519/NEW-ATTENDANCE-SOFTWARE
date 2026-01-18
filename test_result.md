@@ -245,6 +245,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ TESTED: Leave creation, retrieval, and approval process working correctly. Status updates properly handled."
+      - working: true
+        agent: "testing"
+        comment: "✅ RE-TESTED: Leave and Holiday APIs after frontend updates. All CRUD operations verified: GET /api/leaves ✅, POST /api/leaves with exact review data (EMP001, Rahul Kumar, Casual Leave, 3 days) ✅, PUT /api/leaves/{id}/approve?approved_by=ADMIN001 ✅, PUT /api/leaves/{id}/reject?rejected_by=ADMIN001 ✅. Error handling for invalid IDs working correctly (404 responses). All scenarios from review request working perfectly."
 
   - task: "Database Seeding API"
     implemented: true
