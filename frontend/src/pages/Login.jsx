@@ -24,7 +24,7 @@ const Login = () => {
     setError('');
     setLoading(true);
 
-    const result = login(userId, password);
+    const result = await login(userId, password);
     
     if (result.success) {
       navigate('/dashboard');
@@ -73,6 +73,7 @@ const Login = () => {
                 <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <Input
                   id="userId"
+                  data-testid="login-user-id"
                   type="text"
                   placeholder="Enter your ID"
                   value={userId}
@@ -89,6 +90,7 @@ const Login = () => {
                 <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <Input
                   id="password"
+                  data-testid="login-password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter your password"
                   value={password}
@@ -107,13 +109,14 @@ const Login = () => {
             </div>
 
             {error && (
-              <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg">
+              <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg" data-testid="login-error">
                 {error}
               </div>
             )}
 
             <Button
               type="submit"
+              data-testid="login-submit-btn"
               disabled={loading}
               className="w-full h-11 bg-[#1E2A5E] hover:bg-[#2D3A8C] text-white font-semibold rounded-xl"
             >
@@ -132,6 +135,7 @@ const Login = () => {
               {demoCredentials.map((cred) => (
                 <button
                   key={cred.role}
+                  data-testid={`quick-login-${cred.role.toLowerCase().replace(' ', '-')}`}
                   onClick={() => quickLogin(cred.id, cred.pass)}
                   className="flex flex-col items-center p-2 rounded-xl border hover:border-[#1E2A5E] hover:bg-gray-50 transition-all"
                 >
