@@ -301,7 +301,7 @@ async def create_leave(leave: LeaveCreate):
     leave_doc["applied_on"] = get_utc_now_str()[:10]
     
     await db.leaves.insert_one(leave_doc)
-    del leave_doc["_id"] if "_id" in leave_doc else None
+    leave_doc.pop("_id", None)
     
     return LeaveResponse(**leave_doc)
 
