@@ -330,6 +330,17 @@ export const auditExpenseAPI = {
     if (reason) params.append('reason', reason);
     return apiCall(`/audit-expenses/${expenseId}/reject?${params}`, { method: 'PUT' });
   },
+  revalidate: (expenseId, requestedBy, reason) => {
+    const params = new URLSearchParams();
+    params.append('requested_by', requestedBy);
+    params.append('reason', reason);
+    return apiCall(`/audit-expenses/${expenseId}/revalidate?${params}`, { method: 'PUT' });
+  },
+  resubmit: (expenseId, expenseData, empId) => 
+    apiCall(`/audit-expenses/${expenseId}/resubmit?emp_id=${empId}`, {
+      method: 'PUT',
+      body: JSON.stringify(expenseData),
+    }),
   delete: (expenseId) => 
     apiCall(`/audit-expenses/${expenseId}`, { method: 'DELETE' }),
   getSummary: (empId) => apiCall(`/audit-expenses/summary/${empId}`),
