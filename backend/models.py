@@ -83,6 +83,9 @@ class QRCodeBase(BaseModel):
     conveyance_amount: float
     date: str  # YYYY-MM-DD format
     created_by: str  # Team lead ID
+    shift_type: ShiftType = ShiftType.DAY
+    shift_start: str = "10:00"  # HH:MM format (24-hour)
+    shift_end: str = "19:00"    # HH:MM format (24-hour)
 
 class QRCodeCreate(QRCodeBase):
     pass
