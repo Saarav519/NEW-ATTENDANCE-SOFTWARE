@@ -261,10 +261,8 @@ export const sidebarNavItems = {
     { id: "dashboard", label: "Dashboard", icon: "LayoutDashboard", path: "/dashboard" },
     { id: "my-attendance", label: "My Attendance", icon: "CalendarCheck", path: "/my-attendance" },
     { id: "team", label: "My Team", icon: "Users", path: "/team" },
-    { id: "team-attendance", label: "Team Attendance", icon: "ClipboardCheck", path: "/team-attendance" },
-    { id: "leaves", label: "Leave Requests", icon: "CalendarOff", path: "/leaves" },
+    { id: "leaves", label: "Leaves", icon: "CalendarOff", path: "/leaves" },
     { id: "bills", label: "Bills", icon: "Receipt", path: "/bills" },
-    { id: "holidays", label: "Holidays", icon: "Gift", path: "/holidays" },
   ],
   employee: [
     { id: "dashboard", label: "Home", icon: "Home", path: "/dashboard" },
