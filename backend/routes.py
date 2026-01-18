@@ -1542,6 +1542,37 @@ async def get_audit_expense(expense_id: str):
         raise HTTPException(status_code=404, detail="Audit expense not found")
     return expense
 
+@router.put("/audit-expenses/{expense_id}")
+async def update_audit_expense(expense_id: str, expense: AuditExpenseCreate, emp_id: str):
+    """Update an audit expense (only if pending)"""
+    existing = await db.audit_expenses.find_one({"id": expense_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Audit expense not found")
+    
+    if existing.get("status") != "pending":
+        raise HTTPException(status_code=400, detail="Cannot edit expense that is already approved or rejected")
+    
+    if existing.get("emp_id") != emp_id:
+        raise HTTPException(status_code=403, detail="You can only edit your own expenses")
+    
+    total_amount = sum(item.amount for item in expense.items)
+    
+    await db.audit_expenses.update_one(
+        {"id": expense_id},
+        {"$set": {
+            "items": [item.model_dump() for item in expense.items],
+            "total_amount": total_amount,
+            "trip_purpose": expense.trip_purpose,
+            "trip_location": expense.trip_location,
+            "trip_start_date": expense.trip_start_date,
+            "trip_end_date": expense.trip_end_date,
+            "remarks": expense.remarks
+        }}
+    )
+    
+    updated = await db.audit_expenses.find_one({"id": expense_id}, {"_id": 0})
+    return updated
+
 @router.put("/audit-expenses/{expense_id}/approve")
 async def approve_audit_expense(expense_id: str, approved_by: str, approved_amount: Optional[float] = None):
     """Approve an audit expense (Admin only) - supports partial approval"""
