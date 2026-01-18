@@ -905,10 +905,6 @@ const AdminDashboard = ({ user }) => {
     pendingBills: 0
   });
 
-  useEffect(() => {
-    loadDashboardStats();
-  }, []);
-
   const loadDashboardStats = async () => {
     try {
       const [usersData, leavesData, billsData] = await Promise.all([
