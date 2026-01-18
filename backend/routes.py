@@ -1578,36 +1578,122 @@ async def update_audit_expense(expense_id: str, expense: AuditExpenseCreate, emp
 
 @router.put("/audit-expenses/{expense_id}/approve")
 async def approve_audit_expense(expense_id: str, approved_by: str, approved_amount: Optional[float] = None):
-    """Approve an audit expense (Admin only) - supports partial approval"""
+    """Approve an audit expense (Admin only) - supports partial approval with balance tracking"""
     expense = await db.audit_expenses.find_one({"id": expense_id}, {"_id": 0})
     if not expense:
         raise HTTPException(status_code=404, detail="Audit expense not found")
     
-    if expense.get("status") != "pending":
-        raise HTTPException(status_code=400, detail="Expense is not pending")
+    current_status = expense.get("status")
+    if current_status not in ["pending", "partially_approved"]:
+        raise HTTPException(status_code=400, detail="Expense cannot be approved in current state")
     
-    # If no approved_amount specified, approve full amount
-    final_approved_amount = approved_amount if approved_amount is not None else expense.get("total_amount", 0)
+    total_amount = expense.get("total_amount", 0)
+    previous_approved = expense.get("approved_amount", 0)
     
-    # Determine status based on approved amount
-    if final_approved_amount >= expense.get("total_amount", 0):
+    # Calculate new payment amount
+    payment_amount = approved_amount if approved_amount is not None else (total_amount - previous_approved)
+    new_total_approved = previous_approved + payment_amount
+    remaining_balance = total_amount - new_total_approved
+    
+    # Ensure we don't approve more than total
+    if new_total_approved > total_amount:
+        new_total_approved = total_amount
+        remaining_balance = 0
+        payment_amount = total_amount - previous_approved
+    
+    # Determine status based on remaining balance
+    if remaining_balance <= 0:
         status = AuditExpenseStatus.APPROVED
-    elif final_approved_amount > 0:
-        status = AuditExpenseStatus.PARTIALLY_APPROVED
+        remaining_balance = 0
     else:
-        status = AuditExpenseStatus.REJECTED
+        status = AuditExpenseStatus.PARTIALLY_APPROVED
+    
+    # Add to payment history
+    payment_history = expense.get("payment_history", []) or []
+    payment_history.append({
+        "amount": payment_amount,
+        "paid_by": approved_by,
+        "paid_on": get_utc_now_str(),
+        "note": f"Payment of ₹{payment_amount}"
+    })
     
     await db.audit_expenses.update_one(
         {"id": expense_id},
         {"$set": {
             "status": status,
-            "approved_amount": final_approved_amount,
+            "approved_amount": new_total_approved,
+            "remaining_balance": remaining_balance,
             "approved_by": approved_by,
+            "approved_on": get_utc_now_str(),
+            "payment_history": payment_history
+        }}
+    )
+    
+    return {
+        "message": f"Expense {status.value}",
+        "payment_amount": payment_amount,
+        "total_approved": new_total_approved,
+        "remaining_balance": remaining_balance
+    }
+
+@router.put("/audit-expenses/{expense_id}/revalidate")
+async def revalidate_audit_expense(expense_id: str, requested_by: str, reason: str):
+    """Request revalidation of an audit expense (Admin only) - Team Lead can then edit and resubmit"""
+    expense = await db.audit_expenses.find_one({"id": expense_id}, {"_id": 0})
+    if not expense:
+        raise HTTPException(status_code=404, detail="Audit expense not found")
+    
+    current_status = expense.get("status")
+    if current_status not in ["pending", "partially_approved"]:
+        raise HTTPException(status_code=400, detail="Only pending or partially approved expenses can be sent for revalidation")
+    
+    await db.audit_expenses.update_one(
+        {"id": expense_id},
+        {"$set": {
+            "status": AuditExpenseStatus.REVALIDATION,
+            "revalidation_reason": reason,
+            "approved_by": requested_by,
             "approved_on": get_utc_now_str()
         }}
     )
     
-    return {"message": f"Expense {status.value}", "approved_amount": final_approved_amount}
+    return {"message": "Expense sent for revalidation", "reason": reason}
+
+@router.put("/audit-expenses/{expense_id}/resubmit")
+async def resubmit_audit_expense(expense_id: str, expense: AuditExpenseCreate, emp_id: str):
+    """Resubmit an expense after revalidation (Team Lead only)"""
+    existing = await db.audit_expenses.find_one({"id": expense_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Audit expense not found")
+    
+    if existing.get("status") != "revalidation":
+        raise HTTPException(status_code=400, detail="Only expenses in revalidation can be resubmitted")
+    
+    if existing.get("emp_id") != emp_id:
+        raise HTTPException(status_code=403, detail="You can only resubmit your own expenses")
+    
+    total_amount = sum(item.amount for item in expense.items)
+    previous_approved = existing.get("approved_amount", 0)
+    
+    await db.audit_expenses.update_one(
+        {"id": expense_id},
+        {"$set": {
+            "items": [item.model_dump() for item in expense.items],
+            "total_amount": total_amount,
+            "trip_purpose": expense.trip_purpose,
+            "trip_location": expense.trip_location,
+            "trip_start_date": expense.trip_start_date,
+            "trip_end_date": expense.trip_end_date,
+            "remarks": expense.remarks,
+            "status": AuditExpenseStatus.PENDING,
+            "remaining_balance": total_amount - previous_approved,
+            "revalidation_reason": None,
+            "submitted_on": get_utc_now_str()
+        }}
+    )
+    
+    updated = await db.audit_expenses.find_one({"id": expense_id}, {"_id": 0})
+    return updated
 
 @router.put("/audit-expenses/{expense_id}/reject")
 async def reject_audit_expense(expense_id: str, rejected_by: str, reason: Optional[str] = None):
