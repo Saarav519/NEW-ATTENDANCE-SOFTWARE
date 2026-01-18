@@ -103,11 +103,15 @@ class AttendanceBase(BaseModel):
     date: str
     punch_in: Optional[str] = None
     punch_out: Optional[str] = None
-    status: str = "absent"
+    status: str = "absent"  # Legacy field
+    attendance_status: AttendanceStatus = AttendanceStatus.ABSENT  # New: full_day, half_day, absent
     work_hours: float = 0
     qr_code_id: Optional[str] = None
     location: Optional[str] = None
     conveyance_amount: float = 0
+    shift_type: Optional[ShiftType] = None
+    shift_start: Optional[str] = None
+    shift_end: Optional[str] = None
 
 class AttendanceCreate(BaseModel):
     qr_data: str  # QR code data scanned by employee
