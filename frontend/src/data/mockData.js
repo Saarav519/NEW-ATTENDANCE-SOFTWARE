@@ -11,8 +11,58 @@ export const businessInfo = {
   logo: null
 };
 
-// Users/Employees
-export const employees = [
+// Users - All users including Admin, Team Leaders, and Employees
+export const users = [
+  // Admin
+  {
+    id: "ADMIN001",
+    name: "Admin User",
+    email: "admin@audixsolutions.com",
+    phone: "+91 98765 43200",
+    role: "admin",
+    department: "Management",
+    designation: "Administrator",
+    joiningDate: "2021-01-01",
+    salary: 100000,
+    salaryType: "monthly",
+    status: "active",
+    password: "admin123",
+    avatar: null
+  },
+  // Team Leaders
+  {
+    id: "TL001",
+    name: "Rajesh Verma",
+    email: "rajesh@audixsolutions.com",
+    phone: "+91 98765 43201",
+    role: "teamlead",
+    department: "Development",
+    designation: "Tech Lead",
+    joiningDate: "2021-06-15",
+    salary: 85000,
+    salaryType: "monthly",
+    status: "active",
+    password: "tl001",
+    teamMembers: ["EMP001", "EMP003"],
+    avatar: null
+  },
+  {
+    id: "TL002",
+    name: "Meera Joshi",
+    email: "meera@audixsolutions.com",
+    phone: "+91 98765 43202",
+    role: "teamlead",
+    department: "Design",
+    designation: "Design Lead",
+    joiningDate: "2021-08-20",
+    salary: 80000,
+    salaryType: "monthly",
+    status: "active",
+    password: "tl002",
+    teamMembers: ["EMP002"],
+    avatar: null
+  },
+  // Employees
   {
     id: "EMP001",
     name: "Rahul Kumar",
@@ -25,6 +75,8 @@ export const employees = [
     salary: 50000,
     salaryType: "monthly",
     status: "active",
+    password: "emp001",
+    teamLeadId: "TL001",
     avatar: null
   },
   {
@@ -39,6 +91,8 @@ export const employees = [
     salary: 45000,
     salaryType: "monthly",
     status: "active",
+    password: "emp002",
+    teamLeadId: "TL002",
     avatar: null
   },
   {
@@ -53,6 +107,8 @@ export const employees = [
     salary: 75000,
     salaryType: "monthly",
     status: "active",
+    password: "emp003",
+    teamLeadId: "TL001",
     avatar: null
   },
   {
@@ -62,11 +118,13 @@ export const employees = [
     phone: "+91 98765 43214",
     role: "employee",
     department: "HR",
-    designation: "HR Manager",
+    designation: "HR Executive",
     joiningDate: "2022-01-05",
     salary: 55000,
     salaryType: "monthly",
     status: "active",
+    password: "emp004",
+    teamLeadId: null,
     avatar: null
   },
   {
@@ -81,18 +139,20 @@ export const employees = [
     salary: 40000,
     salaryType: "monthly",
     status: "inactive",
+    password: "emp005",
+    teamLeadId: null,
     avatar: null
   }
 ];
 
-// Admin user
-export const adminUser = {
-  id: "ADMIN001",
-  name: "Admin User",
-  email: "admin@audixsolutions.com",
-  role: "admin",
-  password: "admin123"
-};
+// Helper to get employees only
+export const employees = users.filter(u => u.role === 'employee');
+
+// Helper to get team leaders only
+export const teamLeaders = users.filter(u => u.role === 'teamlead');
+
+// Helper to get admin
+export const adminUser = users.find(u => u.role === 'admin');
 
 // Attendance Records
 export const attendanceRecords = [
