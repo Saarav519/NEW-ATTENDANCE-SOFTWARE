@@ -847,11 +847,11 @@ const AdminDashboard = ({ user }) => {
               </button>
             </div>
             <div className="space-y-3">
-              {activeEmployees.slice(0, 5).map((emp) => (
+              {employees.slice(0, 5).map((emp) => (
                 <div key={emp.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
-                      {emp.name.split(' ').map(n => n[0]).join('')}
+                      {emp.name?.split(' ').map(n => n[0]).join('') || 'U'}
                     </div>
                     <div>
                       <p className="font-medium text-gray-800">{emp.name}</p>
@@ -866,6 +866,9 @@ const AdminDashboard = ({ user }) => {
                   </div>
                 </div>
               ))}
+              {employees.length === 0 && (
+                <p className="text-gray-500 text-center py-4">No employees found</p>
+              )}
             </div>
           </CardContent>
         </Card>
