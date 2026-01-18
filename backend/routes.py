@@ -194,13 +194,16 @@ async def get_team_members(team_lead_id: str):
 async def create_qr_code(qr_data: QRCodeCreate):
     qr_id = generate_id()
     
-    # Create QR data string (will be encoded in actual QR)
+    # Create QR data string (will be encoded in actual QR) - includes shift info
     qr_string = json.dumps({
         "id": qr_id,
         "location": qr_data.location,
         "conveyance": qr_data.conveyance_amount,
         "date": qr_data.date,
-        "created_by": qr_data.created_by
+        "created_by": qr_data.created_by,
+        "shift_type": qr_data.shift_type,
+        "shift_start": qr_data.shift_start,
+        "shift_end": qr_data.shift_end
     })
     
     qr_doc = {
@@ -209,6 +212,9 @@ async def create_qr_code(qr_data: QRCodeCreate):
         "conveyance_amount": qr_data.conveyance_amount,
         "date": qr_data.date,
         "created_by": qr_data.created_by,
+        "shift_type": qr_data.shift_type,
+        "shift_start": qr_data.shift_start,
+        "shift_end": qr_data.shift_end,
         "qr_data": qr_string,
         "created_at": get_utc_now_str(),
         "is_active": True
