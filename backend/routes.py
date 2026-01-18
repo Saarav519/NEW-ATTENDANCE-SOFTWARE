@@ -950,8 +950,9 @@ async def seed_database():
     
     await db.holidays.insert_many(holidays)
     
-    # Seed some settled payslips for demo
+    # Seed some settled payslips for demo (Employees and Team Leads)
     settled_payslips = [
+        # Employee payslips
         {
             "id": "PAY001",
             "emp_id": "EMP001",
@@ -997,6 +998,89 @@ async def seed_database():
             "created_on": "2025-10-31",
             "paid_on": "2025-11-01",
             "settled_on": "2025-11-01"
+        },
+        # Team Lead TL001 payslips
+        {
+            "id": "PAY003",
+            "emp_id": "TL001",
+            "emp_name": "Rajesh Verma",
+            "month": "November",
+            "year": 2025,
+            "breakdown": {
+                "basic": 85000,
+                "hra": 34000,
+                "special_allowance": 12750,
+                "conveyance": 2400,
+                "leave_adjustment": 0,
+                "extra_conveyance": 1000,
+                "previous_pending_allowances": 0,
+                "full_days": 22,
+                "half_days": 0,
+                "absent_days": 0,
+                "attendance_adjustment": 0,
+                "gross_pay": 135150,
+                "deductions": 13515,
+                "net_pay": 121635
+            },
+            "status": "settled",
+            "created_on": "2025-11-30",
+            "paid_on": "2025-12-01",
+            "settled_on": "2025-12-01"
+        },
+        {
+            "id": "PAY004",
+            "emp_id": "TL001",
+            "emp_name": "Rajesh Verma",
+            "month": "October",
+            "year": 2025,
+            "breakdown": {
+                "basic": 85000,
+                "hra": 34000,
+                "special_allowance": 12750,
+                "conveyance": 2200,
+                "leave_adjustment": -2833.33,
+                "extra_conveyance": 800,
+                "previous_pending_allowances": 0,
+                "full_days": 20,
+                "half_days": 1,
+                "absent_days": 1,
+                "attendance_adjustment": -4250,
+                "gross_pay": 131916.67,
+                "deductions": 13191.67,
+                "net_pay": 114475
+            },
+            "status": "settled",
+            "created_on": "2025-10-31",
+            "paid_on": "2025-11-01",
+            "settled_on": "2025-11-01"
+        },
+        # Team Lead TL002 payslips
+        {
+            "id": "PAY005",
+            "emp_id": "TL002",
+            "emp_name": "Meera Joshi",
+            "month": "November",
+            "year": 2025,
+            "breakdown": {
+                "basic": 80000,
+                "hra": 32000,
+                "special_allowance": 12000,
+                "conveyance": 2200,
+                "leave_adjustment": 0,
+                "extra_conveyance": 500,
+                "previous_pending_allowances": 0,
+                "full_days": 22,
+                "half_days": 0,
+                "absent_days": 0,
+                "attendance_adjustment": 0,
+                "gross_pay": 126700,
+                "deductions": 12670,
+                "net_pay": 114030
+            },
+            "status": "settled",
+            "created_on": "2025-11-30",
+            "paid_on": "2025-12-01",
+            "settled_on": "2025-12-01"
         }
     ]
     
