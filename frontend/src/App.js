@@ -23,6 +23,7 @@ import Holidays from "./pages/Holidays";
 import Reports from "./pages/Reports";
 import Profile from "./pages/Profile";
 import ShiftTemplates from "./pages/ShiftTemplates";
+import AuditExpenses from "./pages/AuditExpenses";
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
             <Route path="team-attendance" element={<TeamAttendance />} />
             <Route path="leaves" element={<Leaves />} />
             <Route path="bills" element={<BillSubmission />} />
+            <Route path="audit-expenses" element={<AuditExpenses />} />
             <Route path="advances" element={<Advances />} />
             <Route path="payroll" element={<Payroll />} />
             <Route path="payslip" element={<Payslip />} />
