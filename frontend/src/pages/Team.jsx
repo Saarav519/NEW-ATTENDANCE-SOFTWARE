@@ -8,8 +8,11 @@ import { Label } from '../components/ui/label';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose
 } from '../components/ui/dialog';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
+} from '../components/ui/select';
 import { QRCodeSVG } from 'qrcode.react';
-import { Users, UserCheck, UserX, Phone, Mail, ChevronRight, QrCode, MapPin, IndianRupee, Download, Copy, Check } from 'lucide-react';
+import { Users, UserCheck, UserX, Phone, Mail, ChevronRight, QrCode, MapPin, IndianRupee, Download, Copy, Check, Sun, Moon, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Team = () => {
@@ -26,8 +29,31 @@ const Team = () => {
   const [qrForm, setQrForm] = useState({
     location: '',
     conveyance_amount: '',
-    date: today
+    date: today,
+    shift_type: 'day',
+    shift_start: '10:00',
+    shift_end: '19:00'
   });
+
+  // Preset shifts
+  const shiftPresets = {
+    day: { start: '10:00', end: '19:00', label: 'Day Shift (10:00 AM - 7:00 PM)' },
+    night: { start: '21:00', end: '06:00', label: 'Night Shift (9:00 PM - 6:00 AM)' }
+  };
+
+  useEffect(() => {
+    loadTeamMembers();
+  }, [user?.id]);
+
+  const handleShiftChange = (shiftType) => {
+    const preset = shiftPresets[shiftType];
+    setQrForm({
+      ...qrForm,
+      shift_type: shiftType,
+      shift_start: preset.start,
+      shift_end: preset.end
+    });
+  };
 
   useEffect(() => {
     loadTeamMembers();
