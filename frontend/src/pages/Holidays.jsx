@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { holidays } from '../data/mockData';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { holidayAPI } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -10,14 +11,35 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '../components/ui/select';
-import { Gift, Plus, Calendar, Trash2 } from 'lucide-react';
+import { Gift, Plus, Calendar, Trash2, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const Holidays = () => {
-  const [holidayList, setHolidayList] = useState(holidays);
+  const { isAdmin } = useAuth();
+  const [holidayList, setHolidayList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newHoliday, setNewHoliday] = useState({
     name: '', date: '', type: 'Festival'
   });
+
+  useEffect(() => {
+    loadHolidays();
+  }, []);
+
+  const loadHolidays = async () => {
+    setLoading(true);
+    try {
+      const data = await holidayAPI.getAll();
+      setHolidayList(data || []);
+    } catch (error) {
+      console.error('Error loading holidays:', error);
+      toast.error('Failed to load holidays');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const upcomingHolidays = holidayList
     .filter(h => new Date(h.date) >= new Date())
@@ -27,18 +49,36 @@ const Holidays = () => {
     .filter(h => new Date(h.date) < new Date())
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  const handleAddHoliday = () => {
-    const holiday = {
-      id: `HOL${Date.now()}`,
-      ...newHoliday
-    };
-    setHolidayList([...holidayList, holiday]);
-    setNewHoliday({ name: '', date: '', type: 'Festival' });
-    setIsAddDialogOpen(false);
+  const handleAddHoliday = async () => {
+    if (!newHoliday.name || !newHoliday.date) {
+      toast.error('Please fill all required fields');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await holidayAPI.create(newHoliday);
+      toast.success('Holiday added successfully!');
+      setNewHoliday({ name: '', date: '', type: 'Festival' });
+      setIsAddDialogOpen(false);
+      await loadHolidays();
+    } catch (error) {
+      toast.error(error.message || 'Failed to add holiday');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleDelete = (id) => {
-    setHolidayList(holidayList.filter(h => h.id !== id));
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this holiday?')) return;
+    
+    try {
+      await holidayAPI.delete(id);
+      toast.success('Holiday deleted successfully!');
+      await loadHolidays();
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete holiday');
+    }
   };
 
   const formatDate = (dateStr) => {
@@ -59,65 +99,80 @@ const Holidays = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-[#1E2A5E]" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Business Holidays</h1>
-          <p className="text-gray-500">Manage company holidays</p>
+          <p className="text-gray-500">{isAdmin ? 'Manage company holidays' : 'View company holidays'}</p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-[#1E2A5E] hover:bg-[#2D3A8C]">
-              <Plus size={18} className="mr-2" /> Add Holiday
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Add New Holiday</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Holiday Name</Label>
-                <Input
-                  placeholder="e.g., Diwali"
-                  value={newHoliday.name}
-                  onChange={(e) => setNewHoliday({...newHoliday, name: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Date</Label>
-                <Input
-                  type="date"
-                  value={newHoliday.date}
-                  onChange={(e) => setNewHoliday({...newHoliday, date: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Type</Label>
-                <Select value={newHoliday.type} onValueChange={(v) => setNewHoliday({...newHoliday, type: v})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="National">National Holiday</SelectItem>
-                    <SelectItem value="Festival">Festival</SelectItem>
-                    <SelectItem value="Company">Company Holiday</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-              </DialogClose>
-              <Button onClick={handleAddHoliday} className="bg-[#1E2A5E] hover:bg-[#2D3A8C]">
-                Add Holiday
+        {isAdmin && (
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-[#1E2A5E] hover:bg-[#2D3A8C]">
+                <Plus size={18} className="mr-2" /> Add Holiday
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Add New Holiday</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>Holiday Name</Label>
+                  <Input
+                    placeholder="e.g., Diwali"
+                    value={newHoliday.name}
+                    onChange={(e) => setNewHoliday({...newHoliday, name: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Date</Label>
+                  <Input
+                    type="date"
+                    value={newHoliday.date}
+                    onChange={(e) => setNewHoliday({...newHoliday, date: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Type</Label>
+                  <Select value={newHoliday.type} onValueChange={(v) => setNewHoliday({...newHoliday, type: v})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="National">National Holiday</SelectItem>
+                      <SelectItem value="Festival">Festival</SelectItem>
+                      <SelectItem value="Company">Company Holiday</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <Button 
+                  onClick={handleAddHoliday} 
+                  className="bg-[#1E2A5E] hover:bg-[#2D3A8C]"
+                  disabled={submitting}
+                >
+                  {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  Add Holiday
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       {/* Stats */}
@@ -186,12 +241,14 @@ const Holidays = () => {
                     <span className={`text-xs px-3 py-1 rounded-full font-medium ${getTypeColor(holiday.type)}`}>
                       {holiday.type}
                     </span>
-                    <button
-                      onClick={() => handleDelete(holiday.id)}
-                      className="p-2 hover:bg-red-100 rounded-lg transition-colors text-gray-400 hover:text-red-500"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => handleDelete(holiday.id)}
+                        className="p-2 hover:bg-red-100 rounded-lg transition-colors text-gray-400 hover:text-red-500"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

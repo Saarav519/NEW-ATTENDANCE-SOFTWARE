@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { leaveRequests, employees } from '../data/mockData';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { leaveAPI } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -13,21 +13,45 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '../components/ui/select';
 import {
-  CalendarOff, Plus, Check, X, Clock, Calendar
+  CalendarOff, Plus, Check, X, Clock, Calendar, Loader2
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const Leaves = () => {
-  const { user, isAdmin } = useAuth();
-  const [leaves, setLeaves] = useState(leaveRequests);
+  const { user, isAdmin, isTeamLead } = useAuth();
+  const [leaves, setLeaves] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [newLeave, setNewLeave] = useState({
-    type: 'Casual Leave', fromDate: '', toDate: '', reason: ''
+    type: 'Casual Leave', from_date: '', to_date: '', reason: ''
   });
+
+  useEffect(() => {
+    loadLeaves();
+  }, [user?.id]);
+
+  const loadLeaves = async () => {
+    if (!user?.id) return;
+    
+    setLoading(true);
+    try {
+      // Admin/TL sees all leaves, employee sees only their own
+      const empId = (isAdmin || isTeamLead) ? null : user.id;
+      const data = await leaveAPI.getAll(empId);
+      setLeaves(data || []);
+    } catch (error) {
+      console.error('Error loading leaves:', error);
+      toast.error('Failed to load leave requests');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredLeaves = leaves.filter(leave => {
     const matchesStatus = filterStatus === 'all' || leave.status === filterStatus;
-    const matchesUser = isAdmin || leave.empId === user?.id;
+    const matchesUser = isAdmin || isTeamLead || leave.emp_id === user?.id;
     return matchesStatus && matchesUser;
   });
 
@@ -35,35 +59,73 @@ const Leaves = () => {
   const approvedCount = leaves.filter(l => l.status === 'approved').length;
   const rejectedCount = leaves.filter(l => l.status === 'rejected').length;
 
-  const handleAddLeave = () => {
-    const from = new Date(newLeave.fromDate);
-    const to = new Date(newLeave.toDate);
+  const handleAddLeave = async () => {
+    if (!newLeave.from_date || !newLeave.to_date || !newLeave.reason) {
+      toast.error('Please fill all required fields');
+      return;
+    }
+
+    const from = new Date(newLeave.from_date);
+    const to = new Date(newLeave.to_date);
+    
+    if (to < from) {
+      toast.error('End date cannot be before start date');
+      return;
+    }
+
     const days = Math.ceil((to - from) / (1000 * 60 * 60 * 24)) + 1;
     
-    const leave = {
-      id: `LV${Date.now()}`,
-      empId: user.id,
-      empName: user.name,
-      type: newLeave.type,
-      fromDate: newLeave.fromDate,
-      toDate: newLeave.toDate,
-      days,
-      reason: newLeave.reason,
-      status: 'pending',
-      appliedOn: new Date().toISOString().split('T')[0]
-    };
-    setLeaves([leave, ...leaves]);
-    setNewLeave({ type: 'Casual Leave', fromDate: '', toDate: '', reason: '' });
-    setIsAddDialogOpen(false);
+    setSubmitting(true);
+    try {
+      const leaveData = {
+        emp_id: user.id,
+        emp_name: user.name,
+        type: newLeave.type,
+        from_date: newLeave.from_date,
+        to_date: newLeave.to_date,
+        days,
+        reason: newLeave.reason
+      };
+      
+      await leaveAPI.create(leaveData);
+      toast.success('Leave request submitted successfully!');
+      setNewLeave({ type: 'Casual Leave', from_date: '', to_date: '', reason: '' });
+      setIsAddDialogOpen(false);
+      await loadLeaves();
+    } catch (error) {
+      toast.error(error.message || 'Failed to submit leave request');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleApprove = (id) => {
-    setLeaves(leaves.map(l => l.id === id ? { ...l, status: 'approved' } : l));
+  const handleApprove = async (id) => {
+    try {
+      await leaveAPI.approve(id, user.id);
+      toast.success('Leave approved successfully!');
+      await loadLeaves();
+    } catch (error) {
+      toast.error(error.message || 'Failed to approve leave');
+    }
   };
 
-  const handleReject = (id) => {
-    setLeaves(leaves.map(l => l.id === id ? { ...l, status: 'rejected' } : l));
+  const handleReject = async (id) => {
+    try {
+      await leaveAPI.reject(id, user.id);
+      toast.success('Leave rejected');
+      await loadLeaves();
+    } catch (error) {
+      toast.error(error.message || 'Failed to reject leave');
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-[#1E2A5E]" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -71,7 +133,7 @@ const Leaves = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Leave Management</h1>
-          <p className="text-gray-500">{isAdmin ? 'Manage employee leaves' : 'Apply for leave'}</p>
+          <p className="text-gray-500">{(isAdmin || isTeamLead) ? 'Manage employee leaves' : 'Apply for leave'}</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
@@ -103,16 +165,16 @@ const Leaves = () => {
                   <Label>From Date</Label>
                   <Input
                     type="date"
-                    value={newLeave.fromDate}
-                    onChange={(e) => setNewLeave({...newLeave, fromDate: e.target.value})}
+                    value={newLeave.from_date}
+                    onChange={(e) => setNewLeave({...newLeave, from_date: e.target.value})}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>To Date</Label>
                   <Input
                     type="date"
-                    value={newLeave.toDate}
-                    onChange={(e) => setNewLeave({...newLeave, toDate: e.target.value})}
+                    value={newLeave.to_date}
+                    onChange={(e) => setNewLeave({...newLeave, to_date: e.target.value})}
                   />
                 </div>
               </div>
@@ -129,7 +191,12 @@ const Leaves = () => {
               <DialogClose asChild>
                 <Button variant="outline">Cancel</Button>
               </DialogClose>
-              <Button onClick={handleAddLeave} className="bg-[#1E2A5E] hover:bg-[#2D3A8C]">
+              <Button 
+                onClick={handleAddLeave} 
+                className="bg-[#1E2A5E] hover:bg-[#2D3A8C]"
+                disabled={submitting}
+              >
+                {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 Submit Request
               </Button>
             </DialogFooter>
@@ -138,7 +205,7 @@ const Leaves = () => {
       </div>
 
       {/* Stats */}
-      {isAdmin && (
+      {(isAdmin || isTeamLead) && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card>
             <CardContent className="p-4 flex items-center gap-4">
@@ -209,15 +276,15 @@ const Leaves = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold">
-                      {leave.empName.split(' ').map(n => n[0]).join('')}
+                      {leave.emp_name?.split(' ').map(n => n[0]).join('') || 'U'}
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800">{leave.empName}</h3>
+                      <h3 className="font-semibold text-gray-800">{leave.emp_name}</h3>
                       <p className="text-sm text-gray-500">{leave.type}</p>
                       <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
                         <span className="flex items-center gap-1">
                           <Calendar size={14} />
-                          {leave.fromDate} to {leave.toDate}
+                          {leave.from_date} to {leave.to_date}
                         </span>
                         <span className="bg-gray-100 px-2 py-0.5 rounded">{leave.days} day(s)</span>
                       </div>
@@ -232,7 +299,7 @@ const Leaves = () => {
                     }`}>
                       {leave.status}
                     </span>
-                    {isAdmin && leave.status === 'pending' && (
+                    {(isAdmin || isTeamLead) && leave.status === 'pending' && (
                       <div className="flex gap-2">
                         <Button
                           size="sm"
