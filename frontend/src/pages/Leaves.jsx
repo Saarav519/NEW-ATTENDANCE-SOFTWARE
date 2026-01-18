@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { leaveAPI } from '../services/api';
+import { leaveAPI, bulkAPI } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
+import { Checkbox } from '../components/ui/checkbox';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose
 } from '../components/ui/dialog';
@@ -13,7 +14,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '../components/ui/select';
 import {
-  CalendarOff, Plus, Check, X, Clock, Calendar, Loader2
+  CalendarOff, Plus, Check, X, Clock, Calendar, Loader2, RefreshCw, CheckSquare
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -21,9 +22,12 @@ const Leaves = () => {
   const { user, isAdmin, isTeamLead } = useAuth();
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkProcessing, setBulkProcessing] = useState(false);
   const [newLeave, setNewLeave] = useState({
     type: 'Casual Leave', from_date: '', to_date: '', reason: ''
   });
@@ -32,22 +36,30 @@ const Leaves = () => {
     loadLeaves();
   }, [user?.id]);
 
-  const loadLeaves = async () => {
+  const loadLeaves = useCallback(async (isRefresh = false) => {
     if (!user?.id) return;
     
-    setLoading(true);
+    if (isRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+    
     try {
       // Admin/TL sees all leaves, employee sees only their own
       const empId = (isAdmin || isTeamLead) ? null : user.id;
       const data = await leaveAPI.getAll(empId);
       setLeaves(data || []);
+      setSelectedIds([]);
+      if (isRefresh) toast.success('Refreshed!');
     } catch (error) {
       console.error('Error loading leaves:', error);
       toast.error('Failed to load leave requests');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [user?.id, isAdmin, isTeamLead]);
 
   const filteredLeaves = leaves.filter(leave => {
     const matchesStatus = filterStatus === 'all' || leave.status === filterStatus;
