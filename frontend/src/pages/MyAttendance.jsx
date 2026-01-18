@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { attendanceRecords } from '../data/mockData';
+import { attendanceAPI } from '../services/api';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import {
-  Calendar, Clock, LogIn, LogOut, CheckCircle, XCircle,
-  ChevronLeft, ChevronRight
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose
+} from '../components/ui/dialog';
+import { Html5QrcodeScanner } from 'html5-qrcode';
+import {
+  Calendar, Clock, LogIn, LogOut, QrCode, MapPin, IndianRupee,
+  ChevronLeft, ChevronRight, Camera, X, CheckCircle
 } from 'lucide-react';
 
 const MyAttendance = () => {
@@ -14,22 +18,131 @@ const MyAttendance = () => {
   const [isPunchedIn, setIsPunchedIn] = useState(false);
   const [punchInTime, setPunchInTime] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [showQRScanner, setShowQRScanner] = useState(false);
+  const [todayAttendance, setTodayAttendance] = useState(null);
+  const [monthlyAttendance, setMonthlyAttendance] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [scannerError, setScannerError] = useState(null);
+  const scannerRef = useRef(null);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const handlePunch = () => {
-    if (!isPunchedIn) {
-      setPunchInTime(new Date());
-      setIsPunchedIn(true);
-    } else {
-      setIsPunchedIn(false);
+  useEffect(() => {
+    loadAttendanceData();
+  }, [user?.id, currentMonth]);
+
+  useEffect(() => {
+    if (showQRScanner) {
+      initScanner();
+    }
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.clear().catch(() => {});
+      }
+    };
+  }, [showQRScanner]);
+
+  const loadAttendanceData = async () => {
+    if (!user?.id) return;
+    
+    setLoading(true);
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const month = currentMonth.getMonth() + 1;
+      const year = currentMonth.getFullYear();
+
+      // Get today's attendance
+      const todayData = await attendanceAPI.getAll(user.id, today);
+      if (todayData.length > 0) {
+        setTodayAttendance(todayData[0]);
+        setIsPunchedIn(todayData[0].punch_in && !todayData[0].punch_out);
+        if (todayData[0].punch_in) {
+          const [h, m] = todayData[0].punch_in.split(':');
+          const punchTime = new Date();
+          punchTime.setHours(parseInt(h), parseInt(m), 0);
+          setPunchInTime(punchTime);
+        }
+      }
+
+      // Get monthly attendance
+      const monthlyData = await attendanceAPI.getMonthly(user.id, month, year);
+      setMonthlyAttendance(monthlyData);
+    } catch (error) {
+      console.error('Error loading attendance:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Get days in current month
+  const initScanner = () => {
+    setScannerError(null);
+    setTimeout(() => {
+      const scanner = new Html5QrcodeScanner('qr-reader', {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0,
+        rememberLastUsedCamera: true,
+        supportedScanTypes: [0] // Camera only
+      });
+
+      scanner.render(
+        async (decodedText) => {
+          // Success callback
+          scanner.clear();
+          await handleQRScanned(decodedText);
+        },
+        (error) => {
+          // Error callback - ignore scan errors
+        }
+      );
+
+      scannerRef.current = scanner;
+    }, 100);
+  };
+
+  const handleQRScanned = async (qrData) => {
+    setShowQRScanner(false);
+    
+    try {
+      const result = await attendanceAPI.punchIn(user.id, qrData);
+      setTodayAttendance(result);
+      setIsPunchedIn(true);
+      
+      const [h, m] = result.punch_in.split(':');
+      const punchTime = new Date();
+      punchTime.setHours(parseInt(h), parseInt(m), 0);
+      setPunchInTime(punchTime);
+      
+      await loadAttendanceData();
+    } catch (error) {
+      alert(error.message || 'Failed to punch in');
+    }
+  };
+
+  const handlePunchOut = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const result = await attendanceAPI.punchOut(user.id, today);
+      setTodayAttendance(result);
+      setIsPunchedIn(false);
+      await loadAttendanceData();
+    } catch (error) {
+      alert(error.message || 'Failed to punch out');
+    }
+  };
+
+  const handlePunch = () => {
+    if (!isPunchedIn) {
+      setShowQRScanner(true);
+    } else {
+      handlePunchOut();
+    }
+  };
+
+  // Calendar helpers
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -43,33 +156,30 @@ const MyAttendance = () => {
 
   const { daysInMonth, startingDay, year, month } = getDaysInMonth(currentMonth);
 
-  // Mock attendance data for display
   const getAttendanceStatus = (day) => {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const date = new Date(year, month, day);
+    
     if (date > new Date()) return null; // Future date
     if (date.getDay() === 0) return 'holiday'; // Sunday
     
-    const randomStatus = Math.random();
-    if (randomStatus > 0.9) return 'absent';
-    if (randomStatus > 0.85) return 'leave';
-    return 'present';
+    const record = monthlyAttendance.find(a => a.date === dateStr);
+    if (record) {
+      return record.status;
+    }
+    return 'absent';
   };
 
-  const prevMonth = () => {
-    setCurrentMonth(new Date(year, month - 1, 1));
-  };
-
-  const nextMonth = () => {
-    setCurrentMonth(new Date(year, month + 1, 1));
-  };
-
+  const prevMonth = () => setCurrentMonth(new Date(year, month - 1, 1));
+  const nextMonth = () => setCurrentMonth(new Date(year, month + 1, 1));
   const monthName = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
 
   // Calculate stats
-  const presentDays = 18;
-  const absentDays = 2;
-  const leaveDays = 1;
-  const totalWorkHours = 162;
+  const presentDays = monthlyAttendance.filter(a => a.status === 'present').length;
+  const absentDays = monthlyAttendance.filter(a => a.status === 'absent').length;
+  const leaveDays = monthlyAttendance.filter(a => a.status === 'leave').length;
+  const totalWorkHours = monthlyAttendance.reduce((sum, a) => sum + (a.work_hours || 0), 0);
+  const totalConveyance = monthlyAttendance.reduce((sum, a) => sum + (a.conveyance_amount || 0), 0);
 
   return (
     <div className="space-y-4">
@@ -79,7 +189,7 @@ const MyAttendance = () => {
         <p className="text-sm text-gray-500">Track your daily attendance</p>
       </div>
 
-      {/* Punch Card - Mobile Focus */}
+      {/* Punch Card */}
       <Card className="bg-gradient-to-br from-[#1E2A5E] to-[#2D3A8C] text-white">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
@@ -97,20 +207,38 @@ const MyAttendance = () => {
           </div>
 
           {isPunchedIn && punchInTime && (
-            <div className="mb-3 p-3 bg-white/10 rounded-xl flex items-center justify-between">
-              <div>
-                <p className="text-white/70 text-xs">Punched In</p>
-                <p className="font-semibold">{punchInTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+            <div className="mb-3 p-3 bg-white/10 rounded-xl">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <p className="text-white/70 text-xs">Punched In</p>
+                  <p className="font-semibold">{punchInTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-white/70 text-xs">Working</p>
+                  <p className="font-semibold">
+                    {Math.floor((currentTime - punchInTime) / 1000 / 60 / 60)}h {Math.floor(((currentTime - punchInTime) / 1000 / 60) % 60)}m
+                  </p>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-white/70 text-xs">Working</p>
-                <p className="font-semibold">{Math.floor((currentTime - punchInTime) / 1000 / 60 / 60)}h {Math.floor(((currentTime - punchInTime) / 1000 / 60) % 60)}m</p>
-              </div>
+              
+              {todayAttendance && (
+                <div className="pt-2 border-t border-white/20 flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-1">
+                    <MapPin size={14} />
+                    <span>{todayAttendance.location || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <IndianRupee size={14} />
+                    <span>₹{todayAttendance.conveyance_amount || 0}</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           <Button
             onClick={handlePunch}
+            data-testid="punch-btn"
             className={`w-full h-12 text-base font-bold rounded-xl ${
               isPunchedIn ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
             }`}
@@ -118,7 +246,7 @@ const MyAttendance = () => {
             {isPunchedIn ? (
               <><LogOut size={20} className="mr-2" /> Punch Out</>
             ) : (
-              <><LogIn size={20} className="mr-2" /> Punch In</>
+              <><QrCode size={20} className="mr-2" /> Scan QR & Punch In</>
             )}
           </Button>
         </CardContent>
@@ -146,11 +274,21 @@ const MyAttendance = () => {
         </Card>
         <Card>
           <CardContent className="p-3 text-center">
-            <p className="text-lg font-bold text-blue-600">{totalWorkHours}h</p>
+            <p className="text-lg font-bold text-blue-600">{Math.round(totalWorkHours)}h</p>
             <p className="text-[10px] text-gray-500">Hours</p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Conveyance Total */}
+      {totalConveyance > 0 && (
+        <Card className="bg-green-50">
+          <CardContent className="p-3 flex items-center justify-between">
+            <span className="text-green-700 font-medium">Monthly Conveyance</span>
+            <span className="text-green-700 font-bold">₹{totalConveyance.toLocaleString()}</span>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Calendar */}
       <Card>
@@ -230,31 +368,71 @@ const MyAttendance = () => {
         <CardContent className="p-4">
           <h3 className="font-semibold text-gray-800 mb-3">Recent Activity</h3>
           <div className="space-y-2">
-            {[
-              { date: 'Today', in: '09:05 AM', out: '-', status: 'Working', hours: '4h 30m' },
-              { date: 'Yesterday', in: '09:00 AM', out: '06:30 PM', status: 'Present', hours: '9h 30m' },
-              { date: '2 days ago', in: '09:15 AM', out: '06:00 PM', status: 'Present', hours: '8h 45m' },
-            ].map((entry, i) => (
+            {monthlyAttendance.slice(0, 5).map((entry, i) => (
               <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                 <div>
-                  <p className="font-medium text-sm text-gray-800">{entry.date}</p>
-                  <p className="text-xs text-gray-500">{entry.in} - {entry.out}</p>
+                  <p className="font-medium text-sm text-gray-800">
+                    {new Date(entry.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                  </p>
+                  <div className="flex items-center gap-3 text-xs text-gray-500">
+                    <span>{entry.punch_in || '-'} - {entry.punch_out || '-'}</span>
+                    {entry.location && (
+                      <span className="flex items-center gap-1">
+                        <MapPin size={10} /> {entry.location}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="text-right">
                   <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                    entry.status === 'Working' ? 'bg-blue-100 text-blue-700' :
-                    entry.status === 'Present' ? 'bg-green-100 text-green-700' :
+                    entry.status === 'present' ? 'bg-green-100 text-green-700' :
+                    entry.status === 'leave' ? 'bg-orange-100 text-orange-700' :
                     'bg-red-100 text-red-700'
                   }`}>
                     {entry.status}
                   </span>
-                  <p className="text-xs text-gray-500 mt-1">{entry.hours}</p>
+                  {entry.conveyance_amount > 0 && (
+                    <p className="text-xs text-green-600 mt-1">₹{entry.conveyance_amount}</p>
+                  )}
                 </div>
               </div>
             ))}
+            {monthlyAttendance.length === 0 && (
+              <p className="text-center text-gray-500 py-4">No attendance records for this month</p>
+            )}
           </div>
         </CardContent>
       </Card>
+
+      {/* QR Scanner Dialog */}
+      <Dialog open={showQRScanner} onOpenChange={setShowQRScanner}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Camera size={20} />
+              Scan QR Code to Punch In
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <div id="qr-reader" className="w-full"></div>
+            {scannerError && (
+              <p className="text-red-500 text-sm text-center mt-2">{scannerError}</p>
+            )}
+            <p className="text-gray-500 text-xs text-center mt-3">
+              Point your camera at the QR code generated by your Team Leader
+            </p>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowQRScanner(false)}
+              className="w-full"
+            >
+              <X size={16} className="mr-2" /> Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
