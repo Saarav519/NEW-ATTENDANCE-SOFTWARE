@@ -105,16 +105,26 @@ const EmployeeDashboard = ({ user }) => {
             aspectRatio: 1.0
           },
           async (decodedText) => {
-            // Success callback
-            await html5QrCode.stop();
+            // Success callback - stop scanner and mark as not running
+            if (isScannerRunning.current) {
+              isScannerRunning.current = false;
+              try {
+                await html5QrCode.stop();
+              } catch (e) {
+                // Ignore stop errors
+              }
+            }
             await handleQRScanned(decodedText);
           },
           (errorMessage) => {
             // Error callback - ignore scan errors
           }
         );
+        // Mark scanner as running after successful start
+        isScannerRunning.current = true;
       } catch (err) {
         console.error('Scanner error:', err);
+        isScannerRunning.current = false;
       }
     }, 100);
   };
