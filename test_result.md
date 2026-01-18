@@ -264,15 +264,18 @@ frontend:
 
   - task: "Dashboard with QR Scanner"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/Dashboard.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Role-based dashboard with inline attendance and QR scanner"
+      - working: true
+        agent: "main"
+        comment: "🔧 FIXED: QR Scanner 'Cannot stop, scanner is not running' error. Added isScannerRunning ref to track scanner state and prevent double-stop attempts when QR is scanned successfully."
 
   - task: "Mobile Bottom Navigation"
     implemented: true
