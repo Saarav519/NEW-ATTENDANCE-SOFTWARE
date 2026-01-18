@@ -111,11 +111,11 @@ const AttendanceDetails = () => {
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500">Present</p>
-                <p className="text-xl font-bold text-green-600">{presentDays} days</p>
+                <p className="text-xs text-gray-500">Full Days</p>
+                <p className="text-xl font-bold text-green-600">{fullDays} days</p>
               </div>
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <Calendar size={18} className="text-green-600" />
+                <CheckCircle size={18} className="text-green-600" />
               </div>
             </div>
           </CardContent>
@@ -124,11 +124,11 @@ const AttendanceDetails = () => {
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500">Total Hours</p>
-                <p className="text-xl font-bold text-blue-600">{Math.round(totalHours)}h</p>
+                <p className="text-xs text-gray-500">Half Days</p>
+                <p className="text-xl font-bold text-yellow-600">{halfDays} days</p>
               </div>
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Clock size={18} className="text-blue-600" />
+              <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <AlertCircle size={18} className="text-yellow-600" />
               </div>
             </div>
           </CardContent>
@@ -138,10 +138,10 @@ const AttendanceDetails = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500">Absent/Leave</p>
-                <p className="text-xl font-bold text-orange-600">{absentDays + leaveDays} days</p>
+                <p className="text-xl font-bold text-red-600">{absentDays + leaveDays} days</p>
               </div>
-              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                <Calendar size={18} className="text-orange-600" />
+              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                <XCircle size={18} className="text-red-600" />
               </div>
             </div>
           </CardContent>
@@ -160,6 +160,21 @@ const AttendanceDetails = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Work Hours Card */}
+      <Card>
+        <CardContent className="p-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-gray-500">Total Work Hours</p>
+              <p className="text-xl font-bold text-blue-600">{Math.round(totalHours)} hours</p>
+            </div>
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Clock size={18} className="text-blue-600" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Date-wise Attendance List */}
       <Card>
