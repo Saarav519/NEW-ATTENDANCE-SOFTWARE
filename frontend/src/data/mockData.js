@@ -271,6 +271,7 @@ export const sidebarNavItems = {
     { id: "attendance", label: "Attendance", icon: "CalendarCheck", path: "/my-attendance" },
     { id: "attendance-details", label: "Details", icon: "ClipboardCheck", path: "/attendance-details" },
     { id: "leaves", label: "Leaves", icon: "CalendarOff", path: "/leaves" },
+    { id: "bills", label: "Bills", icon: "Receipt", path: "/bills" },
     { id: "payslip", label: "Payslip", icon: "FileText", path: "/payslip" },
   ]
 };
