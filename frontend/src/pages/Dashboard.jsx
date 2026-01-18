@@ -133,18 +133,35 @@ const EmployeeDashboard = ({ user }) => {
     setShowQRScanner(false);
     
     try {
+      console.log('QR Data scanned:', qrData);
+      
+      // Validate QR data is proper JSON
+      try {
+        JSON.parse(qrData);
+      } catch (e) {
+        alert('Invalid QR Code format. Please scan a valid attendance QR code.');
+        return;
+      }
+      
       const result = await attendanceAPI.punchIn(user.id, qrData);
-      setTodayAttendance(result);
-      setIsPunchedIn(true);
+      console.log('Punch-in result:', result);
       
-      const [h, m] = result.punch_in.split(':');
-      const punchTime = new Date();
-      punchTime.setHours(parseInt(h), parseInt(m), 0);
-      setPunchInTime(punchTime);
-      
-      await loadAttendanceData();
+      if (result && result.punch_in) {
+        setTodayAttendance(result);
+        setIsPunchedIn(true);
+        
+        const [h, m] = result.punch_in.split(':');
+        const punchTime = new Date();
+        punchTime.setHours(parseInt(h), parseInt(m), 0);
+        setPunchInTime(punchTime);
+        
+        await loadAttendanceData();
+      } else {
+        alert('Punch-in failed: No response from server');
+      }
     } catch (error) {
-      alert(error.message || 'Failed to punch in');
+      console.error('Punch-in error:', error);
+      alert(error.message || 'Failed to punch in. Please try again.');
     }
   };
 
