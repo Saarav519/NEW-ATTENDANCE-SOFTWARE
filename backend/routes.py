@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from motor.motor_asyncio import AsyncIOMotorClient
 from typing import List, Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, time
 import os
 import uuid
 import json
@@ -9,8 +9,8 @@ import base64
 
 from models import (
     UserCreate, UserResponse, UserLogin, LoginResponse, UserRole, UserStatus,
-    QRCodeCreate, QRCodeResponse,
-    AttendanceCreate, AttendanceResponse, AttendancePunchOut,
+    QRCodeCreate, QRCodeResponse, ShiftType,
+    AttendanceCreate, AttendanceResponse, AttendancePunchOut, AttendanceStatus,
     LeaveCreate, LeaveResponse, LeaveStatus,
     BillSubmissionCreate, BillSubmissionResponse, BillItemBase, BillStatus,
     PayslipCreate, PayslipResponse, PayslipStatus, SalaryBreakdown,
@@ -31,6 +31,66 @@ def generate_id():
 
 def get_utc_now_str():
     return datetime.now(timezone.utc).isoformat()
+
+def parse_time(time_str: str) -> time:
+    """Parse HH:MM time string to time object"""
+    h, m = map(int, time_str.split(':'))
+    return time(h, m)
+
+def calculate_attendance_status(scan_time_str: str, shift_start: str, shift_end: str, shift_type: str) -> str:
+    """
+    Calculate attendance status based on scan time and shift timings.
+    
+    Rules:
+    - Scan on or before (shift_start + 30 min) → Full Day
+    - Scan between (shift_start + 30 min) and (shift_start + 3 hours) → Half Day
+    - Scan after (shift_start + 3 hours) → Absent
+    """
+    scan_time = parse_time(scan_time_str)
+    shift_start_time = parse_time(shift_start)
+    
+    # Calculate grace period (30 minutes after shift start)
+    grace_minutes = shift_start_time.hour * 60 + shift_start_time.minute + 30
+    grace_hour = grace_minutes // 60
+    grace_min = grace_minutes % 60
+    grace_time = time(grace_hour % 24, grace_min)
+    
+    # Calculate half-day cutoff (3 hours after shift start)
+    halfday_minutes = shift_start_time.hour * 60 + shift_start_time.minute + 180  # 3 hours
+    halfday_hour = halfday_minutes // 60
+    halfday_min = halfday_minutes % 60
+    halfday_time = time(halfday_hour % 24, halfday_min)
+    
+    # Handle night shift where times cross midnight
+    if shift_type == "night":
+        # For night shift, we need different logic
+        # Night shift: e.g., 21:00 - 06:00
+        scan_minutes = scan_time.hour * 60 + scan_time.minute
+        shift_start_minutes = shift_start_time.hour * 60 + shift_start_time.minute
+        
+        # Normalize for comparison (if scan time is past midnight, add 24 hours)
+        if scan_minutes < 12 * 60:  # Before noon, assume it's next day
+            scan_minutes += 24 * 60
+        if shift_start_minutes < 12 * 60:
+            shift_start_minutes += 24 * 60
+            
+        grace_limit = shift_start_minutes + 30
+        halfday_limit = shift_start_minutes + 180
+        
+        if scan_minutes <= grace_limit:
+            return "full_day"
+        elif scan_minutes <= halfday_limit:
+            return "half_day"
+        else:
+            return "absent"
+    else:
+        # Day shift logic
+        if scan_time <= grace_time:
+            return "full_day"
+        elif scan_time <= halfday_time:
+            return "half_day"
+        else:
+            return "absent"
 
 # ==================== AUTH ROUTES ====================
 
