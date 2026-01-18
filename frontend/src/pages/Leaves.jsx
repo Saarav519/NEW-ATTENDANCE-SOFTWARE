@@ -67,9 +67,10 @@ const Leaves = () => {
     return matchesStatus && matchesUser;
   });
 
-  const pendingCount = leaves.filter(l => l.status === 'pending').length;
+  const pendingCount = filteredLeaves.filter(l => l.status === 'pending').length;
   const approvedCount = leaves.filter(l => l.status === 'approved').length;
   const rejectedCount = leaves.filter(l => l.status === 'rejected').length;
+  const totalPendingCount = leaves.filter(l => l.status === 'pending').length;
 
   const handleAddLeave = async () => {
     if (!newLeave.from_date || !newLeave.to_date || !newLeave.reason) {
