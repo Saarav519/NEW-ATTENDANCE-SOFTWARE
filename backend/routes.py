@@ -1485,3 +1485,144 @@ async def bulk_reject_bills(data: BulkRejectRequest):
     
     return {"message": f"{result.modified_count} bills rejected", "count": result.modified_count}
 
+
+# ==================== AUDIT EXPENSE ROUTES ====================
+
+@router.post("/audit-expenses", response_model=AuditExpenseResponse)
+async def create_audit_expense(expense: AuditExpenseCreate, emp_id: str):
+    """Create a new audit expense submission (Team Lead only)"""
+    user = await db.users.find_one({"id": emp_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user.get("role") != "teamlead":
+        raise HTTPException(status_code=403, detail="Only Team Leaders can submit audit expenses")
+    
+    total_amount = sum(item.amount for item in expense.items)
+    
+    expense_doc = {
+        "id": f"AUD{generate_id()}",
+        "emp_id": emp_id,
+        "emp_name": user.get("name"),
+        "items": [item.model_dump() for item in expense.items],
+        "total_amount": total_amount,
+        "trip_purpose": expense.trip_purpose,
+        "trip_location": expense.trip_location,
+        "trip_start_date": expense.trip_start_date,
+        "trip_end_date": expense.trip_end_date,
+        "remarks": expense.remarks,
+        "status": AuditExpenseStatus.PENDING,
+        "approved_amount": 0,
+        "submitted_on": get_utc_now_str(),
+        "approved_by": None,
+        "approved_on": None,
+        "rejection_reason": None
+    }
+    
+    await db.audit_expenses.insert_one(expense_doc)
+    return expense_doc
+
+@router.get("/audit-expenses", response_model=List[AuditExpenseResponse])
+async def get_audit_expenses(emp_id: Optional[str] = None, status: Optional[str] = None):
+    """Get audit expenses - filter by emp_id for Team Lead, all for Admin"""
+    query = {}
+    if emp_id:
+        query["emp_id"] = emp_id
+    if status:
+        query["status"] = status
+    
+    expenses = await db.audit_expenses.find(query, {"_id": 0}).sort("submitted_on", -1).to_list(100)
+    return expenses
+
+@router.get("/audit-expenses/{expense_id}", response_model=AuditExpenseResponse)
+async def get_audit_expense(expense_id: str):
+    """Get a single audit expense by ID"""
+    expense = await db.audit_expenses.find_one({"id": expense_id}, {"_id": 0})
+    if not expense:
+        raise HTTPException(status_code=404, detail="Audit expense not found")
+    return expense
+
+@router.put("/audit-expenses/{expense_id}/approve")
+async def approve_audit_expense(expense_id: str, approved_by: str, approved_amount: Optional[float] = None):
+    """Approve an audit expense (Admin only) - supports partial approval"""
+    expense = await db.audit_expenses.find_one({"id": expense_id}, {"_id": 0})
+    if not expense:
+        raise HTTPException(status_code=404, detail="Audit expense not found")
+    
+    if expense.get("status") != "pending":
+        raise HTTPException(status_code=400, detail="Expense is not pending")
+    
+    # If no approved_amount specified, approve full amount
+    final_approved_amount = approved_amount if approved_amount is not None else expense.get("total_amount", 0)
+    
+    # Determine status based on approved amount
+    if final_approved_amount >= expense.get("total_amount", 0):
+        status = AuditExpenseStatus.APPROVED
+    elif final_approved_amount > 0:
+        status = AuditExpenseStatus.PARTIALLY_APPROVED
+    else:
+        status = AuditExpenseStatus.REJECTED
+    
+    await db.audit_expenses.update_one(
+        {"id": expense_id},
+        {"$set": {
+            "status": status,
+            "approved_amount": final_approved_amount,
+            "approved_by": approved_by,
+            "approved_on": get_utc_now_str()
+        }}
+    )
+    
+    return {"message": f"Expense {status.value}", "approved_amount": final_approved_amount}
+
+@router.put("/audit-expenses/{expense_id}/reject")
+async def reject_audit_expense(expense_id: str, rejected_by: str, reason: Optional[str] = None):
+    """Reject an audit expense (Admin only)"""
+    expense = await db.audit_expenses.find_one({"id": expense_id}, {"_id": 0})
+    if not expense:
+        raise HTTPException(status_code=404, detail="Audit expense not found")
+    
+    if expense.get("status") != "pending":
+        raise HTTPException(status_code=400, detail="Expense is not pending")
+    
+    await db.audit_expenses.update_one(
+        {"id": expense_id},
+        {"$set": {
+            "status": AuditExpenseStatus.REJECTED,
+            "approved_amount": 0,
+            "approved_by": rejected_by,
+            "approved_on": get_utc_now_str(),
+            "rejection_reason": reason
+        }}
+    )
+    
+    return {"message": "Expense rejected"}
+
+@router.delete("/audit-expenses/{expense_id}")
+async def delete_audit_expense(expense_id: str):
+    """Delete an audit expense (only if pending)"""
+    expense = await db.audit_expenses.find_one({"id": expense_id}, {"_id": 0})
+    if not expense:
+        raise HTTPException(status_code=404, detail="Audit expense not found")
+    
+    if expense.get("status") != "pending":
+        raise HTTPException(status_code=400, detail="Can only delete pending expenses")
+    
+    await db.audit_expenses.delete_one({"id": expense_id})
+    return {"message": "Expense deleted"}
+
+@router.get("/audit-expenses/summary/{emp_id}")
+async def get_audit_expense_summary(emp_id: str, month: Optional[str] = None, year: Optional[int] = None):
+    """Get summary of approved audit expenses for an employee (for salary calculation)"""
+    query = {"emp_id": emp_id, "status": {"$in": ["approved", "partially_approved"]}}
+    
+    expenses = await db.audit_expenses.find(query, {"_id": 0}).to_list(100)
+    
+    total_approved = sum(e.get("approved_amount", 0) for e in expenses)
+    
+    return {
+        "emp_id": emp_id,
+        "total_approved_expenses": total_approved,
+        "expense_count": len(expenses)
+    }
+
