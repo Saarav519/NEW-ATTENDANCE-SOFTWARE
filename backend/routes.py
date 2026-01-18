@@ -194,22 +194,23 @@ async def punch_in(data: AttendanceCreate, emp_id: str):
     # Parse QR data
     try:
         qr_info = json.loads(data.qr_data)
-    except:
-        raise HTTPException(status_code=400, detail="Invalid QR code data")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid QR code data: {str(e)}")
     
     # Verify QR code exists and is active
     qr_code = await db.qr_codes.find_one({"id": qr_info.get("id")}, {"_id": 0})
     if not qr_code:
-        raise HTTPException(status_code=404, detail="QR code not found")
+        raise HTTPException(status_code=404, detail="QR code not found. Please ask your Team Leader to generate a new QR code.")
     if not qr_code.get("is_active", False):
-        raise HTTPException(status_code=400, detail="QR code is no longer active")
+        raise HTTPException(status_code=400, detail="This QR code has expired. Please ask your Team Leader for a new one.")
     
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     
-    # Check if already punched in today
-    existing = await db.attendance.find_one({"emp_id": emp_id, "date": today})
+    # Check if already punched in today - return existing record instead of error
+    existing = await db.attendance.find_one({"emp_id": emp_id, "date": today}, {"_id": 0})
     if existing:
-        raise HTTPException(status_code=400, detail="Already punched in today")
+        # Return the existing attendance record
+        return AttendanceResponse(**existing)
     
     attendance_doc = {
         "id": generate_id(),
