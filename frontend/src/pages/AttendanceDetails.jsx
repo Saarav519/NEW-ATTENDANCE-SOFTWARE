@@ -5,7 +5,7 @@ import { Card, CardContent } from '../components/ui/card';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '../components/ui/select';
-import { Calendar, Clock, MapPin, IndianRupee, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, MapPin, IndianRupee, ChevronRight, Sun, Moon, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 
 const AttendanceDetails = () => {
   const { user } = useAuth();
@@ -40,12 +40,32 @@ const AttendanceDetails = () => {
     }
   };
 
-  // Calculate summary
-  const presentDays = attendance.filter(a => a.status === 'present').length;
-  const absentDays = attendance.filter(a => a.status === 'absent').length;
+  // Calculate summary with new attendance_status
+  const fullDays = attendance.filter(a => a.attendance_status === 'full_day' || (a.status === 'present' && !a.attendance_status)).length;
+  const halfDays = attendance.filter(a => a.attendance_status === 'half_day').length;
+  const absentDays = attendance.filter(a => a.attendance_status === 'absent' || a.status === 'absent').length;
   const leaveDays = attendance.filter(a => a.status === 'leave').length;
   const totalHours = attendance.reduce((sum, a) => sum + (a.work_hours || 0), 0);
   const totalConveyance = attendance.reduce((sum, a) => sum + (a.conveyance_amount || 0), 0);
+
+  // Helper to get attendance status display
+  const getAttendanceStatusDisplay = (record) => {
+    const status = record.attendance_status || record.status;
+    switch(status) {
+      case 'full_day':
+        return { label: 'Full Day', color: 'bg-green-100 text-green-700', icon: CheckCircle };
+      case 'half_day':
+        return { label: 'Half Day', color: 'bg-yellow-100 text-yellow-700', icon: AlertCircle };
+      case 'absent':
+        return { label: 'Absent', color: 'bg-red-100 text-red-700', icon: XCircle };
+      case 'present':
+        return { label: 'Present', color: 'bg-green-100 text-green-700', icon: CheckCircle };
+      case 'leave':
+        return { label: 'Leave', color: 'bg-orange-100 text-orange-700', icon: Calendar };
+      default:
+        return { label: status, color: 'bg-gray-100 text-gray-700', icon: Calendar };
+    }
+  };
 
   return (
     <div className="space-y-4">
