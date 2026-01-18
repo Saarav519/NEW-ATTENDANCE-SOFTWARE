@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { employees, adminUser } from '../data/mockData';
+import { users } from '../data/mockData';
 
 const AuthContext = createContext(null);
 
@@ -16,19 +16,19 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = (employeeId, password) => {
-    // Check admin login
-    if (employeeId === 'admin' && password === adminUser.password) {
-      const userData = { ...adminUser, isAdmin: true };
-      setUser(userData);
-      localStorage.setItem('supermanage_user', JSON.stringify(userData));
-      return { success: true, user: userData };
-    }
+  const login = (userId, password) => {
+    // Find user by ID (case insensitive)
+    const foundUser = users.find(
+      u => u.id.toLowerCase() === userId.toLowerCase() && u.password === password
+    );
 
-    // Check employee login (using empId as username, default password is empId)
-    const employee = employees.find(emp => emp.id.toLowerCase() === employeeId.toLowerCase());
-    if (employee && password === employee.id.toLowerCase()) {
-      const userData = { ...employee, isAdmin: false };
+    if (foundUser) {
+      const userData = { 
+        ...foundUser, 
+        isAdmin: foundUser.role === 'admin',
+        isTeamLead: foundUser.role === 'teamlead',
+        isEmployee: foundUser.role === 'employee'
+      };
       setUser(userData);
       localStorage.setItem('supermanage_user', JSON.stringify(userData));
       return { success: true, user: userData };
@@ -42,8 +42,19 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('supermanage_user');
   };
 
+  const value = {
+    user,
+    login,
+    logout,
+    loading,
+    isAdmin: user?.role === 'admin',
+    isTeamLead: user?.role === 'teamlead',
+    isEmployee: user?.role === 'employee',
+    role: user?.role
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, isAdmin: user?.isAdmin }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
