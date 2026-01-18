@@ -140,12 +140,13 @@ const EmployeeDashboard = ({ user }) => {
       console.log('QR Data scanned:', qrData);
       
       // Validate QR data is proper JSON
+      let parsedQR;
       try {
-        JSON.parse(qrData);
+        parsedQR = JSON.parse(qrData);
       } catch (e) {
         setShowQRScanner(false);
         setIsProcessingQR(false);
-        alert('Invalid QR Code format. Please scan a valid attendance QR code.');
+        toast.error('Invalid QR Code format. Please scan a valid attendance QR code.');
         return;
       }
       
@@ -165,15 +166,20 @@ const EmployeeDashboard = ({ user }) => {
         punchTime.setHours(parseInt(h), parseInt(m), 0);
         setPunchInTime(punchTime);
         
+        // Show success toast with attendance status
+        const statusMsg = result.attendance_status === 'full_day' ? '✅ Full Day' :
+                         result.attendance_status === 'half_day' ? '⚠️ Half Day' : '❌ Marked Absent';
+        toast.success(`Punched in at ${result.punch_in}! ${statusMsg}`, { duration: 4000 });
+        
         await loadAttendanceData();
       } else {
-        alert('Punch-in failed: No response from server');
+        toast.error('Punch-in failed: No response from server');
       }
     } catch (error) {
       console.error('Punch-in error:', error);
       setShowQRScanner(false);
       setIsProcessingQR(false);
-      alert(error.message || 'Failed to punch in. Please try again.');
+      toast.error(error.message || 'Failed to punch in. Please try again.');
     }
   };
 
@@ -183,6 +189,7 @@ const EmployeeDashboard = ({ user }) => {
       const result = await attendanceAPI.punchOut(user.id, today);
       setTodayAttendance(result);
       setIsPunchedIn(false);
+      toast.success(`Punched out! Work hours: ${result.work_hours?.toFixed(1)}h`);
       await loadAttendanceData();
     } catch (error) {
       alert(error.message || 'Failed to punch out');
