@@ -724,6 +724,7 @@ const TeamLeadDashboard = ({ user }) => {
 // Admin Dashboard - Desktop Focused
 const AdminDashboard = ({ user }) => {
   const navigate = useNavigate();
+  const [employees, setEmployees] = useState([]);
   const [stats, setStats] = useState({
     totalEmployees: 0,
     presentToday: 0,
@@ -744,7 +745,9 @@ const AdminDashboard = ({ user }) => {
         billAPI.getAll()
       ]);
       
-      const employees = (usersData || []).filter(u => u.role !== 'admin' && u.status === 'active');
+      const activeEmployees = (usersData || []).filter(u => u.role !== 'admin' && u.status === 'active');
+      setEmployees(activeEmployees);
+      
       const pendingLeaves = (leavesData || []).filter(l => l.status === 'pending').length;
       const approvedLeavesToday = (leavesData || []).filter(l => {
         const today = new Date().toISOString().split('T')[0];
@@ -753,8 +756,8 @@ const AdminDashboard = ({ user }) => {
       const pendingBills = (billsData || []).filter(b => b.status === 'pending').length;
       
       setStats({
-        totalEmployees: employees.length,
-        presentToday: Math.max(0, employees.length - approvedLeavesToday),
+        totalEmployees: activeEmployees.length,
+        presentToday: Math.max(0, activeEmployees.length - approvedLeavesToday),
         onLeave: approvedLeavesToday,
         pendingLeaves,
         pendingBills
