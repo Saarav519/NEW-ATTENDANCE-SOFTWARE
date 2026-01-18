@@ -150,6 +150,18 @@ backend:
         agent: "testing"
         comment: "✅ TESTED: QR code creation and retrieval working perfectly. QR data includes location, conveyance amount, and proper JSON structure for attendance scanning."
 
+  - task: "Shift-Based QR Code Features"
+    implemented: true
+    working: true
+    file: "/app/backend/routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: NEW SHIFT-BASED FEATURES - QR codes now include shift_type, shift_start, shift_end fields. Day shift (10:00-19:00) and night shift (21:00-06:00) QR creation working perfectly. All shift information properly included in QR data and API responses."
+
   - task: "Attendance APIs (punch-in/punch-out)"
     implemented: true
     working: true
@@ -164,6 +176,18 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ TESTED: Complete QR-based attendance flow working. Punch-in validates QR codes, calculates work hours on punch-out, monthly attendance retrieval working. Proper error handling for invalid QR codes and missing punch-in records."
+
+  - task: "Shift-Based Attendance Status Calculation"
+    implemented: true
+    working: true
+    file: "/app/backend/routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: NEW ATTENDANCE STATUS CALCULATION - Attendance now calculates attendance_status (full_day, half_day, absent) based on scan time vs shift timings. Conveyance automatically adjusted: full conveyance for full_day, half conveyance for half_day, zero for absent. Time-based logic working correctly."
 
   - task: "Bill Submission APIs"
     implemented: true
@@ -194,6 +218,18 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ TESTED: Payslip generation working with complex salary calculations including basic, HRA, allowances, conveyance from attendance and bills, leave adjustments, and deductions. Settled payslips retrieval working."
+
+  - task: "Shift-Based Payslip Generation"
+    implemented: true
+    working: true
+    file: "/app/backend/routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: NEW PAYSLIP BREAKDOWN - Payslip generation now includes detailed attendance breakdown with full_days, half_days, absent_days, and attendance_adjustment fields. Salary calculations properly account for shift-based attendance status. All calculations accurate and working correctly."
 
   - task: "Leave Management APIs"
     implemented: true
