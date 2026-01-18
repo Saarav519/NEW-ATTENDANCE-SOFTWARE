@@ -15,7 +15,11 @@ from models import (
     BillSubmissionCreate, BillSubmissionResponse, BillItemBase, BillStatus,
     PayslipCreate, PayslipResponse, PayslipStatus, SalaryBreakdown,
     HolidayCreate, HolidayResponse,
-    BusinessInfo
+    BusinessInfo,
+    ProfileUpdate, LeaveBalanceResponse,
+    SalaryAdvanceCreate, SalaryAdvanceResponse, AdvanceStatus,
+    ShiftTemplateCreate, ShiftTemplateResponse,
+    BulkApproveRequest, BulkRejectRequest
 )
 
 router = APIRouter()
