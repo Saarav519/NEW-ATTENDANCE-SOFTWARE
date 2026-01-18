@@ -278,17 +278,40 @@ async def punch_in(data: AttendanceCreate, emp_id: str):
         # Return the existing attendance record
         return AttendanceResponse(**existing)
     
+    punch_in_time = datetime.now(timezone.utc).strftime("%H:%M")
+    
+    # Get shift info from QR code (with defaults for backward compatibility)
+    shift_type = qr_info.get("shift_type", qr_code.get("shift_type", "day"))
+    shift_start = qr_info.get("shift_start", qr_code.get("shift_start", "10:00"))
+    shift_end = qr_info.get("shift_end", qr_code.get("shift_end", "19:00"))
+    
+    # Calculate attendance status based on punch-in time and shift
+    attendance_status = calculate_attendance_status(punch_in_time, shift_start, shift_end, shift_type)
+    
+    # Determine conveyance based on attendance status
+    full_conveyance = qr_code["conveyance_amount"]
+    if attendance_status == "full_day":
+        actual_conveyance = full_conveyance
+    elif attendance_status == "half_day":
+        actual_conveyance = full_conveyance / 2  # Half conveyance for half day
+    else:
+        actual_conveyance = 0  # No conveyance for absent
+    
     attendance_doc = {
         "id": generate_id(),
         "emp_id": emp_id,
         "date": today,
-        "punch_in": datetime.now(timezone.utc).strftime("%H:%M"),
+        "punch_in": punch_in_time,
         "punch_out": None,
-        "status": "present",
+        "status": "present" if attendance_status != "absent" else "absent",
+        "attendance_status": attendance_status,
         "work_hours": 0,
         "qr_code_id": qr_code["id"],
         "location": qr_code["location"],
-        "conveyance_amount": qr_code["conveyance_amount"]
+        "conveyance_amount": actual_conveyance,
+        "shift_type": shift_type,
+        "shift_start": shift_start,
+        "shift_end": shift_end
     }
     
     await db.attendance.insert_one(attendance_doc)
