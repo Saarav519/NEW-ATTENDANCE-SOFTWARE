@@ -14,6 +14,7 @@ import {
 import { QRCodeSVG } from 'qrcode.react';
 import { Users, UserCheck, UserX, Phone, Mail, ChevronRight, QrCode, MapPin, IndianRupee, Download, Copy, Check, Sun, Moon, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const Team = () => {
   const { user } = useAuth();
