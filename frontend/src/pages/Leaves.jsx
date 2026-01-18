@@ -283,7 +283,7 @@ const Leaves = () => {
                 <Clock size={24} className="text-yellow-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-800">{pendingCount}</p>
+                <p className="text-2xl font-bold text-gray-800">{totalPendingCount}</p>
                 <p className="text-sm text-gray-500">Pending</p>
               </div>
             </CardContent>
