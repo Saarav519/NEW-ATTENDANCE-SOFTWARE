@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '../components/ui/select';
-import { Download, IndianRupee, Calendar, FileText, Check } from 'lucide-react';
+import { Download, IndianRupee, Calendar, FileText, Check, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 import jsPDF from 'jspdf';
 
 const Payslip = () => {
