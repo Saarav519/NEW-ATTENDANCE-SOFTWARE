@@ -1513,10 +1513,13 @@ async def create_audit_expense(expense: AuditExpenseCreate, emp_id: str):
         "remarks": expense.remarks,
         "status": AuditExpenseStatus.PENDING,
         "approved_amount": 0,
+        "remaining_balance": total_amount,  # Initially, full amount is remaining
         "submitted_on": get_utc_now_str(),
         "approved_by": None,
         "approved_on": None,
-        "rejection_reason": None
+        "rejection_reason": None,
+        "revalidation_reason": None,
+        "payment_history": []
     }
     
     await db.audit_expenses.insert_one(expense_doc)
