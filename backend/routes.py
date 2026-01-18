@@ -616,7 +616,7 @@ async def create_holiday(holiday: HolidayCreate):
     holiday_doc["id"] = generate_id()
     
     await db.holidays.insert_one(holiday_doc)
-    del holiday_doc["_id"] if "_id" in holiday_doc else None
+    holiday_doc.pop("_id", None)
     
     return HolidayResponse(**holiday_doc)
 
