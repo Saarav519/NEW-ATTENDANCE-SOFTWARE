@@ -131,6 +131,54 @@ const Leaves = () => {
     }
   };
 
+  // Bulk actions
+  const handleSelectAll = () => {
+    const pendingIds = filteredLeaves.filter(l => l.status === 'pending').map(l => l.id);
+    if (selectedIds.length === pendingIds.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(pendingIds);
+    }
+  };
+
+  const handleSelect = (id) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkApprove = async () => {
+    if (selectedIds.length === 0) return;
+    
+    setBulkProcessing(true);
+    try {
+      const result = await bulkAPI.approveLeaves(selectedIds, user.id);
+      toast.success(`${result.count} leaves approved!`);
+      setSelectedIds([]);
+      await loadLeaves();
+    } catch (error) {
+      toast.error(error.message || 'Failed to approve leaves');
+    } finally {
+      setBulkProcessing(false);
+    }
+  };
+
+  const handleBulkReject = async () => {
+    if (selectedIds.length === 0) return;
+    
+    setBulkProcessing(true);
+    try {
+      const result = await bulkAPI.rejectLeaves(selectedIds, user.id);
+      toast.success(`${result.count} leaves rejected!`);
+      setSelectedIds([]);
+      await loadLeaves();
+    } catch (error) {
+      toast.error(error.message || 'Failed to reject leaves');
+    } finally {
+      setBulkProcessing(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -138,6 +186,8 @@ const Leaves = () => {
       </div>
     );
   }
+
+  const pendingCount = filteredLeaves.filter(l => l.status === 'pending').length;
 
   return (
     <div className="space-y-6">
@@ -147,17 +197,26 @@ const Leaves = () => {
           <h1 className="text-2xl font-bold text-gray-800">Leave Management</h1>
           <p className="text-gray-500">{(isAdmin || isTeamLead) ? 'Manage employee leaves' : 'Apply for leave'}</p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-[#1E2A5E] hover:bg-[#2D3A8C]">
-              <Plus size={18} className="mr-2" /> Apply Leave
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Apply for Leave</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => loadLeaves(true)}
+            disabled={refreshing}
+          >
+            <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
+          </Button>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-[#1E2A5E] hover:bg-[#2D3A8C]">
+                <Plus size={18} className="mr-2" /> Apply Leave
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Apply for Leave</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label>Leave Type</Label>
                 <Select value={newLeave.type} onValueChange={(v) => setNewLeave({...newLeave, type: v})}>
