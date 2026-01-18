@@ -4,17 +4,18 @@ import { sidebarNavItems, businessInfo } from '../../data/mockData';
 import { useAuth } from '../../context/AuthContext';
 import {
   LayoutDashboard, Users, CalendarCheck, CalendarOff, Clock,
-  Wallet, Banknote, BookOpen, Car, Gift, BarChart3,
-  LogOut, ChevronLeft, ChevronRight, Settings, Menu
+  Wallet, Banknote, BookOpen, Car, Gift, BarChart3, Home,
+  LogOut, ChevronLeft, ChevronRight, ClipboardCheck, Receipt
 } from 'lucide-react';
 
 const iconMap = {
   LayoutDashboard, Users, CalendarCheck, CalendarOff, Clock,
-  Wallet, Banknote, BookOpen, Car, Gift, BarChart3
+  Wallet, Banknote, BookOpen, Car, Gift, BarChart3, Home,
+  ClipboardCheck, Receipt
 };
 
 const Sidebar = ({ collapsed, setCollapsed }) => {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, role } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -22,14 +23,12 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
     navigate('/login');
   };
 
-  // Filter nav items based on role
-  const navItems = isAdmin
-    ? sidebarNavItems
-    : sidebarNavItems.filter(item => ['dashboard', 'attendance', 'leaves', 'overtime'].includes(item.id));
+  // Get nav items based on role
+  const navItems = sidebarNavItems[role] || sidebarNavItems.employee;
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-screen bg-[#1E2A5E] text-white transition-all duration-300 z-40 ${
+      className={`fixed left-0 top-0 h-screen bg-[#1E2A5E] text-white transition-all duration-300 z-40 hidden lg:block ${
         collapsed ? 'w-20' : 'w-64'
       }`}
     >
@@ -54,8 +53,21 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
         </button>
       </div>
 
+      {/* Role Badge */}
+      {!collapsed && (
+        <div className="px-4 py-3">
+          <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+            role === 'admin' ? 'bg-red-500/20 text-red-300' :
+            role === 'teamlead' ? 'bg-blue-500/20 text-blue-300' :
+            'bg-green-500/20 text-green-300'
+          }`}>
+            {role === 'admin' ? 'Administrator' : role === 'teamlead' ? 'Team Leader' : 'Employee'}
+          </span>
+        </div>
+      )}
+
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-3 overflow-y-auto" style={{ height: 'calc(100vh - 140px)' }}>
+      <nav className="flex-1 py-2 px-3 overflow-y-auto" style={{ height: 'calc(100vh - 180px)' }}>
         <ul className="space-y-1">
           {navItems.map((item) => {
             const Icon = iconMap[item.icon];
@@ -91,7 +103,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
               </div>
               <div className="overflow-hidden">
                 <p className="text-sm font-medium truncate">{user?.name}</p>
-                <p className="text-[10px] text-gray-400 capitalize">{user?.role}</p>
+                <p className="text-[10px] text-gray-400 capitalize">{user?.designation}</p>
               </div>
             </div>
           )}
