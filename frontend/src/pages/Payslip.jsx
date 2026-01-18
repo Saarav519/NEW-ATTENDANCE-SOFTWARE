@@ -69,15 +69,27 @@ const Payslip = () => {
     doc.setLineWidth(0.5);
     doc.line(20, 65, 190, 65);
     
+    // Attendance Summary
+    if (breakdown.full_days || breakdown.half_days || breakdown.absent_days) {
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('ATTENDANCE SUMMARY', 20, 75);
+      
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Full Days: ${breakdown.full_days || 0}  |  Half Days: ${breakdown.half_days || 0}  |  Absent: ${breakdown.absent_days || 0}`, 20, 85);
+    }
+    
     // Earnings Section
+    let y = breakdown.full_days ? 100 : 75;
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text('EARNINGS', 20, 75);
+    doc.text('EARNINGS', 20, y);
     
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     
-    let y = 85;
+    y += 10;
     const lineHeight = 8;
     
     const earnings = [
@@ -102,6 +114,14 @@ const Payslip = () => {
     y += 10;
     
     doc.setFont('helvetica', 'normal');
+    
+    const attendanceAdj = breakdown.attendance_adjustment || 0;
+    if (attendanceAdj !== 0) {
+      doc.text(`Attendance Adjustment (Half/Absent Days)`, 25, y);
+      doc.text(`Rs. ${attendanceAdj.toLocaleString()}`, 170, y, { align: 'right' });
+      y += lineHeight;
+    }
+    
     const leaveAdj = breakdown.leave_adjustment || 0;
     doc.text('Leave Adjustment', 25, y);
     doc.text(`Rs. ${leaveAdj.toLocaleString()}`, 170, y, { align: 'right' });
