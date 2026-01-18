@@ -236,12 +236,12 @@ const TeamLeadDashboard = ({ user }) => {
             </div>
             <div className="text-center p-3 bg-green-50 rounded-xl">
               <UserCheck size={20} className="mx-auto text-green-600 mb-1" />
-              <p className="text-lg font-bold text-gray-800">{teamMembers.length - 1}</p>
+              <p className="text-lg font-bold text-gray-800">{Math.max(0, teamMembers.length - 1)}</p>
               <p className="text-[10px] text-gray-500">Present</p>
             </div>
             <div className="text-center p-3 bg-orange-50 rounded-xl">
               <UserX size={20} className="mx-auto text-orange-600 mb-1" />
-              <p className="text-lg font-bold text-gray-800">1</p>
+              <p className="text-lg font-bold text-gray-800">{Math.min(1, teamMembers.length)}</p>
               <p className="text-[10px] text-gray-500">Absent</p>
             </div>
           </div>
