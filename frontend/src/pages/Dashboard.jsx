@@ -1013,7 +1013,7 @@ const AdminDashboard = ({ user }) => {
         <Card className="lg:col-span-2">
           <CardContent className="p-4 lg:p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Today's Attendance</h3>
+              <h3 className="text-lg font-semibold">Today&apos;s Attendance</h3>
               <button onClick={() => navigate('/attendance')} className="text-sm text-[#1E2A5E] flex items-center">
                 View All <ArrowRight size={14} className="ml-1" />
               </button>
