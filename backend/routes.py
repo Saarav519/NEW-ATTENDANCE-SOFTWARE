@@ -1702,8 +1702,9 @@ async def reject_audit_expense(expense_id: str, rejected_by: str, reason: Option
     if not expense:
         raise HTTPException(status_code=404, detail="Audit expense not found")
     
-    if expense.get("status") != "pending":
-        raise HTTPException(status_code=400, detail="Expense is not pending")
+    current_status = expense.get("status")
+    if current_status not in ["pending", "partially_approved"]:
+        raise HTTPException(status_code=400, detail="Expense cannot be rejected in current state")
     
     await db.audit_expenses.update_one(
         {"id": expense_id},
