@@ -225,7 +225,7 @@ async def punch_in(data: AttendanceCreate, emp_id: str):
     }
     
     await db.attendance.insert_one(attendance_doc)
-    del attendance_doc["_id"] if "_id" in attendance_doc else None
+    attendance_doc.pop("_id", None)
     
     return AttendanceResponse(**attendance_doc)
 
