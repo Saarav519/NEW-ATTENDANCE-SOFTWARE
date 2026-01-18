@@ -189,6 +189,7 @@ class SalaryBreakdown(BaseModel):
     full_days: int = 0  # New: Count of full days
     half_days: int = 0  # New: Count of half days
     absent_days: int = 0  # New: Count of absent days
+    audit_expenses: float = 0  # New: Approved audit expense reimbursements
     gross_pay: float = 0
     deductions: float = 0
     net_pay: float = 0
