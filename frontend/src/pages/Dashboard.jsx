@@ -515,6 +515,9 @@ const TeamLeadDashboard = ({ user }) => {
   const [isPunchedIn, setIsPunchedIn] = useState(false);
   const [punchInTime, setPunchInTime] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [pendingLeaves, setPendingLeaves] = useState(0);
+  const [holidays, setHolidays] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -522,20 +525,41 @@ const TeamLeadDashboard = ({ user }) => {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    loadTeamData();
+  }, [user?.id]);
+
+  const loadTeamData = async () => {
+    try {
+      const [members, leaves, holidaysData] = await Promise.all([
+        usersAPI.getTeamMembers(user.id),
+        leaveAPI.getAll(),
+        holidayAPI.getAll()
+      ]);
+      setTeamMembers(members || []);
+      setHolidays(holidaysData || []);
+      // Count pending leaves for team members
+      const teamMemberIds = (members || []).map(m => m.id);
+      const teamPendingLeaves = (leaves || []).filter(l => 
+        teamMemberIds.includes(l.emp_id) && l.status === 'pending'
+      ).length;
+      setPendingLeaves(teamPendingLeaves);
+    } catch (error) {
+      console.error('Error loading team data:', error);
+    }
+  };
+
   const handlePunch = () => {
     if (!isPunchedIn) {
       setPunchInTime(new Date());
       setIsPunchedIn(true);
+      toast.success('Punched in successfully!');
     } else {
       setIsPunchedIn(false);
+      toast.success('Punched out successfully!');
     }
   };
 
-  // Get team members
-  const teamMembers = users.filter(u => user.teamMembers?.includes(u.id));
-  const pendingLeaves = leaveRequests.filter(l => 
-    teamMembers.some(m => m.id === l.empId) && l.status === 'pending'
-  ).length;
   const pendingBills = 1; // Pending bill submissions count
 
   return (
