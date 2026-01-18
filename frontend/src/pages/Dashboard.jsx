@@ -106,6 +106,10 @@ const EmployeeDashboard = ({ user }) => {
             aspectRatio: 1.0
           },
           async (decodedText) => {
+            // Prevent duplicate processing
+            if (isProcessingQR) return;
+            setIsProcessingQR(true);
+            
             // Success callback - stop scanner and mark as not running
             if (isScannerRunning.current) {
               isScannerRunning.current = false;
@@ -116,6 +120,7 @@ const EmployeeDashboard = ({ user }) => {
               }
             }
             await handleQRScanned(decodedText);
+            setIsProcessingQR(false);
           },
           (errorMessage) => {
             // Error callback - ignore scan errors
