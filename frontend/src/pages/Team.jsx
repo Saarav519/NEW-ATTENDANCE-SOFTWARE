@@ -138,7 +138,10 @@ const Team = () => {
     setQrForm({
       location: '',
       conveyance_amount: '',
-      date: today
+      date: today,
+      shift_type: 'day',
+      shift_start: '10:00',
+      shift_end: '19:00'
     });
   };
 
