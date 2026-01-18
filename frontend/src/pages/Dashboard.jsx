@@ -192,7 +192,7 @@ const EmployeeDashboard = ({ user }) => {
       toast.success(`Punched out! Work hours: ${result.work_hours?.toFixed(1)}h`);
       await loadAttendanceData();
     } catch (error) {
-      alert(error.message || 'Failed to punch out');
+      toast.error(error.message || 'Failed to punch out');
     }
   };
 
