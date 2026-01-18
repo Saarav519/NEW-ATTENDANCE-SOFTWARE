@@ -26,6 +26,8 @@ const EmployeeDashboard = ({ user }) => {
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [todayAttendance, setTodayAttendance] = useState(null);
   const [monthlyAttendance, setMonthlyAttendance] = useState([]);
+  const [holidays, setHolidays] = useState([]);
+  const [myLeaves, setMyLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isProcessingQR, setIsProcessingQR] = useState(false);
   const navigate = useNavigate();
@@ -46,6 +48,7 @@ const EmployeeDashboard = ({ user }) => {
 
   useEffect(() => {
     loadAttendanceData();
+    loadHolidaysAndLeaves();
   }, [user?.id, selectedMonth, selectedYear]);
 
   useEffect(() => {
@@ -60,6 +63,19 @@ const EmployeeDashboard = ({ user }) => {
       }
     };
   }, [showQRScanner]);
+
+  const loadHolidaysAndLeaves = async () => {
+    try {
+      const [holidaysData, leavesData] = await Promise.all([
+        holidayAPI.getAll(),
+        leaveAPI.getAll(user?.id)
+      ]);
+      setHolidays(holidaysData || []);
+      setMyLeaves(leavesData || []);
+    } catch (error) {
+      console.error('Error loading holidays/leaves:', error);
+    }
+  };
 
   const loadAttendanceData = async () => {
     if (!user?.id) return;
