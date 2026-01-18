@@ -882,7 +882,7 @@ const AdminDashboard = ({ user }) => {
                   </div>
                   <span className="font-medium">Leave Requests</span>
                 </div>
-                <span className="bg-yellow-500 text-white text-sm px-3 py-1 rounded-full font-bold">{pendingLeaves}</span>
+                <span className="bg-yellow-500 text-white text-sm px-3 py-1 rounded-full font-bold">{stats.pendingLeaves}</span>
               </div>
               <div 
                 onClick={() => navigate('/bills')}
@@ -894,7 +894,7 @@ const AdminDashboard = ({ user }) => {
                   </div>
                   <span className="font-medium">Bill Submissions</span>
                 </div>
-                <span className="bg-blue-500 text-white text-sm px-3 py-1 rounded-full font-bold">{pendingBills}</span>
+                <span className="bg-blue-500 text-white text-sm px-3 py-1 rounded-full font-bold">{stats.pendingBills}</span>
               </div>
               <div 
                 onClick={() => navigate('/advances')}
