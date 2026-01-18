@@ -19,7 +19,8 @@ from models import (
     ProfileUpdate, LeaveBalanceResponse,
     SalaryAdvanceCreate, SalaryAdvanceResponse, AdvanceStatus,
     ShiftTemplateCreate, ShiftTemplateResponse,
-    BulkApproveRequest, BulkRejectRequest
+    BulkApproveRequest, BulkRejectRequest,
+    AuditExpenseCreate, AuditExpenseResponse, AuditExpenseStatus, AuditExpenseCategory
 )
 
 router = APIRouter()
