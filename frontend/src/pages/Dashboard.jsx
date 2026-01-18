@@ -517,7 +517,18 @@ const TeamLeadDashboard = ({ user }) => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [teamMembers, setTeamMembers] = useState([]);
   const [pendingLeaves, setPendingLeaves] = useState(0);
+  const [pendingBills, setPendingBills] = useState(0);
   const [holidays, setHolidays] = useState([]);
+  const [todayAttendance, setTodayAttendance] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showPunchDialog, setShowPunchDialog] = useState(false);
+  const [punchForm, setPunchForm] = useState({
+    location: 'Office',
+    shift_type: 'day',
+    shift_start: '10:00',
+    shift_end: '19:00',
+    conveyance: 200
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -530,37 +541,95 @@ const TeamLeadDashboard = ({ user }) => {
   }, [user?.id]);
 
   const loadTeamData = async () => {
+    setLoading(true);
     try {
-      const [members, leaves, holidaysData] = await Promise.all([
+      const today = new Date().toISOString().split('T')[0];
+      
+      const [members, leaves, holidaysData, billsData, todayData] = await Promise.all([
         usersAPI.getTeamMembers(user.id),
         leaveAPI.getAll(),
-        holidayAPI.getAll()
+        holidayAPI.getAll(),
+        billAPI.getAll(),
+        attendanceAPI.getAll(user.id, today)
       ]);
+      
       setTeamMembers(members || []);
       setHolidays(holidaysData || []);
-      // Count pending leaves for team members
+      
+      // Check if already punched in today
+      if (todayData && todayData.length > 0) {
+        setTodayAttendance(todayData[0]);
+        setIsPunchedIn(todayData[0].punch_in && !todayData[0].punch_out);
+        if (todayData[0].punch_in) {
+          const [h, m] = todayData[0].punch_in.split(':');
+          const punchTime = new Date();
+          punchTime.setHours(parseInt(h), parseInt(m), 0);
+          setPunchInTime(punchTime);
+        }
+      }
+      
+      // Count pending items for team members
       const teamMemberIds = (members || []).map(m => m.id);
       const teamPendingLeaves = (leaves || []).filter(l => 
         teamMemberIds.includes(l.emp_id) && l.status === 'pending'
       ).length;
+      const teamPendingBills = (billsData || []).filter(b => 
+        teamMemberIds.includes(b.emp_id) && b.status === 'pending'
+      ).length;
+      
       setPendingLeaves(teamPendingLeaves);
+      setPendingBills(teamPendingBills);
     } catch (error) {
       console.error('Error loading team data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handlePunch = () => {
-    if (!isPunchedIn) {
-      setPunchInTime(new Date());
+  const handleDirectPunchIn = async () => {
+    try {
+      const result = await attendanceAPI.directPunchIn(
+        user.id,
+        punchForm.location,
+        punchForm.shift_type,
+        punchForm.shift_start,
+        punchForm.shift_end,
+        punchForm.conveyance
+      );
+      
+      setTodayAttendance(result);
       setIsPunchedIn(true);
-      toast.success('Punched in successfully!');
-    } else {
-      setIsPunchedIn(false);
-      toast.success('Punched out successfully!');
+      
+      const [h, m] = result.punch_in.split(':');
+      const punchTime = new Date();
+      punchTime.setHours(parseInt(h), parseInt(m), 0);
+      setPunchInTime(punchTime);
+      
+      const statusMsg = result.attendance_status === 'full_day' ? '✅ Full Day' :
+                       result.attendance_status === 'half_day' ? '⚠️ Half Day' : '❌ Marked Absent';
+      toast.success(`Punched in at ${result.punch_in}! ${statusMsg}`, { duration: 4000 });
+      setShowPunchDialog(false);
+    } catch (error) {
+      toast.error(error.message || 'Failed to punch in');
     }
   };
 
-  const pendingBills = 1; // Pending bill submissions count
+  const handlePunchOut = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const result = await attendanceAPI.punchOut(user.id, today);
+      setTodayAttendance(result);
+      setIsPunchedIn(false);
+      toast.success(`Punched out! Work hours: ${result.work_hours?.toFixed(1)}h`);
+    } catch (error) {
+      toast.error(error.message || 'Failed to punch out');
+    }
+  };
+
+  const upcomingHolidays = holidays
+    .filter(h => new Date(h.date) >= new Date())
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(0, 3);
 
   return (
     <div className="space-y-4">
@@ -586,17 +655,120 @@ const TeamLeadDashboard = ({ user }) => {
               {isPunchedIn && punchInTime && (
                 <p className="text-white/70 text-xs">Since {punchInTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
               )}
+              {todayAttendance && (
+                <span className={`text-xs px-2 py-0.5 rounded-full mt-1 inline-block ${
+                  todayAttendance.attendance_status === 'full_day' ? 'bg-green-500' :
+                  todayAttendance.attendance_status === 'half_day' ? 'bg-yellow-500' : 'bg-red-500'
+                }`}>
+                  {todayAttendance.attendance_status?.replace('_', ' ').toUpperCase()}
+                </span>
+              )}
             </div>
-            <Button
-              onClick={handlePunch}
-              size="sm"
-              className={`${isPunchedIn ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'}`}
-            >
-              {isPunchedIn ? <><LogOut size={16} className="mr-1" /> Out</> : <><LogIn size={16} className="mr-1" /> In</>}
-            </Button>
+            {!isPunchedIn ? (
+              <Button
+                onClick={() => setShowPunchDialog(true)}
+                size="sm"
+                className="bg-green-500 hover:bg-green-600"
+              >
+                <LogIn size={16} className="mr-1" /> Punch In
+              </Button>
+            ) : (
+              <Button
+                onClick={handlePunchOut}
+                size="sm"
+                className="bg-red-500 hover:bg-red-600"
+              >
+                <LogOut size={16} className="mr-1" /> Punch Out
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
+
+      {/* Punch In Dialog */}
+      <Dialog open={showPunchDialog} onOpenChange={setShowPunchDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <LogIn size={20} />
+              Punch In - Select Shift
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Location</label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border rounded-lg"
+                value={punchForm.location}
+                onChange={(e) => setPunchForm({...punchForm, location: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Shift Type</label>
+              <select
+                className="w-full px-3 py-2 border rounded-lg"
+                value={punchForm.shift_type}
+                onChange={(e) => {
+                  const type = e.target.value;
+                  setPunchForm({
+                    ...punchForm,
+                    shift_type: type,
+                    shift_start: type === 'day' ? '10:00' : '21:00',
+                    shift_end: type === 'day' ? '19:00' : '06:00'
+                  });
+                }}
+              >
+                <option value="day">Day Shift (10 AM - 7 PM)</option>
+                <option value="night">Night Shift (9 PM - 6 AM)</option>
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Shift Start</label>
+                <input
+                  type="time"
+                  className="w-full px-3 py-2 border rounded-lg"
+                  value={punchForm.shift_start}
+                  onChange={(e) => setPunchForm({...punchForm, shift_start: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Shift End</label>
+                <input
+                  type="time"
+                  className="w-full px-3 py-2 border rounded-lg"
+                  value={punchForm.shift_end}
+                  onChange={(e) => setPunchForm({...punchForm, shift_end: e.target.value})}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Conveyance (₹)</label>
+              <input
+                type="number"
+                className="w-full px-3 py-2 border rounded-lg"
+                value={punchForm.conveyance}
+                onChange={(e) => setPunchForm({...punchForm, conveyance: parseFloat(e.target.value) || 0})}
+              />
+            </div>
+            <div className="bg-blue-50 rounded-lg p-3 text-xs text-blue-800">
+              <p className="font-semibold mb-1">Attendance Rules:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>On time (within 30 min) → <span className="text-green-600 font-medium">Full Day</span></li>
+                <li>Late (30 min - 3 hours) → <span className="text-yellow-600 font-medium">Half Day</span></li>
+                <li>Very Late (&gt;3 hours) → <span className="text-red-600 font-medium">Absent</span></li>
+              </ul>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPunchDialog(false)}>Cancel</Button>
+            <Button onClick={handleDirectPunchIn} className="bg-green-600 hover:bg-green-700">
+              <LogIn size={16} className="mr-2" /> Punch In Now
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Team Overview */}
       <Card>
