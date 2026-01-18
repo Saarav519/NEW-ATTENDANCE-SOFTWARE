@@ -48,6 +48,23 @@ html {
   text-align: left;
 }
 
+/* Safe area for mobile bottom navigation */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Mobile optimizations */
+@media (max-width: 1024px) {
+  body {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+  
+  input, textarea, select {
+    font-size: 16px !important; /* Prevent zoom on iOS */
+  }
+}
+
 @layer base {
   :root {
         --background: 0 0% 100%;
