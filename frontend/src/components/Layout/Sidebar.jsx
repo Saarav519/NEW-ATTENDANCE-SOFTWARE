@@ -5,13 +5,13 @@ import { useAuth } from '../../context/AuthContext';
 import {
   LayoutDashboard, Users, CalendarCheck, CalendarOff, Clock,
   Wallet, Banknote, BookOpen, Car, Gift, BarChart3, Home,
-  LogOut, ChevronLeft, ChevronRight, ClipboardCheck, Receipt, FileText
+  LogOut, ChevronLeft, ChevronRight, ClipboardCheck, Receipt, FileText, User
 } from 'lucide-react';
 
 const iconMap = {
   LayoutDashboard, Users, CalendarCheck, CalendarOff, Clock,
   Wallet, Banknote, BookOpen, Car, Gift, BarChart3, Home,
-  ClipboardCheck, Receipt, FileText
+  ClipboardCheck, Receipt, FileText, User
 };
 
 const Sidebar = ({ collapsed, setCollapsed }) => {
