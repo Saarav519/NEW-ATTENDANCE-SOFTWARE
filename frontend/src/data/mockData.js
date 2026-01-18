@@ -242,17 +242,36 @@ export const dashboardStats = {
   thisMonthIncome: 225000
 };
 
-// Sidebar Navigation
-export const sidebarNavItems = [
-  { id: "dashboard", label: "Dashboard", icon: "LayoutDashboard", path: "/dashboard" },
-  { id: "employees", label: "Employees", icon: "Users", path: "/employees" },
-  { id: "attendance", label: "Attendance", icon: "CalendarCheck", path: "/attendance" },
-  { id: "leaves", label: "Leaves", icon: "CalendarOff", path: "/leaves" },
-  { id: "overtime", label: "Overtime", icon: "Clock", path: "/overtime" },
-  { id: "advances", label: "Advances", icon: "Wallet", path: "/advances" },
-  { id: "payroll", label: "Payroll", icon: "Banknote", path: "/payroll" },
-  { id: "cashbook", label: "Cashbook", icon: "BookOpen", path: "/cashbook" },
-  { id: "vehicles", label: "Vehicles", icon: "Car", path: "/vehicles" },
-  { id: "holidays", label: "Holidays", icon: "Gift", path: "/holidays" },
-  { id: "reports", label: "Reports", icon: "BarChart3", path: "/reports" },
-];
+// Sidebar Navigation - Role based
+export const sidebarNavItems = {
+  admin: [
+    { id: "dashboard", label: "Dashboard", icon: "LayoutDashboard", path: "/dashboard" },
+    { id: "employees", label: "Employees", icon: "Users", path: "/employees" },
+    { id: "attendance", label: "Attendance", icon: "CalendarCheck", path: "/attendance" },
+    { id: "leaves", label: "Leaves", icon: "CalendarOff", path: "/leaves" },
+    { id: "overtime", label: "Overtime", icon: "Clock", path: "/overtime" },
+    { id: "advances", label: "Advances", icon: "Wallet", path: "/advances" },
+    { id: "payroll", label: "Payroll", icon: "Banknote", path: "/payroll" },
+    { id: "cashbook", label: "Cashbook", icon: "BookOpen", path: "/cashbook" },
+    { id: "vehicles", label: "Vehicles", icon: "Car", path: "/vehicles" },
+    { id: "holidays", label: "Holidays", icon: "Gift", path: "/holidays" },
+    { id: "reports", label: "Reports", icon: "BarChart3", path: "/reports" },
+  ],
+  teamlead: [
+    { id: "dashboard", label: "Dashboard", icon: "LayoutDashboard", path: "/dashboard" },
+    { id: "my-attendance", label: "My Attendance", icon: "CalendarCheck", path: "/my-attendance" },
+    { id: "team", label: "My Team", icon: "Users", path: "/team" },
+    { id: "team-attendance", label: "Team Attendance", icon: "ClipboardCheck", path: "/team-attendance" },
+    { id: "leaves", label: "Leave Requests", icon: "CalendarOff", path: "/leaves" },
+    { id: "overtime", label: "Overtime", icon: "Clock", path: "/overtime" },
+    { id: "holidays", label: "Holidays", icon: "Gift", path: "/holidays" },
+  ],
+  employee: [
+    { id: "dashboard", label: "Home", icon: "Home", path: "/dashboard" },
+    { id: "attendance", label: "Attendance", icon: "CalendarCheck", path: "/my-attendance" },
+    { id: "leaves", label: "Leaves", icon: "CalendarOff", path: "/leaves" },
+    { id: "overtime", label: "Overtime", icon: "Clock", path: "/overtime" },
+    { id: "payslip", label: "Payslip", icon: "Receipt", path: "/payslip" },
+    { id: "holidays", label: "Holidays", icon: "Gift", path: "/holidays" },
+  ]
+};
