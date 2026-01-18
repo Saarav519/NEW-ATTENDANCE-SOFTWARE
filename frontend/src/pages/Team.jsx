@@ -76,7 +76,7 @@ const Team = () => {
 
   const handleGenerateQR = async () => {
     if (!qrForm.location || !qrForm.conveyance_amount) {
-      alert('Please fill location and conveyance amount');
+      toast.error('Please fill location and conveyance amount');
       return;
     }
     
@@ -93,6 +93,7 @@ const Team = () => {
       });
       
       setQrGenerated(result);
+      toast.success('QR Code generated successfully!');
     } catch (error) {
       alert(error.message || 'Failed to generate QR code');
     } finally {
