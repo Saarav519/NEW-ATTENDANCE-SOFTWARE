@@ -195,6 +195,99 @@ export const seedAPI = {
   seed: () => apiCall('/seed', { method: 'POST' }),
 };
 
+// Profile API
+export const profileAPI = {
+  update: (userId, profileData) => 
+    apiCall(`/users/${userId}/profile`, {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    }),
+  uploadPhoto: async (userId, file) => {
+    const formData = new FormData();
+    formData.append('photo', file);
+    
+    const response = await fetch(`${API_URL}/api/users/${userId}/photo`, {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Upload failed' }));
+      throw new Error(error.detail || 'Upload failed');
+    }
+    
+    return response.json();
+  },
+};
+
+// Leave Balance API
+export const leaveBalanceAPI = {
+  get: (empId, year) => {
+    const params = year ? `?year=${year}` : '';
+    return apiCall(`/leave-balance/${empId}${params}`);
+  },
+};
+
+// Salary Advance API
+export const advanceAPI = {
+  create: (advanceData) => 
+    apiCall('/advances', {
+      method: 'POST',
+      body: JSON.stringify(advanceData),
+    }),
+  getAll: (empId, status) => {
+    const params = new URLSearchParams();
+    if (empId) params.append('emp_id', empId);
+    if (status) params.append('status', status);
+    return apiCall(`/advances?${params}`);
+  },
+  approve: (advanceId, approvedBy) => 
+    apiCall(`/advances/${advanceId}/approve?approved_by=${approvedBy}`, { method: 'PUT' }),
+  reject: (advanceId, rejectedBy) => 
+    apiCall(`/advances/${advanceId}/reject?rejected_by=${rejectedBy}`, { method: 'PUT' }),
+};
+
+// Shift Template API
+export const shiftTemplateAPI = {
+  getAll: (activeOnly = true) => apiCall(`/shift-templates?active_only=${activeOnly}`),
+  create: (templateData, createdBy) => 
+    apiCall(`/shift-templates?created_by=${createdBy}`, {
+      method: 'POST',
+      body: JSON.stringify(templateData),
+    }),
+  update: (templateId, templateData) => 
+    apiCall(`/shift-templates/${templateId}`, {
+      method: 'PUT',
+      body: JSON.stringify(templateData),
+    }),
+  delete: (templateId) => 
+    apiCall(`/shift-templates/${templateId}`, { method: 'DELETE' }),
+};
+
+// Bulk Actions API
+export const bulkAPI = {
+  approveLeaves: (ids, approvedBy) => 
+    apiCall('/leaves/bulk-approve', {
+      method: 'POST',
+      body: JSON.stringify({ ids, approved_by: approvedBy }),
+    }),
+  rejectLeaves: (ids, rejectedBy, reason) => 
+    apiCall('/leaves/bulk-reject', {
+      method: 'POST',
+      body: JSON.stringify({ ids, rejected_by: rejectedBy, reason }),
+    }),
+  approveBills: (ids, approvedBy) => 
+    apiCall('/bills/bulk-approve', {
+      method: 'POST',
+      body: JSON.stringify({ ids, approved_by: approvedBy }),
+    }),
+  rejectBills: (ids, rejectedBy, reason) => 
+    apiCall('/bills/bulk-reject', {
+      method: 'POST',
+      body: JSON.stringify({ ids, rejected_by: rejectedBy, reason }),
+    }),
+};
+
 export default {
   auth: authAPI,
   users: usersAPI,
@@ -206,4 +299,9 @@ export default {
   holiday: holidayAPI,
   dashboard: dashboardAPI,
   seed: seedAPI,
+  profile: profileAPI,
+  leaveBalance: leaveBalanceAPI,
+  advance: advanceAPI,
+  shiftTemplate: shiftTemplateAPI,
+  bulk: bulkAPI,
 };
