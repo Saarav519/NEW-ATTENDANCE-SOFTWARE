@@ -188,8 +188,6 @@ const Leaves = () => {
     );
   }
 
-  const pendingCount = filteredLeaves.filter(l => l.status === 'pending').length;
-
   return (
     <div className="space-y-6">
       {/* Header */}
