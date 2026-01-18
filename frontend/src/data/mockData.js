@@ -260,18 +260,18 @@ export const sidebarNavItems = {
   ],
   teamlead: [
     { id: "dashboard", label: "Dashboard", icon: "LayoutDashboard", path: "/dashboard" },
-    { id: "my-attendance", label: "My Attendance", icon: "CalendarCheck", path: "/my-attendance" },
     { id: "team", label: "My Team", icon: "Users", path: "/team" },
     { id: "leaves", label: "Leaves", icon: "CalendarOff", path: "/leaves" },
     { id: "bills", label: "Bills", icon: "Receipt", path: "/bills" },
     { id: "profile", label: "Profile", icon: "User", path: "/profile" },
+    { id: "my-attendance", label: "My Attendance", icon: "CalendarCheck", path: "/my-attendance" },
   ],
   employee: [
     { id: "dashboard", label: "Home", icon: "Home", path: "/dashboard" },
-    { id: "attendance", label: "Attendance", icon: "CalendarCheck", path: "/my-attendance" },
+    { id: "attendance", label: "Attendance", icon: "CalendarCheck", path: "/attendance-details" },
     { id: "leaves", label: "Leaves", icon: "CalendarOff", path: "/leaves" },
-    { id: "bills", label: "Bills", icon: "Receipt", path: "/bills" },
     { id: "payslip", label: "Payslip", icon: "FileText", path: "/payslip" },
     { id: "profile", label: "Profile", icon: "User", path: "/profile" },
+    { id: "bills", label: "Bills", icon: "Receipt", path: "/bills" },
   ]
 };
