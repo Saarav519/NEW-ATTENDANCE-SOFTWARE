@@ -21,6 +21,8 @@ import Cashbook from "./pages/Cashbook";
 import Vehicles from "./pages/Vehicles";
 import Holidays from "./pages/Holidays";
 import Reports from "./pages/Reports";
+import Profile from "./pages/Profile";
+import ShiftTemplates from "./pages/ShiftTemplates";
 
 function App() {
   return (
@@ -47,6 +49,8 @@ function App() {
             <Route path="vehicles" element={<Vehicles />} />
             <Route path="holidays" element={<Holidays />} />
             <Route path="reports" element={<Reports />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="shift-templates" element={<ShiftTemplates />} />
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
