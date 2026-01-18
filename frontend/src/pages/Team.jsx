@@ -406,6 +406,15 @@ const Team = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500 flex items-center gap-1">
+                    {qrGenerated.shift_type === 'day' ? <Sun size={14} className="text-yellow-500" /> : <Moon size={14} className="text-blue-500" />}
+                    Shift
+                  </span>
+                  <span className="font-medium capitalize">
+                    {qrGenerated.shift_type} ({qrGenerated.shift_start} - {qrGenerated.shift_end})
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500 flex items-center gap-1">
                     <MapPin size={14} /> Location
                   </span>
                   <span className="font-medium">{qrGenerated.location}</span>
