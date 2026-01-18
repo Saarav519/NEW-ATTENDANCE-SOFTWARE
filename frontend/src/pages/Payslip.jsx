@@ -261,19 +261,62 @@ const Payslip = () => {
                 </div>
 
                 {/* Adjustments */}
-                {(breakdown.leave_adjustment || 0) !== 0 && (
+                {((breakdown.leave_adjustment || 0) !== 0 || (breakdown.attendance_adjustment || 0) !== 0) && (
                   <div>
                     <p className="text-xs text-gray-500 mb-2">ADJUSTMENTS</p>
                     <div className="space-y-2">
-                      <div className={`flex justify-between items-center p-3 rounded-xl ${
-                        breakdown.leave_adjustment < 0 ? 'bg-orange-50' : 'bg-green-50'
-                      }`}>
-                        <span className="text-gray-700">Leave Applied (adjustment)</span>
-                        <span className={`font-semibold ${
-                          breakdown.leave_adjustment < 0 ? 'text-orange-600' : 'text-green-600'
+                      {(breakdown.attendance_adjustment || 0) !== 0 && (
+                        <div className={`flex justify-between items-center p-3 rounded-xl ${
+                          breakdown.attendance_adjustment < 0 ? 'bg-yellow-50' : 'bg-green-50'
                         }`}>
-                          {breakdown.leave_adjustment < 0 ? '-' : '+'}₹{Math.abs(breakdown.leave_adjustment).toLocaleString()}
-                        </span>
+                          <div>
+                            <span className="text-gray-700">Attendance Adjustment</span>
+                            <p className="text-xs text-gray-500">
+                              (Half days: {breakdown.half_days || 0}, Absent: {breakdown.absent_days || 0})
+                            </p>
+                          </div>
+                          <span className={`font-semibold ${
+                            breakdown.attendance_adjustment < 0 ? 'text-yellow-600' : 'text-green-600'
+                          }`}>
+                            {breakdown.attendance_adjustment < 0 ? '' : '+'}₹{Math.abs(breakdown.attendance_adjustment || 0).toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+                      {(breakdown.leave_adjustment || 0) !== 0 && (
+                        <div className={`flex justify-between items-center p-3 rounded-xl ${
+                          breakdown.leave_adjustment < 0 ? 'bg-orange-50' : 'bg-green-50'
+                        }`}>
+                          <span className="text-gray-700">Leave Applied (adjustment)</span>
+                          <span className={`font-semibold ${
+                            breakdown.leave_adjustment < 0 ? 'text-orange-600' : 'text-green-600'
+                          }`}>
+                            {breakdown.leave_adjustment < 0 ? '' : '+'}₹{Math.abs(breakdown.leave_adjustment || 0).toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Attendance Summary */}
+                {(breakdown.full_days || breakdown.half_days || breakdown.absent_days) && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-2">ATTENDANCE SUMMARY</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="flex flex-col items-center p-2 bg-green-50 rounded-lg">
+                        <CheckCircle size={16} className="text-green-600 mb-1" />
+                        <span className="text-lg font-bold text-green-600">{breakdown.full_days || 0}</span>
+                        <span className="text-[10px] text-gray-500">Full Days</span>
+                      </div>
+                      <div className="flex flex-col items-center p-2 bg-yellow-50 rounded-lg">
+                        <AlertCircle size={16} className="text-yellow-600 mb-1" />
+                        <span className="text-lg font-bold text-yellow-600">{breakdown.half_days || 0}</span>
+                        <span className="text-[10px] text-gray-500">Half Days</span>
+                      </div>
+                      <div className="flex flex-col items-center p-2 bg-red-50 rounded-lg">
+                        <XCircle size={16} className="text-red-600 mb-1" />
+                        <span className="text-lg font-bold text-red-600">{breakdown.absent_days || 0}</span>
+                        <span className="text-[10px] text-gray-500">Absent</span>
                       </div>
                     </div>
                   </div>
