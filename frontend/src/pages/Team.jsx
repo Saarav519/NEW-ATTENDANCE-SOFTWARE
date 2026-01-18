@@ -95,7 +95,7 @@ const Team = () => {
       setQrGenerated(result);
       toast.success('QR Code generated successfully!');
     } catch (error) {
-      alert(error.message || 'Failed to generate QR code');
+      toast.error(error.message || 'Failed to generate QR code');
     } finally {
       setGeneratingQR(false);
     }
@@ -105,6 +105,7 @@ const Team = () => {
     if (qrGenerated?.qr_data) {
       navigator.clipboard.writeText(qrGenerated.qr_data);
       setQrCopied(true);
+      toast.success('QR data copied to clipboard!');
       setTimeout(() => setQrCopied(false), 2000);
     }
   };
