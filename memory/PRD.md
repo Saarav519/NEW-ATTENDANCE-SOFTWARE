@@ -55,6 +55,12 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 - Shows QR details (location, conveyance) per entry
 - Monthly summary stats
 
+### Phase 7: UI/UX Refinements (Completed ✅) - January 2026
+- **Attendance Details moved to Home page** - Inline section on Employee dashboard
+- **Payslip visible in mobile navigation** - 5-item bottom nav: Home, Attendance, Leaves, Bills, Payslip
+- **Punch In only on Home page** - Attendance page shows only records
+- **Back camera only for QR scan** - Using `facingMode: "environment"`
+
 ---
 
 ## Technical Architecture
