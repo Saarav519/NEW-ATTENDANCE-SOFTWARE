@@ -564,7 +564,7 @@ async def generate_payslip(data: PayslipCreate):
     basic = user.get("salary", 0)
     hra = round(basic * 0.4, 2)  # 40% of basic
     special_allowance = round(basic * 0.15, 2)  # 15%
-    conveyance = 1600  # Fixed
+    conveyance = 1600  # Fixed base conveyance
     
     # Get approved bills for this month (Extra Conveyance)
     approved_bills = await db.bills.find({
@@ -575,7 +575,7 @@ async def generate_payslip(data: PayslipCreate):
     }).to_list(100)
     extra_conveyance = sum(b.get("approved_amount", 0) for b in approved_bills)
     
-    # Get attendance conveyance for the month
+    # Get attendance records for the month
     month_num = ["January", "February", "March", "April", "May", "June", 
                  "July", "August", "September", "October", "November", "December"].index(data.month.split()[0]) + 1
     month_str = f"{data.year}-{month_num:02d}"
@@ -583,7 +583,31 @@ async def generate_payslip(data: PayslipCreate):
         "emp_id": data.emp_id,
         "date": {"$regex": f"^{month_str}"}
     }).to_list(100)
-    attendance_conveyance = sum(a.get("conveyance_amount", 0) for a in attendance_records)
+    
+    # Calculate attendance-based metrics
+    full_days = 0
+    half_days = 0
+    absent_days = 0
+    attendance_conveyance = 0
+    
+    for record in attendance_records:
+        att_status = record.get("attendance_status", record.get("status", "present"))
+        if att_status == "full_day" or att_status == "present":
+            full_days += 1
+        elif att_status == "half_day":
+            half_days += 1
+        elif att_status == "absent":
+            absent_days += 1
+        attendance_conveyance += record.get("conveyance_amount", 0)
+    
+    # Calculate attendance adjustment (deductions for half days and absents)
+    # Assuming 26 working days per month
+    working_days = 26
+    daily_rate = basic / working_days
+    
+    # Half day = 0.5 day deduction, Absent = 1 day deduction
+    attendance_adjustment = -((half_days * 0.5 * daily_rate) + (absent_days * daily_rate))
+    attendance_adjustment = round(attendance_adjustment, 2)
     
     # Calculate leave adjustment
     leaves = await db.leaves.find({
@@ -592,12 +616,11 @@ async def generate_payslip(data: PayslipCreate):
         "from_date": {"$regex": f"^{month_str}"}
     }).to_list(100)
     leave_days = sum(l.get("days", 0) for l in leaves)
-    daily_rate = basic / 30
     leave_adjustment = -(leave_days * daily_rate) if leave_days > 0 else 0
     
     gross = basic + hra + special_allowance + conveyance + extra_conveyance + attendance_conveyance
     deductions = round(gross * 0.1, 2)  # 10% deductions (PF, Tax, etc.)
-    net_pay = round(gross + leave_adjustment - deductions, 2)
+    net_pay = round(gross + leave_adjustment + attendance_adjustment - deductions, 2)
     
     breakdown = SalaryBreakdown(
         basic=basic,
@@ -607,6 +630,10 @@ async def generate_payslip(data: PayslipCreate):
         leave_adjustment=round(leave_adjustment, 2),
         extra_conveyance=extra_conveyance,
         previous_pending_allowances=0,
+        attendance_adjustment=attendance_adjustment,
+        full_days=full_days,
+        half_days=half_days,
+        absent_days=absent_days,
         gross_pay=round(gross, 2),
         deductions=deductions,
         net_pay=net_pay
