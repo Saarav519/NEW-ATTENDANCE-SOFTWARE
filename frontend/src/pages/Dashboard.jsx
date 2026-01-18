@@ -27,6 +27,7 @@ const EmployeeDashboard = ({ user }) => {
   const [todayAttendance, setTodayAttendance] = useState(null);
   const [monthlyAttendance, setMonthlyAttendance] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isProcessingQR, setIsProcessingQR] = useState(false);
   const navigate = useNavigate();
   const scannerRef = useRef(null);
   const isScannerRunning = useRef(false);
