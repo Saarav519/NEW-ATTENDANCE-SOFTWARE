@@ -314,20 +314,60 @@ const Leaves = () => {
         </div>
       )}
 
-      {/* Filter */}
+      {/* Filter & Bulk Actions */}
       <Card>
         <CardContent className="p-4">
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Filter" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Requests</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Filter" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Requests</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {/* Bulk Actions - Admin/TL only */}
+            {(isAdmin || isTeamLead) && pendingCount > 0 && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSelectAll}
+                  className="flex items-center gap-2"
+                >
+                  <CheckSquare size={16} />
+                  {selectedIds.length === pendingCount ? 'Deselect All' : 'Select All Pending'}
+                </Button>
+                {selectedIds.length > 0 && (
+                  <>
+                    <span className="text-sm text-gray-500">{selectedIds.length} selected</span>
+                    <Button
+                      size="sm"
+                      onClick={handleBulkApprove}
+                      className="bg-green-600 hover:bg-green-700"
+                      disabled={bulkProcessing}
+                    >
+                      {bulkProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check size={16} />}
+                      <span className="ml-1">Approve All</span>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={handleBulkReject}
+                      disabled={bulkProcessing}
+                    >
+                      {bulkProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <X size={16} />}
+                      <span className="ml-1">Reject All</span>
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
@@ -342,10 +382,18 @@ const Leaves = () => {
           </Card>
         ) : (
           filteredLeaves.map((leave) => (
-            <Card key={leave.id} className="hover:shadow-md transition-shadow">
+            <Card key={leave.id} className={`hover:shadow-md transition-shadow ${selectedIds.includes(leave.id) ? 'ring-2 ring-blue-500' : ''}`}>
               <CardContent className="p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-start gap-4">
+                    {/* Checkbox for bulk selection */}
+                    {(isAdmin || isTeamLead) && leave.status === 'pending' && (
+                      <Checkbox
+                        checked={selectedIds.includes(leave.id)}
+                        onCheckedChange={() => handleSelect(leave.id)}
+                        className="mt-3"
+                      />
+                    )}
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold">
                       {leave.emp_name?.split(' ').map(n => n[0]).join('') || 'U'}
                     </div>
