@@ -70,12 +70,36 @@ const AttendanceDetails = () => {
     }
   };
 
+  const handleExport = () => {
+    if (attendance.length === 0) {
+      toast.error('No attendance data to export');
+      return;
+    }
+    try {
+      exportAttendanceToExcel(attendance, user.name, months[selectedMonth - 1], selectedYear);
+      toast.success('Attendance exported to Excel!');
+    } catch (error) {
+      toast.error('Failed to export attendance');
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div>
-        <h1 className="text-xl lg:text-2xl font-bold text-gray-800">Attendance Details</h1>
-        <p className="text-sm text-gray-500">View your monthly attendance records</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-xl lg:text-2xl font-bold text-gray-800">Attendance Details</h1>
+          <p className="text-sm text-gray-500">View your monthly attendance records</p>
+        </div>
+        <Button 
+          onClick={handleExport}
+          variant="outline"
+          className="flex items-center gap-2"
+          disabled={attendance.length === 0}
+        >
+          <Download size={16} />
+          Export to Excel
+        </Button>
       </div>
 
       {/* Month/Year Selection */}
