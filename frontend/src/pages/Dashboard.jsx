@@ -238,11 +238,10 @@ const EmployeeDashboard = ({ user }) => {
     .sort((a, b) => new Date(a.date) - new Date(b.date))
     .slice(0, 3);
 
-  const myLeaves = leaveRequests.filter(l => l.empId === user.id);
   const pendingLeaves = myLeaves.filter(l => l.status === 'pending').length;
 
   // Calculate stats
-  const presentDays = monthlyAttendance.filter(a => a.status === 'present').length;
+  const presentDays = monthlyAttendance.filter(a => a.status === 'present' || a.attendance_status === 'full_day').length;
   const totalHours = monthlyAttendance.reduce((sum, a) => sum + (a.work_hours || 0), 0);
   const totalConveyance = monthlyAttendance.reduce((sum, a) => sum + (a.conveyance_amount || 0), 0);
 
