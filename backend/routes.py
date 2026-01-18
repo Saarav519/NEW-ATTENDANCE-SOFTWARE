@@ -536,7 +536,7 @@ async def generate_payslip(data: PayslipCreate):
     }
     
     await db.payslips.insert_one(payslip_doc)
-    del payslip_doc["_id"] if "_id" in payslip_doc else None
+    payslip_doc.pop("_id", None)
     
     return PayslipResponse(**payslip_doc)
 
