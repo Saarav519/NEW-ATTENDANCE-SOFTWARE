@@ -85,7 +85,10 @@ const Team = () => {
         location: qrForm.location,
         conveyance_amount: parseFloat(qrForm.conveyance_amount),
         date: qrForm.date,
-        created_by: user.id
+        created_by: user.id,
+        shift_type: qrForm.shift_type,
+        shift_start: qrForm.shift_start,
+        shift_end: qrForm.shift_end
       });
       
       setQrGenerated(result);
