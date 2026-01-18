@@ -633,10 +633,19 @@ def run_all_tests():
     test_authentication()
     test_user_apis()
     test_qr_code_apis()
+    
+    # NEW: Test shift-based features
+    test_shift_based_qr_codes()
+    test_shift_based_attendance()
+    
     test_attendance_apis()
     test_leave_apis()
     test_bill_apis()
     test_payslip_apis()
+    
+    # NEW: Test shift-based payslip
+    test_shift_based_payslip()
+    
     test_dashboard_apis()
     test_holiday_apis()
     
