@@ -1,33 +1,174 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { payrollRecords } from '../data/mockData';
+import { payslipAPI } from '../services/api';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '../components/ui/select';
-import { Download, IndianRupee, Calendar, FileText, ChevronRight } from 'lucide-react';
+import { Download, IndianRupee, Calendar, FileText, Check } from 'lucide-react';
+import jsPDF from 'jspdf';
 
 const Payslip = () => {
   const { user } = useAuth();
-  const [selectedMonth, setSelectedMonth] = useState('July 2025');
+  const [payslips, setPayslips] = useState([]);
+  const [selectedPayslip, setSelectedPayslip] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const months = ['January 2025', 'February 2025', 'March 2025', 'April 2025', 'May 2025', 'June 2025', 'July 2025'];
+  useEffect(() => {
+    loadPayslips();
+  }, [user?.id]);
 
-  // Mock payslip data
-  const payslip = {
-    month: selectedMonth,
-    basicSalary: user.salary || 50000,
-    overtime: 1500,
-    bonus: 0,
-    deductions: Math.round((user.salary || 50000) * 0.1),
-    advance: 0,
-    get netSalary() {
-      return this.basicSalary + this.overtime + this.bonus - this.deductions - this.advance;
-    },
-    status: selectedMonth === 'July 2025' ? 'pending' : 'paid',
-    paidOn: selectedMonth === 'July 2025' ? null : '2025-07-01'
+  const loadPayslips = async () => {
+    if (!user?.id) return;
+    
+    setLoading(true);
+    try {
+      // Get only settled payslips for employees
+      const data = await payslipAPI.getSettled(user.id);
+      setPayslips(data);
+      if (data.length > 0) {
+        setSelectedPayslip(data[0]);
+      }
+    } catch (error) {
+      console.error('Error loading payslips:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleSelectPayslip = (payslipId) => {
+    const payslip = payslips.find(p => p.id === payslipId);
+    setSelectedPayslip(payslip);
+  };
+
+  const downloadPayslipPDF = () => {
+    if (!selectedPayslip) return;
+    
+    const breakdown = selectedPayslip.breakdown || {};
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('PAYSLIP', 105, 20, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Audix Solutions & Co.', 105, 28, { align: 'center' });
+    
+    // Employee Info
+    doc.setFontSize(10);
+    doc.text(`Employee: ${selectedPayslip.emp_name}`, 20, 45);
+    doc.text(`Employee ID: ${selectedPayslip.emp_id}`, 20, 52);
+    doc.text(`Month: ${selectedPayslip.month} ${selectedPayslip.year}`, 20, 59);
+    doc.text(`Status: ${selectedPayslip.status.toUpperCase()}`, 140, 45);
+    doc.text(`Paid On: ${selectedPayslip.paid_on || 'N/A'}`, 140, 52);
+    
+    // Separator
+    doc.setLineWidth(0.5);
+    doc.line(20, 65, 190, 65);
+    
+    // Earnings Section
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('EARNINGS', 20, 75);
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    
+    let y = 85;
+    const lineHeight = 8;
+    
+    const earnings = [
+      ['Basic Salary', breakdown.basic || 0],
+      ['HRA', breakdown.hra || 0],
+      ['Special Allowance', breakdown.special_allowance || 0],
+      ['Conveyance', breakdown.conveyance || 0],
+      ['Extra Conveyance (Approved)', breakdown.extra_conveyance || 0],
+      ['Previous Pending Allowances', breakdown.previous_pending_allowances || 0],
+    ];
+    
+    earnings.forEach(([label, amount]) => {
+      doc.text(label, 25, y);
+      doc.text(`Rs. ${amount.toLocaleString()}`, 170, y, { align: 'right' });
+      y += lineHeight;
+    });
+    
+    // Adjustments
+    y += 5;
+    doc.setFont('helvetica', 'bold');
+    doc.text('ADJUSTMENTS', 20, y);
+    y += 10;
+    
+    doc.setFont('helvetica', 'normal');
+    const leaveAdj = breakdown.leave_adjustment || 0;
+    doc.text('Leave Adjustment', 25, y);
+    doc.text(`Rs. ${leaveAdj.toLocaleString()}`, 170, y, { align: 'right' });
+    y += lineHeight;
+    
+    // Deductions
+    y += 5;
+    doc.setFont('helvetica', 'bold');
+    doc.text('DEDUCTIONS', 20, y);
+    y += 10;
+    
+    doc.setFont('helvetica', 'normal');
+    doc.text('PF & Tax', 25, y);
+    doc.text(`Rs. ${(breakdown.deductions || 0).toLocaleString()}`, 170, y, { align: 'right' });
+    y += lineHeight;
+    
+    // Separator
+    y += 5;
+    doc.setLineWidth(0.5);
+    doc.line(20, y, 190, y);
+    y += 10;
+    
+    // Net Pay
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('NET PAY', 25, y);
+    doc.text(`Rs. ${(breakdown.net_pay || 0).toLocaleString()}`, 170, y, { align: 'right' });
+    
+    // Footer
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text('This is a computer-generated payslip.', 105, 280, { align: 'center' });
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 285, { align: 'center' });
+    
+    // Save PDF
+    doc.save(`Payslip_${selectedPayslip.emp_id}_${selectedPayslip.month}_${selectedPayslip.year}.pdf`);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin w-8 h-8 border-4 border-[#1E2A5E] border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  if (payslips.length === 0) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h1 className="text-xl lg:text-2xl font-bold text-gray-800">My Payslip</h1>
+          <p className="text-sm text-gray-500">View your salary details</p>
+        </div>
+        <Card>
+          <CardContent className="p-8 text-center">
+            <FileText size={48} className="mx-auto text-gray-300 mb-4" />
+            <p className="text-gray-500">No settled payslips available yet.</p>
+            <p className="text-sm text-gray-400 mt-2">
+              Payslips will appear here once they are processed and settled by Admin.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const breakdown = selectedPayslip?.breakdown || {};
 
   return (
     <div className="space-y-4">
@@ -40,118 +181,174 @@ const Payslip = () => {
       {/* Month Selector */}
       <Card>
         <CardContent className="p-3">
-          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+          <Select 
+            value={selectedPayslip?.id} 
+            onValueChange={handleSelectPayslip}
+            data-testid="payslip-select"
+          >
             <SelectTrigger>
-              <SelectValue placeholder="Select month" />
+              <SelectValue placeholder="Select payslip" />
             </SelectTrigger>
             <SelectContent>
-              {months.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+              {payslips.map(p => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.month} {p.year}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </CardContent>
       </Card>
 
-      {/* Net Salary Card */}
-      <Card className="bg-gradient-to-br from-[#1E2A5E] to-[#2D3A8C] text-white">
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-white/70">Net Salary</p>
-            <span className={`text-xs px-2 py-1 rounded-full font-medium ${payslip.status === 'paid' ? 'bg-green-500' : 'bg-yellow-500'}`}>
-              {payslip.status === 'paid' ? 'Paid' : 'Pending'}
-            </span>
-          </div>
-          <p className="text-4xl font-bold mb-1">₹{payslip.netSalary.toLocaleString()}</p>
-          <p className="text-white/70 text-sm">{selectedMonth}</p>
-          {payslip.paidOn && (
-            <p className="text-white/50 text-xs mt-2">Paid on {payslip.paidOn}</p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Salary Breakdown */}
-      <Card>
-        <CardContent className="p-4">
-          <h3 className="font-semibold text-gray-800 mb-4">Salary Breakdown</h3>
-          
-          <div className="space-y-3">
-            {/* Earnings */}
-            <div>
-              <p className="text-xs text-gray-500 mb-2">EARNINGS</p>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center p-3 bg-green-50 rounded-xl">
-                  <span className="text-gray-700">Basic Salary</span>
-                  <span className="font-semibold text-green-600">₹{payslip.basicSalary.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-green-50 rounded-xl">
-                  <span className="text-gray-700">Overtime</span>
-                  <span className="font-semibold text-green-600">+₹{payslip.overtime.toLocaleString()}</span>
-                </div>
-                {payslip.bonus > 0 && (
-                  <div className="flex justify-between items-center p-3 bg-green-50 rounded-xl">
-                    <span className="text-gray-700">Bonus</span>
-                    <span className="font-semibold text-green-600">+₹{payslip.bonus.toLocaleString()}</span>
-                  </div>
-                )}
+      {selectedPayslip && (
+        <>
+          {/* Net Salary Card */}
+          <Card className="bg-gradient-to-br from-[#1E2A5E] to-[#2D3A8C] text-white">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-white/70">Net Salary</p>
+                <span className="text-xs px-2 py-1 rounded-full font-medium bg-green-500 flex items-center gap-1">
+                  <Check size={12} /> Settled
+                </span>
               </div>
-            </div>
+              <p className="text-4xl font-bold mb-1">₹{(breakdown.net_pay || 0).toLocaleString()}</p>
+              <p className="text-white/70 text-sm">{selectedPayslip.month} {selectedPayslip.year}</p>
+              {selectedPayslip.paid_on && (
+                <p className="text-white/50 text-xs mt-2">Paid on {selectedPayslip.paid_on}</p>
+              )}
+            </CardContent>
+          </Card>
 
-            {/* Deductions */}
-            <div>
-              <p className="text-xs text-gray-500 mb-2">DEDUCTIONS</p>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center p-3 bg-red-50 rounded-xl">
-                  <span className="text-gray-700">PF & Tax</span>
-                  <span className="font-semibold text-red-500">-₹{payslip.deductions.toLocaleString()}</span>
+          {/* Salary Breakdown */}
+          <Card>
+            <CardContent className="p-4">
+              <h3 className="font-semibold text-gray-800 mb-4">Salary Breakdown</h3>
+              
+              <div className="space-y-3">
+                {/* Earnings */}
+                <div>
+                  <p className="text-xs text-gray-500 mb-2">EARNINGS</p>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center p-3 bg-green-50 rounded-xl">
+                      <span className="text-gray-700">Basic</span>
+                      <span className="font-semibold text-green-600">₹{(breakdown.basic || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-green-50 rounded-xl">
+                      <span className="text-gray-700">HRA</span>
+                      <span className="font-semibold text-green-600">₹{(breakdown.hra || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-green-50 rounded-xl">
+                      <span className="text-gray-700">Special Allowance</span>
+                      <span className="font-semibold text-green-600">₹{(breakdown.special_allowance || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-green-50 rounded-xl">
+                      <span className="text-gray-700">Conveyance</span>
+                      <span className="font-semibold text-green-600">₹{(breakdown.conveyance || 0).toLocaleString()}</span>
+                    </div>
+                    {(breakdown.extra_conveyance || 0) > 0 && (
+                      <div className="flex justify-between items-center p-3 bg-blue-50 rounded-xl">
+                        <span className="text-gray-700">Extra Conveyance (Approved)</span>
+                        <span className="font-semibold text-blue-600">+₹{breakdown.extra_conveyance.toLocaleString()}</span>
+                      </div>
+                    )}
+                    {(breakdown.previous_pending_allowances || 0) > 0 && (
+                      <div className="flex justify-between items-center p-3 bg-green-50 rounded-xl">
+                        <span className="text-gray-700">Previous Pending Allowances</span>
+                        <span className="font-semibold text-green-600">+₹{breakdown.previous_pending_allowances.toLocaleString()}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                {payslip.advance > 0 && (
-                  <div className="flex justify-between items-center p-3 bg-red-50 rounded-xl">
-                    <span className="text-gray-700">Advance</span>
-                    <span className="font-semibold text-red-500">-₹{payslip.advance.toLocaleString()}</span>
-                  </div>
-                )}
-              </div>
-            </div>
 
-            {/* Total */}
-            <div className="pt-3 border-t">
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-lg text-gray-800">Net Salary</span>
-                <span className="font-bold text-xl text-[#1E2A5E]">₹{payslip.netSalary.toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Download Button */}
-      <Button className="w-full h-12 bg-[#1E2A5E] hover:bg-[#2D3A8C]">
-        <Download size={18} className="mr-2" /> Download Payslip
-      </Button>
-
-      {/* Past Payslips */}
-      <Card>
-        <CardContent className="p-4">
-          <h3 className="font-semibold text-gray-800 mb-3">Past Payslips</h3>
-          <div className="space-y-2">
-            {months.slice(0, -1).reverse().slice(0, 3).map((month) => (
-              <div key={month} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <FileText size={18} className="text-gray-600" />
-                  </div>
+                {/* Adjustments */}
+                {(breakdown.leave_adjustment || 0) !== 0 && (
                   <div>
-                    <p className="font-medium text-sm">{month}</p>
-                    <p className="text-xs text-gray-500">₹{payslip.netSalary.toLocaleString()}</p>
+                    <p className="text-xs text-gray-500 mb-2">ADJUSTMENTS</p>
+                    <div className="space-y-2">
+                      <div className={`flex justify-between items-center p-3 rounded-xl ${
+                        breakdown.leave_adjustment < 0 ? 'bg-orange-50' : 'bg-green-50'
+                      }`}>
+                        <span className="text-gray-700">Leave Applied (adjustment)</span>
+                        <span className={`font-semibold ${
+                          breakdown.leave_adjustment < 0 ? 'text-orange-600' : 'text-green-600'
+                        }`}>
+                          {breakdown.leave_adjustment < 0 ? '-' : '+'}₹{Math.abs(breakdown.leave_adjustment).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Deductions */}
+                <div>
+                  <p className="text-xs text-gray-500 mb-2">DEDUCTIONS</p>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center p-3 bg-red-50 rounded-xl">
+                      <span className="text-gray-700">PF & Tax</span>
+                      <span className="font-semibold text-red-500">-₹{(breakdown.deductions || 0).toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
-                <button className="p-2 hover:bg-gray-200 rounded-lg transition-colors">
-                  <Download size={16} className="text-gray-600" />
-                </button>
+
+                {/* Total */}
+                <div className="pt-3 border-t">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-lg text-gray-800">Net Pay</span>
+                    <span className="font-bold text-xl text-[#1E2A5E]">₹{(breakdown.net_pay || 0).toLocaleString()}</span>
+                  </div>
+                </div>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+
+          {/* Download Button */}
+          <Button 
+            className="w-full h-12 bg-[#1E2A5E] hover:bg-[#2D3A8C]"
+            onClick={downloadPayslipPDF}
+            data-testid="download-payslip-btn"
+          >
+            <Download size={18} className="mr-2" /> Download Payslip (PDF)
+          </Button>
+
+          {/* Past Payslips */}
+          {payslips.length > 1 && (
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-gray-800 mb-3">Past Payslips</h3>
+                <div className="space-y-2">
+                  {payslips.filter(p => p.id !== selectedPayslip?.id).slice(0, 5).map((payslip) => (
+                    <div 
+                      key={payslip.id} 
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100"
+                      onClick={() => setSelectedPayslip(payslip)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <FileText size={18} className="text-gray-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{payslip.month} {payslip.year}</p>
+                          <p className="text-xs text-gray-500">₹{(payslip.breakdown?.net_pay || 0).toLocaleString()}</p>
+                        </div>
+                      </div>
+                      <button 
+                        className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedPayslip(payslip);
+                          setTimeout(downloadPayslipPDF, 100);
+                        }}
+                      >
+                        <Download size={16} className="text-gray-600" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
     </div>
   );
 };
