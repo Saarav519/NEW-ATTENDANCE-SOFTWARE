@@ -50,11 +50,17 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('supermanage_token');
   };
 
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem('supermanage_user', JSON.stringify(updatedUser));
+  };
+
   const value = {
     user,
     token,
     login,
     logout,
+    updateUser,
     loading,
     isAdmin: user?.role === 'admin',
     isTeamLead: user?.role === 'teamlead',
