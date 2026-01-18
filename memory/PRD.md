@@ -210,13 +210,23 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 ## Changelog
 
 ### January 18, 2026
+- **NEW FEATURE:** Audit Expenses - Partial Payment & Balance Tracking
+  - Admin can make partial payments (e.g., pay ₹3,000 of ₹8,000)
+  - Remaining balance shown in stats and expense cards
+  - Payment history tracked for each expense
+  - Admin can pay remaining balance later
+  
+- **NEW FEATURE:** Audit Expenses - Revalidation Flow
+  - Admin can request revalidation with reason
+  - Team Leader sees reason and can edit & resubmit
+  - Status changes: Pending → Revalidation → Pending (after resubmit)
+
 - **NEW FEATURE:** Audit Expenses for Team Leaders
   - Team Leaders can submit travel/audit expenses (tickets, travel, food, hotel)
   - Admin can approve/reject or partially approve expenses
   - Approved expenses appear in payslip as "Audit Expenses (Reimbursement)"
-  - Navigation added for both Team Lead and Admin roles
-- **Fixed:** Team Lead payslip showing empty - Added payslip seed data for TL001 and TL002
-- **Added:** Leave balances for Team Leads in database seed
+  
+- **Fixed:** Team Lead payslip showing empty - Added payslip seed data
 
 ---
 
