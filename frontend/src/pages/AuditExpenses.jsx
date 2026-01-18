@@ -13,7 +13,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
 } from '../components/ui/dialog';
 import {
-  Plane, Car, Utensils, Hotel, MoreHorizontal, Plus, Trash2,
+  Plane, Car, Utensils, Hotel, MoreHorizontal, Plus, Trash2, Edit2,
   CheckCircle, XCircle, Clock, Calendar, MapPin, FileText, IndianRupee, AlertCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -57,8 +57,10 @@ const AuditExpenses = () => {
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
   const [filter, setFilter] = useState('all');
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingExpenseId, setEditingExpenseId] = useState(null);
   
-  // New expense form state
+  // Form state
   const [tripPurpose, setTripPurpose] = useState('');
   const [tripLocation, setTripLocation] = useState('');
   const [tripStartDate, setTripStartDate] = useState('');
@@ -72,6 +74,9 @@ const AuditExpenses = () => {
   const [approvalAmount, setApprovalAmount] = useState('');
   const [rejectReason, setRejectReason] = useState('');
 
+  // Validation errors
+  const [errors, setErrors] = useState({});
+
   useEffect(() => {
     loadExpenses();
   }, [user?.id, filter, isAdmin]);
@@ -81,7 +86,6 @@ const AuditExpenses = () => {
     setLoading(true);
     try {
       const status = filter !== 'all' ? filter : undefined;
-      // Admin sees all, Team Lead sees only their own
       const empId = isAdmin ? undefined : user.id;
       const data = await auditExpenseAPI.getAll(empId, status);
       setExpenses(data);
@@ -107,6 +111,14 @@ const AuditExpenses = () => {
     const updated = [...expenseItems];
     updated[index][field] = value;
     setExpenseItems(updated);
+    // Clear item-specific errors
+    if (errors[`item_${index}_${field}`]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[`item_${index}_${field}`];
+        return newErrors;
+      });
+    }
   };
 
   const getTotalAmount = () => {
@@ -120,45 +132,124 @@ const AuditExpenses = () => {
     setTripEndDate('');
     setRemarks('');
     setExpenseItems([{ date: '', category: 'tickets', location: '', amount: '', description: '' }]);
+    setErrors({});
+    setIsEditMode(false);
+    setEditingExpenseId(null);
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Validate trip details
+    if (!tripPurpose.trim()) {
+      newErrors.tripPurpose = 'Trip purpose is required';
+    }
+    if (!tripLocation.trim()) {
+      newErrors.tripLocation = 'Trip location is required';
+    }
+    if (!tripStartDate) {
+      newErrors.tripStartDate = 'Start date is required';
+    }
+    if (!tripEndDate) {
+      newErrors.tripEndDate = 'End date is required';
+    }
+    if (tripStartDate && tripEndDate && tripStartDate > tripEndDate) {
+      newErrors.tripEndDate = 'End date must be after start date';
+    }
+
+    // Validate expense items
+    let hasValidItem = false;
+    expenseItems.forEach((item, index) => {
+      const itemHasData = item.date || item.amount || item.description;
+      
+      if (itemHasData) {
+        if (!item.date) {
+          newErrors[`item_${index}_date`] = 'Date is required';
+        }
+        if (!item.amount || parseFloat(item.amount) <= 0) {
+          newErrors[`item_${index}_amount`] = 'Valid amount is required';
+        }
+        if (!item.description.trim()) {
+          newErrors[`item_${index}_description`] = 'Description is required';
+        }
+        
+        // Check if this item is complete
+        if (item.date && item.amount && parseFloat(item.amount) > 0 && item.description.trim()) {
+          hasValidItem = true;
+        }
+      }
+    });
+
+    if (!hasValidItem) {
+      newErrors.items = 'At least one complete expense item is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const populateFormForEdit = (expense) => {
+    setTripPurpose(expense.trip_purpose || '');
+    setTripLocation(expense.trip_location || '');
+    setTripStartDate(expense.trip_start_date || '');
+    setTripEndDate(expense.trip_end_date || '');
+    setRemarks(expense.remarks || '');
+    setExpenseItems(
+      expense.items?.map(item => ({
+        date: item.date || '',
+        category: item.category || 'tickets',
+        location: item.location || '',
+        amount: item.amount?.toString() || '',
+        description: item.description || ''
+      })) || [{ date: '', category: 'tickets', location: '', amount: '', description: '' }]
+    );
+    setIsEditMode(true);
+    setEditingExpenseId(expense.id);
+    setShowAddDialog(true);
+    setShowDetailDialog(false);
   };
 
   const handleSubmit = async () => {
-    if (!tripPurpose || !tripLocation || !tripStartDate || !tripEndDate) {
-      toast.error('Please fill in trip details');
+    if (!validateForm()) {
+      toast.error('Please fill in all required fields');
       return;
     }
 
-    const validItems = expenseItems.filter(item => item.date && item.amount && item.description);
-    if (validItems.length === 0) {
-      toast.error('Please add at least one expense item');
-      return;
-    }
+    const validItems = expenseItems.filter(item => 
+      item.date && item.amount && parseFloat(item.amount) > 0 && item.description.trim()
+    );
 
     try {
       const expenseData = {
-        trip_purpose: tripPurpose,
-        trip_location: tripLocation,
+        trip_purpose: tripPurpose.trim(),
+        trip_location: tripLocation.trim(),
         trip_start_date: tripStartDate,
         trip_end_date: tripEndDate,
-        remarks: remarks || null,
+        remarks: remarks.trim() || null,
         items: validItems.map(item => ({
           date: item.date,
           category: item.category,
-          location: item.location || tripLocation,
+          location: item.location.trim() || tripLocation.trim(),
           amount: parseFloat(item.amount),
-          description: item.description,
+          description: item.description.trim(),
           receipt_url: null
         }))
       };
 
-      await auditExpenseAPI.create(expenseData, user.id);
-      toast.success('Expense submitted successfully');
+      if (isEditMode && editingExpenseId) {
+        await auditExpenseAPI.update(editingExpenseId, expenseData, user.id);
+        toast.success('Expense updated successfully');
+      } else {
+        await auditExpenseAPI.create(expenseData, user.id);
+        toast.success('Expense submitted successfully');
+      }
+      
       setShowAddDialog(false);
       resetForm();
       loadExpenses();
     } catch (error) {
-      console.error('Error submitting expense:', error);
-      toast.error('Failed to submit expense');
+      console.error('Error saving expense:', error);
+      toast.error(error.message || 'Failed to save expense');
     }
   };
 
@@ -195,6 +286,7 @@ const AuditExpenses = () => {
     try {
       await auditExpenseAPI.delete(expenseId);
       toast.success('Expense deleted');
+      setShowDetailDialog(false);
       loadExpenses();
     } catch (error) {
       console.error('Error deleting expense:', error);
@@ -235,7 +327,7 @@ const AuditExpenses = () => {
         </div>
         {!isAdmin && (
           <Button 
-            onClick={() => setShowAddDialog(true)}
+            onClick={() => { resetForm(); setShowAddDialog(true); }}
             className="bg-[#1E2A5E] hover:bg-[#2D3A8C]"
             data-testid="submit-expense-btn"
           >
@@ -349,7 +441,19 @@ const AuditExpenses = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    {getStatusBadge(expense.status)}
+                    <div className="flex items-center gap-2 justify-end">
+                      {getStatusBadge(expense.status)}
+                      {!isAdmin && expense.status === 'pending' && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); populateFormForEdit(expense); }}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Edit expense"
+                          data-testid={`edit-expense-${expense.id}`}
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                      )}
+                    </div>
                     <p className="text-lg font-bold text-gray-800 mt-2">₹{expense.total_amount?.toLocaleString()}</p>
                     {(expense.status === 'approved' || expense.status === 'partially_approved') && (
                       <p className="text-xs text-green-600">
@@ -380,11 +484,11 @@ const AuditExpenses = () => {
         )}
       </div>
 
-      {/* Add Expense Dialog */}
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+      {/* Add/Edit Expense Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={(open) => { if (!open) resetForm(); setShowAddDialog(open); }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Submit Audit Expense</DialogTitle>
+            <DialogTitle>{isEditMode ? 'Edit Audit Expense' : 'Submit Audit Expense'}</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
@@ -394,48 +498,57 @@ const AuditExpenses = () => {
                 <Label>Trip Purpose *</Label>
                 <Input
                   value={tripPurpose}
-                  onChange={(e) => setTripPurpose(e.target.value)}
+                  onChange={(e) => { setTripPurpose(e.target.value); setErrors(prev => ({ ...prev, tripPurpose: undefined })); }}
                   placeholder="e.g., Client Audit - ABC Corp"
+                  className={errors.tripPurpose ? 'border-red-500' : ''}
                   data-testid="trip-purpose-input"
                 />
+                {errors.tripPurpose && <p className="text-xs text-red-500 mt-1">{errors.tripPurpose}</p>}
               </div>
               <div className="col-span-2">
                 <Label>Trip Location *</Label>
                 <Input
                   value={tripLocation}
-                  onChange={(e) => setTripLocation(e.target.value)}
+                  onChange={(e) => { setTripLocation(e.target.value); setErrors(prev => ({ ...prev, tripLocation: undefined })); }}
                   placeholder="e.g., Mumbai"
+                  className={errors.tripLocation ? 'border-red-500' : ''}
                   data-testid="trip-location-input"
                 />
+                {errors.tripLocation && <p className="text-xs text-red-500 mt-1">{errors.tripLocation}</p>}
               </div>
               <div>
                 <Label>Start Date *</Label>
                 <Input
                   type="date"
                   value={tripStartDate}
-                  onChange={(e) => setTripStartDate(e.target.value)}
+                  onChange={(e) => { setTripStartDate(e.target.value); setErrors(prev => ({ ...prev, tripStartDate: undefined })); }}
+                  className={errors.tripStartDate ? 'border-red-500' : ''}
                   data-testid="trip-start-date-input"
                 />
+                {errors.tripStartDate && <p className="text-xs text-red-500 mt-1">{errors.tripStartDate}</p>}
               </div>
               <div>
                 <Label>End Date *</Label>
                 <Input
                   type="date"
                   value={tripEndDate}
-                  onChange={(e) => setTripEndDate(e.target.value)}
+                  onChange={(e) => { setTripEndDate(e.target.value); setErrors(prev => ({ ...prev, tripEndDate: undefined })); }}
+                  className={errors.tripEndDate ? 'border-red-500' : ''}
                   data-testid="trip-end-date-input"
                 />
+                {errors.tripEndDate && <p className="text-xs text-red-500 mt-1">{errors.tripEndDate}</p>}
               </div>
             </div>
 
             {/* Expense Items */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <Label>Expense Items</Label>
+                <Label>Expense Items *</Label>
                 <Button variant="outline" size="sm" onClick={addExpenseItem}>
                   <Plus size={14} className="mr-1" /> Add Item
                 </Button>
               </div>
+              {errors.items && <p className="text-xs text-red-500 mb-2">{errors.items}</p>}
               
               <div className="space-y-3">
                 {expenseItems.map((item, index) => (
@@ -452,12 +565,16 @@ const AuditExpenses = () => {
                       )}
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <Input
-                        type="date"
-                        value={item.date}
-                        onChange={(e) => updateExpenseItem(index, 'date', e.target.value)}
-                        placeholder="Date"
-                      />
+                      <div>
+                        <Input
+                          type="date"
+                          value={item.date}
+                          onChange={(e) => updateExpenseItem(index, 'date', e.target.value)}
+                          placeholder="Date"
+                          className={errors[`item_${index}_date`] ? 'border-red-500' : ''}
+                        />
+                        {errors[`item_${index}_date`] && <p className="text-xs text-red-500 mt-1">{errors[`item_${index}_date`]}</p>}
+                      </div>
                       <Select
                         value={item.category}
                         onValueChange={(val) => updateExpenseItem(index, 'category', val)}
@@ -473,23 +590,30 @@ const AuditExpenses = () => {
                           ))}
                         </SelectContent>
                       </Select>
-                      <Input
-                        type="number"
-                        value={item.amount}
-                        onChange={(e) => updateExpenseItem(index, 'amount', e.target.value)}
-                        placeholder="Amount (₹)"
-                      />
+                      <div>
+                        <Input
+                          type="number"
+                          value={item.amount}
+                          onChange={(e) => updateExpenseItem(index, 'amount', e.target.value)}
+                          placeholder="Amount (₹) *"
+                          className={errors[`item_${index}_amount`] ? 'border-red-500' : ''}
+                        />
+                        {errors[`item_${index}_amount`] && <p className="text-xs text-red-500 mt-1">{errors[`item_${index}_amount`]}</p>}
+                      </div>
                       <Input
                         value={item.location}
                         onChange={(e) => updateExpenseItem(index, 'location', e.target.value)}
                         placeholder="Location (optional)"
                       />
-                      <Input
-                        className="col-span-2"
-                        value={item.description}
-                        onChange={(e) => updateExpenseItem(index, 'description', e.target.value)}
-                        placeholder="Description *"
-                      />
+                      <div className="col-span-2">
+                        <Input
+                          value={item.description}
+                          onChange={(e) => updateExpenseItem(index, 'description', e.target.value)}
+                          placeholder="Description *"
+                          className={errors[`item_${index}_description`] ? 'border-red-500' : ''}
+                        />
+                        {errors[`item_${index}_description`] && <p className="text-xs text-red-500 mt-1">{errors[`item_${index}_description`]}</p>}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -523,7 +647,7 @@ const AuditExpenses = () => {
               className="bg-[#1E2A5E] hover:bg-[#2D3A8C]"
               data-testid="submit-expense-confirm-btn"
             >
-              Submit Expense
+              {isEditMode ? 'Update Expense' : 'Submit Expense'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -557,7 +681,19 @@ const AuditExpenses = () => {
               {/* Status */}
               <div className="flex items-center justify-between">
                 <span className="text-gray-600">Status:</span>
-                {getStatusBadge(selectedExpense.status)}
+                <div className="flex items-center gap-2">
+                  {getStatusBadge(selectedExpense.status)}
+                  {!isAdmin && selectedExpense.status === 'pending' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => populateFormForEdit(selectedExpense)}
+                      className="text-blue-600"
+                    >
+                      <Edit2 size={14} className="mr-1" /> Edit
+                    </Button>
+                  )}
+                </div>
               </div>
 
               {/* Items */}
