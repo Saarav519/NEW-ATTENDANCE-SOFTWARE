@@ -651,17 +651,23 @@ const Cashbook = () => {
           <Button variant="outline" onClick={() => handleExport('invoices-zip')} data-testid="export-invoices-zip-btn">
             <FileDown size={16} className="mr-2" /> Download Invoice PDFs (ZIP)
           </Button>
+          <Button variant="outline" onClick={() => handleExport('loans')} data-testid="export-loans-btn">
+            <Landmark size={16} className="mr-2" /> Export Loans (CSV)
+          </Button>
         </CardContent>
       </Card>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} data-testid="cashbook-tabs">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="cash-in" className="flex items-center gap-2" data-testid="cash-in-tab">
             <TrendingUp size={16} /> Cash In ({cashInEntries.length})
           </TabsTrigger>
           <TabsTrigger value="cash-out" className="flex items-center gap-2" data-testid="cash-out-tab">
             <TrendingDown size={16} /> Cash Out ({cashOutEntries.length})
+          </TabsTrigger>
+          <TabsTrigger value="loans" className="flex items-center gap-2" data-testid="loans-tab">
+            <Landmark size={16} /> Loans ({loans.length})
           </TabsTrigger>
         </TabsList>
 
