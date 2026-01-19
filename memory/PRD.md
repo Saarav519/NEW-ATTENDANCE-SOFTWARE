@@ -331,11 +331,15 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 4. Payslip regeneration will not deduct for leave days
 
 ### Leave Balance Rules (Updated)
-- **Accrual**: 1 Total Leave per 24 complete working days
-- **Working Days Count**: Full days + Leave days (both count towards accrual)
+- **Accrual Rule**: Per month - if employee has **24+ full working days** (via QR punch-in) → **1 leave is added**
+- **Working Days Count**: Only `full_day` attendance status counts (not half_day or leave)
+- **Auto-calculated**: System automatically calculates leaves based on monthly attendance
 - **Display**: Single "Total Leave" shown in Profile (not separate Casual/Sick/Vacation)
 - **Leave Types for Application**: Casual Leave, Sick Leave, Vacation, Personal (4 options remain)
-- **Calculation**: `Total Leave = Working Days Count ÷ 24`
+- **Example**: 
+  - December 2025: 27 full days → 1 leave accrued
+  - January 2026: 20 full days → 0 leave accrued
+  - February 2026: 24 full days → 1 leave accrued
 
 ---
 
