@@ -955,23 +955,27 @@ async def generate_payslip(data: PayslipCreate):
     }).to_list(100)
     advance_deduction = sum(a.get("amount", 0) for a in advances)
     
-    gross = basic + hra + special_allowance + conveyance + extra_conveyance + attendance_conveyance
-    deductions = 0  # No PF/Tax deductions  # 10% deductions (PF, Tax, etc.)
-    net_pay = round(gross + leave_adjustment + attendance_adjustment - deductions - advance_deduction, 2)
+    # CORRECT CALCULATION:
+    # Gross = Salary (Basic + HRA + Special) + Conveyance (from attendance) + Bills (approved)
+    # Net = Gross - Attendance Adjustment - Advance Deduction
+    
+    gross = basic + hra + special_allowance + attendance_conveyance + extra_conveyance
+    deductions = 0  # No PF/Tax deductions
+    net_pay = round(gross + attendance_adjustment - deductions - advance_deduction, 2)
     
     breakdown = SalaryBreakdown(
         basic=basic,
         hra=hra,
         special_allowance=special_allowance,
-        conveyance=conveyance + attendance_conveyance,
+        conveyance=attendance_conveyance,  # Conveyance from attendance only
         leave_adjustment=round(leave_adjustment, 2),
-        extra_conveyance=extra_conveyance,
+        extra_conveyance=extra_conveyance,  # From approved bills
         previous_pending_allowances=0,
         attendance_adjustment=attendance_adjustment,
-        full_days=full_days,  # Actual full days count (not including leave)
+        full_days=full_days,
         half_days=half_days,
         absent_days=absent_days,
-        leave_days=leave_days,  # Separate count of leave days
+        leave_days=leave_days,
         total_duty_earned=round(total_duty_earned, 2),
         advance_deduction=advance_deduction,
         gross_pay=round(gross, 2),
