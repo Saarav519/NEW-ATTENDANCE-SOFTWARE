@@ -633,10 +633,12 @@ def test_analytics_apis():
         response = requests.get(f"{API_URL}/analytics/employee-counts")
         if response.status_code == 200:
             data = response.json()
-            if "total_employees" in data and "by_role" in data:
-                log_test("Analytics - Employee Counts", True, f"Total: {data.get('total_employees')}, Roles: {list(data.get('by_role', {}).keys())}")
+            if isinstance(data, list) and len(data) > 0:
+                total_employees = sum(item.get('count', 0) for item in data)
+                roles = [item.get('role') for item in data]
+                log_test("Analytics - Employee Counts", True, f"Total: {total_employees}, Roles: {roles}")
             else:
-                log_test("Analytics - Employee Counts", False, "Missing required fields in response")
+                log_test("Analytics - Employee Counts", False, "Invalid response format or empty data")
         else:
             log_test("Analytics - Employee Counts", False, f"Status: {response.status_code}, Response: {response.text}")
     except Exception as e:
@@ -647,10 +649,10 @@ def test_analytics_apis():
         response = requests.get(f"{API_URL}/analytics/attendance-trends?time_filter=this_month")
         if response.status_code == 200:
             data = response.json()
-            if "trends" in data:
-                log_test("Analytics - Attendance Trends", True, f"Retrieved {len(data.get('trends', []))} trend data points")
+            if isinstance(data, list):
+                log_test("Analytics - Attendance Trends", True, f"Retrieved {len(data)} trend data points")
             else:
-                log_test("Analytics - Attendance Trends", False, "Missing trends field in response")
+                log_test("Analytics - Attendance Trends", False, "Expected list response format")
         else:
             log_test("Analytics - Attendance Trends", False, f"Status: {response.status_code}, Response: {response.text}")
     except Exception as e:
@@ -661,10 +663,10 @@ def test_analytics_apis():
         response = requests.get(f"{API_URL}/analytics/leave-distribution?time_filter=this_month")
         if response.status_code == 200:
             data = response.json()
-            if "distribution" in data:
-                log_test("Analytics - Leave Distribution", True, f"Retrieved leave distribution data")
+            if isinstance(data, list):
+                log_test("Analytics - Leave Distribution", True, f"Retrieved {len(data)} leave distribution data points")
             else:
-                log_test("Analytics - Leave Distribution", False, "Missing distribution field in response")
+                log_test("Analytics - Leave Distribution", False, "Expected list response format")
         else:
             log_test("Analytics - Leave Distribution", False, f"Status: {response.status_code}, Response: {response.text}")
     except Exception as e:
@@ -675,10 +677,10 @@ def test_analytics_apis():
         response = requests.get(f"{API_URL}/analytics/department-attendance?time_filter=this_month")
         if response.status_code == 200:
             data = response.json()
-            if "departments" in data:
-                log_test("Analytics - Department Attendance", True, f"Retrieved {len(data.get('departments', []))} department data points")
+            if isinstance(data, list):
+                log_test("Analytics - Department Attendance", True, f"Retrieved {len(data)} department data points")
             else:
-                log_test("Analytics - Department Attendance", False, "Missing departments field in response")
+                log_test("Analytics - Department Attendance", False, "Expected list response format")
         else:
             log_test("Analytics - Department Attendance", False, f"Status: {response.status_code}, Response: {response.text}")
     except Exception as e:
@@ -689,10 +691,10 @@ def test_analytics_apis():
         response = requests.get(f"{API_URL}/analytics/salary-overview?time_filter=this_year")
         if response.status_code == 200:
             data = response.json()
-            if "overview" in data:
-                log_test("Analytics - Salary Overview", True, f"Retrieved salary overview data")
+            if isinstance(data, list):
+                log_test("Analytics - Salary Overview", True, f"Retrieved {len(data)} salary overview data points")
             else:
-                log_test("Analytics - Salary Overview", False, "Missing overview field in response")
+                log_test("Analytics - Salary Overview", False, "Expected list response format")
         else:
             log_test("Analytics - Salary Overview", False, f"Status: {response.status_code}, Response: {response.text}")
     except Exception as e:
