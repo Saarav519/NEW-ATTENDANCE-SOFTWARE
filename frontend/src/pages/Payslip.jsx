@@ -143,8 +143,25 @@ const Payslip = () => {
     doc.text(`Rs. ${(breakdown.deductions || 0).toLocaleString()}`, 170, y, { align: 'right' });
     y += lineHeight;
     
+    // Salary Advance Deduction
+    doc.text('Salary Advance', 25, y);
+    doc.text(`Rs. ${(breakdown.advance_deduction || 0).toLocaleString()}`, 170, y, { align: 'right' });
+    y += lineHeight;
+    
     // Separator
     y += 5;
+    doc.setLineWidth(0.5);
+    doc.line(20, y, 190, y);
+    y += 10;
+    
+    // Total Deductions
+    const totalDeductions = (breakdown.deductions || 0) + (breakdown.advance_deduction || 0) + Math.abs(breakdown.attendance_adjustment || 0);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TOTAL DEDUCTIONS', 25, y);
+    doc.text(`Rs. ${totalDeductions.toLocaleString()}`, 170, y, { align: 'right' });
+    y += lineHeight + 5;
+    
+    // Separator
     doc.setLineWidth(0.5);
     doc.line(20, y, 190, y);
     y += 10;
