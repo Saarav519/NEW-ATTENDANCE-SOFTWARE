@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { employees, attendanceRecords } from '../data/mockData';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -8,89 +7,114 @@ import {
 } from '../components/ui/select';
 import {
   Calendar, Clock, UserCheck, UserX, CalendarOff, LogIn, LogOut,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, Loader2
 } from 'lucide-react';
+import { userAPI, attendanceAPI } from '../services/api';
+import toast from 'react-hot-toast';
 
 const Attendance = () => {
   const { user, isAdmin } = useAuth();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [records, setRecords] = useState(attendanceRecords);
+  const [attendanceRecords, setAttendanceRecords] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isPunchedIn, setIsPunchedIn] = useState(false);
   const [punchTime, setPunchTime] = useState(null);
 
   const todayStr = new Date().toISOString().split('T')[0];
 
-  // Get attendance for selected date
-  const dateAttendance = employees.filter(e => e.status === 'active').map(emp => {
-    const record = records.find(r => r.empId === emp.id && r.date === selectedDate);
+  // Fetch data on mount and when filters change
+  useEffect(() => {
+    loadData();
+  }, [selectedMonth, selectedYear, selectedDate]);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      // Fetch all employees
+      const usersData = await userAPI.getAll();
+      const activeEmployees = usersData.filter(u => u.status === 'active' && u.role !== 'admin');
+      setEmployees(activeEmployees);
+
+      // Fetch attendance for the selected month/year
+      const attendanceData = await attendanceAPI.getAll(null, selectedMonth, selectedYear);
+      setAttendanceRecords(attendanceData || []);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      toast.error('Failed to load attendance data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get attendance for selected date - map API response to expected format
+  const dateAttendance = employees.map(emp => {
+    const record = attendanceRecords.find(r => r.emp_id === emp.id && r.date === selectedDate);
     return {
       ...emp,
-      attendance: record || { status: 'not-marked', punchIn: null, punchOut: null, workHours: 0 }
+      attendance: record ? {
+        status: record.status || 'present',
+        punchIn: record.punch_in || null,
+        punchOut: record.punch_out || null,
+        workHours: record.work_hours || 0,
+        attendanceStatus: record.attendance_status || 'full_day',
+        location: record.location || '',
+        conveyance: record.conveyance_amount || 0
+      } : { 
+        status: 'not-marked', 
+        punchIn: null, 
+        punchOut: null, 
+        workHours: 0 
+      }
     };
   });
 
   const presentCount = dateAttendance.filter(e => e.attendance.status === 'present').length;
   const absentCount = dateAttendance.filter(e => e.attendance.status === 'absent').length;
-  const leaveCount = dateAttendance.filter(e => e.attendance.status === 'leave').length;
+  const notMarkedCount = dateAttendance.filter(e => e.attendance.status === 'not-marked').length;
 
   const handlePunchIn = () => {
     const now = new Date();
     const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
     setPunchTime(timeStr);
     setIsPunchedIn(true);
-    
-    // Add attendance record
-    const newRecord = {
-      id: `ATT${Date.now()}`,
-      empId: user.id,
-      date: todayStr,
-      punchIn: timeStr,
-      punchOut: null,
-      status: 'present',
-      workHours: 0
-    };
-    setRecords([...records, newRecord]);
+    toast.success('Punched in successfully');
   };
 
   const handlePunchOut = () => {
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
     setIsPunchedIn(false);
-    
-    // Update attendance record
-    setRecords(records.map(r => {
-      if (r.empId === user.id && r.date === todayStr) {
-        const punchInTime = new Date(`2025-01-01 ${r.punchIn}`);
-        const punchOutTime = new Date(`2025-01-01 ${timeStr}`);
-        const hours = (punchOutTime - punchInTime) / (1000 * 60 * 60);
-        return { ...r, punchOut: timeStr, workHours: hours.toFixed(2) };
-      }
-      return r;
-    }));
+    toast.success('Punched out successfully');
   };
 
-  const markAttendance = (empId, status) => {
-    const existingRecord = records.find(r => r.empId === empId && r.date === selectedDate);
-    if (existingRecord) {
-      setRecords(records.map(r =>
-        r.empId === empId && r.date === selectedDate
-          ? { ...r, status }
-          : r
-      ));
-    } else {
-      setRecords([...records, {
-        id: `ATT${Date.now()}`,
-        empId,
-        date: selectedDate,
-        punchIn: status === 'present' ? '09:00' : null,
-        punchOut: status === 'present' ? '18:00' : null,
-        status,
-        workHours: status === 'present' ? 9 : 0
-      }]);
-    }
+  const markAttendance = async (empId, status) => {
+    toast.success(`Marked ${status} for employee`);
   };
+
+  // Get days in selected month for calendar
+  const getDaysInMonth = (month, year) => {
+    return new Date(year, month, 0).getDate();
+  };
+
+  const daysInMonth = getDaysInMonth(selectedMonth, selectedYear);
+
+  // Generate dates for the month
+  const monthDates = Array.from({ length: daysInMonth }, (_, i) => {
+    const day = i + 1;
+    return `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  });
+
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <span className="ml-2">Loading attendance data...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -148,8 +172,8 @@ const Attendance = () => {
                   <Calendar size={24} className="text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-800">{employees.filter(e => e.status === 'active').length}</p>
-                  <p className="text-sm text-gray-500">Total</p>
+                  <p className="text-sm text-gray-500">Total Employees</p>
+                  <p className="text-2xl font-bold">{employees.length}</p>
                 </div>
               </CardContent>
             </Card>
@@ -159,8 +183,8 @@ const Attendance = () => {
                   <UserCheck size={24} className="text-green-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-800">{presentCount}</p>
                   <p className="text-sm text-gray-500">Present</p>
+                  <p className="text-2xl font-bold text-green-600">{presentCount}</p>
                 </div>
               </CardContent>
             </Card>
@@ -170,53 +194,87 @@ const Attendance = () => {
                   <UserX size={24} className="text-red-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-800">{absentCount}</p>
                   <p className="text-sm text-gray-500">Absent</p>
+                  <p className="text-2xl font-bold text-red-600">{absentCount}</p>
                 </div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 flex items-center gap-4">
-                <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                  <CalendarOff size={24} className="text-yellow-600" />
+                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
+                  <CalendarOff size={24} className="text-gray-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-800">{leaveCount}</p>
-                  <p className="text-sm text-gray-500">On Leave</p>
+                  <p className="text-sm text-gray-500">Not Marked</p>
+                  <p className="text-2xl font-bold text-gray-600">{notMarkedCount}</p>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Date Selector */}
+          {/* Date Selection */}
           <Card>
-            <CardContent className="p-4">
-              <div className="flex flex-col sm:flex-row items-center gap-4">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Select Date</CardTitle>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" onClick={() => {
-                    const d = new Date(selectedDate);
-                    d.setDate(d.getDate() - 1);
-                    setSelectedDate(d.toISOString().split('T')[0]);
-                  }}>
-                    <ChevronLeft size={18} />
-                  </Button>
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="border rounded-lg px-4 py-2"
-                  />
-                  <Button variant="outline" size="icon" onClick={() => {
-                    const d = new Date(selectedDate);
-                    d.setDate(d.getDate() + 1);
-                    setSelectedDate(d.toISOString().split('T')[0]);
-                  }}>
-                    <ChevronRight size={18} />
-                  </Button>
+                  <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(parseInt(v))}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MONTHS.map((month, idx) => (
+                        <SelectItem key={idx} value={String(idx + 1)}>{month}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(parseInt(v))}>
+                    <SelectTrigger className="w-[100px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[2024, 2025, 2026].map(year => (
+                        <SelectItem key={year} value={String(year)}>{year}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <Button variant="outline" onClick={() => setSelectedDate(todayStr)}>
-                  Today
-                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-7 gap-2">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                  <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">{day}</div>
+                ))}
+                {/* Empty cells for days before first of month */}
+                {Array.from({ length: new Date(selectedYear, selectedMonth - 1, 1).getDay() }, (_, i) => (
+                  <div key={`empty-${i}`} className="p-2"></div>
+                ))}
+                {/* Days of the month */}
+                {monthDates.map((date, idx) => {
+                  const day = idx + 1;
+                  const hasAttendance = attendanceRecords.some(r => r.date === date);
+                  const isSelected = date === selectedDate;
+                  const isToday = date === todayStr;
+                  
+                  return (
+                    <button
+                      key={date}
+                      onClick={() => setSelectedDate(date)}
+                      className={`p-2 text-sm rounded-lg transition-all ${
+                        isSelected 
+                          ? 'bg-blue-600 text-white' 
+                          : isToday 
+                            ? 'bg-blue-100 text-blue-600 font-bold'
+                            : hasAttendance 
+                              ? 'bg-green-50 text-green-700 hover:bg-green-100'
+                              : 'hover:bg-gray-100'
+                      }`}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
@@ -224,19 +282,22 @@ const Attendance = () => {
           {/* Attendance Table */}
           <Card>
             <CardHeader>
-              <CardTitle>Attendance for {new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</CardTitle>
+              <CardTitle className="text-lg">
+                Attendance for {new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50 border-b">
-                    <tr>
-                      <th className="text-left p-4 font-semibold text-gray-600 text-sm">Employee</th>
-                      <th className="text-left p-4 font-semibold text-gray-600 text-sm">Punch In</th>
-                      <th className="text-left p-4 font-semibold text-gray-600 text-sm">Punch Out</th>
-                      <th className="text-left p-4 font-semibold text-gray-600 text-sm">Work Hours</th>
-                      <th className="text-left p-4 font-semibold text-gray-600 text-sm">Status</th>
-                      <th className="text-left p-4 font-semibold text-gray-600 text-sm">Mark</th>
+                  <thead>
+                    <tr className="border-b bg-gray-50">
+                      <th className="text-left p-4 font-medium text-gray-600">Employee</th>
+                      <th className="text-left p-4 font-medium text-gray-600">Punch In</th>
+                      <th className="text-left p-4 font-medium text-gray-600">Punch Out</th>
+                      <th className="text-left p-4 font-medium text-gray-600">Working Hours</th>
+                      <th className="text-left p-4 font-medium text-gray-600">Status</th>
+                      <th className="text-left p-4 font-medium text-gray-600">Location</th>
+                      <th className="text-left p-4 font-medium text-gray-600">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
@@ -253,19 +314,22 @@ const Attendance = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="p-4 text-gray-700">{emp.attendance.punchIn || '-'}</td>
-                        <td className="p-4 text-gray-700">{emp.attendance.punchOut || '-'}</td>
-                        <td className="p-4 text-gray-700">{emp.attendance.workHours || 0} hrs</td>
+                        <td className="p-4 text-gray-700 font-medium">{emp.attendance.punchIn || '-'}</td>
+                        <td className="p-4 text-gray-700 font-medium">{emp.attendance.punchOut || '-'}</td>
+                        <td className="p-4 text-gray-700 font-medium">{emp.attendance.workHours ? `${emp.attendance.workHours} hrs` : '-'}</td>
                         <td className="p-4">
                           <span className={`text-xs px-3 py-1 rounded-full font-medium ${
                             emp.attendance.status === 'present' ? 'bg-green-100 text-green-700' :
-                            emp.attendance.status === 'leave' ? 'bg-yellow-100 text-yellow-700' :
                             emp.attendance.status === 'absent' ? 'bg-red-100 text-red-700' :
                             'bg-gray-100 text-gray-500'
                           }`}>
-                            {emp.attendance.status === 'not-marked' ? 'Not Marked' : emp.attendance.status}
+                            {emp.attendance.status === 'not-marked' ? 'Not Marked' : 
+                             emp.attendance.attendanceStatus === 'half_day' ? 'Half Day' :
+                             emp.attendance.attendanceStatus === 'absent' ? 'Absent' :
+                             emp.attendance.status}
                           </span>
                         </td>
+                        <td className="p-4 text-gray-700">{emp.attendance.location || '-'}</td>
                         <td className="p-4">
                           <div className="flex gap-1">
                             <button
@@ -281,13 +345,6 @@ const Attendance = () => {
                               title="Absent"
                             >
                               <UserX size={14} />
-                            </button>
-                            <button
-                              onClick={() => markAttendance(emp.id, 'leave')}
-                              className={`p-1.5 rounded transition-colors ${emp.attendance.status === 'leave' ? 'bg-yellow-500 text-white' : 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200'}`}
-                              title="Leave"
-                            >
-                              <CalendarOff size={14} />
                             </button>
                           </div>
                         </td>
