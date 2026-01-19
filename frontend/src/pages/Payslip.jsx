@@ -333,7 +333,7 @@ const Payslip = () => {
                 {(breakdown.full_days || breakdown.half_days || breakdown.absent_days) && (
                   <div>
                     <p className="text-xs text-gray-500 mb-2">ATTENDANCE SUMMARY</p>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-4 gap-2">
                       <div className="flex flex-col items-center p-2 bg-green-50 rounded-lg">
                         <CheckCircle size={16} className="text-green-600 mb-1" />
                         <span className="text-lg font-bold text-green-600">{breakdown.full_days || 0}</span>
@@ -343,6 +343,11 @@ const Payslip = () => {
                         <AlertCircle size={16} className="text-yellow-600 mb-1" />
                         <span className="text-lg font-bold text-yellow-600">{breakdown.half_days || 0}</span>
                         <span className="text-[10px] text-gray-500">Half Days</span>
+                      </div>
+                      <div className="flex flex-col items-center p-2 bg-orange-50 rounded-lg">
+                        <Calendar size={16} className="text-orange-600 mb-1" />
+                        <span className="text-lg font-bold text-orange-600">{breakdown.leave_days || 0}</span>
+                        <span className="text-[10px] text-gray-500">Leave</span>
                       </div>
                       <div className="flex flex-col items-center p-2 bg-red-50 rounded-lg">
                         <XCircle size={16} className="text-red-600 mb-1" />
