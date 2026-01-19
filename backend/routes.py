@@ -3468,6 +3468,78 @@ async def record_emi_payment(loan_id: str, data: EMIPaymentCreate):
     return EMIPaymentResponse(**emi_doc)
 
 
+
+@router.post("/loans/{loan_id}/pay-lumpsum", response_model=EMIPaymentResponse)
+async def record_lumpsum_payment(loan_id: str, data: EMIPaymentCreate):
+    """Record a lump sum payment for personal loans"""
+    loan = await db.loans.find_one({"id": loan_id}, {"_id": 0})
+    if not loan:
+        raise HTTPException(status_code=404, detail="Loan not found")
+    
+    if loan.get("status") != LoanStatus.ACTIVE:
+        raise HTTPException(status_code=400, detail="Loan is already closed")
+    
+    if loan.get("loan_type") != LoanType.LUMP_SUM:
+        raise HTTPException(status_code=400, detail="This endpoint is for lump sum loans only. Use /pay-emi for EMI-based loans.")
+    
+    # For lump sum, entire amount goes to principal
+    principal_amount = data.amount
+    interest_amount = 0
+    
+    # Calculate new balance
+    new_balance = max(0, loan["remaining_balance"] - principal_amount)
+    new_total_paid = loan.get("total_paid", 0) + data.amount
+    
+    # Check if loan is now fully paid
+    new_status = LoanStatus.CLOSED if new_balance <= 0 else LoanStatus.ACTIVE
+    
+    # Get month/year from payment date
+    month, year = get_month_year_from_date(data.payment_date)
+    
+    # Create payment record
+    payment_doc = {
+        "id": f"LUMP{generate_id()}",
+        "loan_id": loan_id,
+        "loan_name": loan["loan_name"],
+        "payment_date": data.payment_date,
+        "amount": data.amount,
+        "principal_amount": principal_amount,
+        "interest_amount": interest_amount,
+        "is_extra_payment": False,
+        "is_auto_generated": False,
+        "balance_after_payment": new_balance,
+        "notes": data.notes,
+        "created_at": get_utc_now_str(),
+        "month": month,
+        "year": year
+    }
+    
+    await db.emi_payments.insert_one(payment_doc)
+    
+    # Update loan balance and status
+    await db.loans.update_one(
+        {"id": loan_id},
+        {"$set": {
+            "remaining_balance": new_balance,
+            "total_paid": new_total_paid,
+            "status": new_status
+        }}
+    )
+    
+    # Create auto Cash Out entry
+    await create_auto_cash_out(
+        category="loan_payment",
+        description=f"Lump Sum Payment - {loan['loan_name']} ({loan['lender_name']})",
+        amount=data.amount,
+        date=data.payment_date,
+        reference_id=payment_doc["id"],
+        reference_type="lumpsum_payment"
+    )
+    
+    payment_doc.pop("_id", None)
+    return EMIPaymentResponse(**payment_doc)
+
+
 @router.get("/loans/{loan_id}/payments", response_model=List[EMIPaymentResponse])
 async def get_loan_payments(loan_id: str):
     """Get all EMI payments for a loan"""
