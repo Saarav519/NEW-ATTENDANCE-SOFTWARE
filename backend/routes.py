@@ -795,8 +795,8 @@ async def generate_payslip(data: PayslipCreate):
     # Calculate salary breakdown
     total_salary = user.get("salary", 0)
     basic = round(total_salary * 0.60, 2)  # 60% of salary
-    hra = round(total_salary * 0.24, 2)  # 24% of salary  # 40% of basic
-    special_allowance = round(total_salary * 0.16, 2)  # 16% of salary  # 15%
+    hra = round(total_salary * 0.24, 2)  # 24% of salary  
+    special_allowance = round(total_salary * 0.16, 2)  # 16% of salary  
     conveyance = 1600  # Fixed base conveyance
     
     # Get approved bills for this month (Extra Conveyance)
