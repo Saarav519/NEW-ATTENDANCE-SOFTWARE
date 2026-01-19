@@ -458,3 +458,105 @@ class AnalyticsResponse(BaseModel):
     department_attendance: List[DepartmentAttendanceData] = []
     salary_overview: List[SalaryOverviewData] = []
     employee_counts: List[EmployeeCountData] = []
+
+
+# ==================== CASHBOOK MODELS ====================
+
+class PaymentStatus(str, Enum):
+    PAID = "paid"
+    PENDING = "pending"
+    PARTIAL = "partial"
+
+class CashOutCategory(str, Enum):
+    SALARY = "salary"
+    BILLS = "bills"
+    AUDIT_EXPENSES = "audit_expenses"
+    ADVANCES = "advances"
+    RENT = "rent"
+    UTILITIES = "utilities"
+    OFFICE_EXPENSES = "office_expenses"
+    CUSTOM = "custom"
+
+class CashInCreate(BaseModel):
+    client_name: str
+    invoice_number: str
+    invoice_date: str  # YYYY-MM-DD
+    invoice_amount: float
+    invoice_pdf_url: Optional[str] = None
+    payment_status: PaymentStatus = PaymentStatus.PENDING
+    amount_received: float = 0
+    notes: Optional[str] = None
+
+class CashInResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    client_name: str
+    invoice_number: str
+    invoice_date: str
+    invoice_amount: float
+    invoice_pdf_url: Optional[str] = None
+    payment_status: PaymentStatus
+    amount_received: float
+    pending_balance: float
+    notes: Optional[str] = None
+    created_at: str
+    month: str  # e.g., "January"
+    year: int
+
+class CashOutCreate(BaseModel):
+    category: str  # CashOutCategory or custom
+    description: str
+    amount: float
+    date: str  # YYYY-MM-DD
+    reference_id: Optional[str] = None  # Link to payslip/bill/expense ID
+    reference_type: Optional[str] = None  # "payslip", "bill", "audit_expense", "manual"
+    notes: Optional[str] = None
+
+class CashOutResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    category: str
+    description: str
+    amount: float
+    date: str
+    reference_id: Optional[str] = None
+    reference_type: Optional[str] = None
+    notes: Optional[str] = None
+    created_at: str
+    month: str
+    year: int
+    is_auto: bool = False  # True if auto-generated from other modules
+
+class CustomCategoryCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+class CustomCategoryResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    description: Optional[str] = None
+    created_at: str
+
+class MonthLockCreate(BaseModel):
+    month: str  # e.g., "January"
+    year: int
+
+class MonthLockResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    month: str
+    year: int
+    is_locked: bool
+    locked_by: Optional[str] = None
+    locked_at: Optional[str] = None
+    unlocked_by: Optional[str] = None
+    unlocked_at: Optional[str] = None
+
+class CashbookSummary(BaseModel):
+    month: Optional[str] = None
+    year: int
+    total_cash_in: float
+    total_cash_out: float
+    net_profit_loss: float
+    is_locked: bool = False
