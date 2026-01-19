@@ -60,14 +60,18 @@ const Reports = () => {
 
   useEffect(() => {
     loadStats();
-  }, []);
+  }, [selectedMonth, selectedYear]);
 
   const loadStats = async () => {
     setLoading(true);
     try {
+      const monthNum = parseInt(selectedMonth);
+      const yearNum = parseInt(selectedYear);
+      const monthName = getMonthName(selectedMonth);
+      
       const [users, attendance, leaves, payslips, bills, advances] = await Promise.all([
         usersAPI.getAll(),
-        attendanceAPI.getAll(),
+        attendanceAPI.getAll(null, null, monthNum, yearNum),
         leaveAPI.getAll(),
         payslipAPI.getAll(null, 'settled'),
         billAPI.getAll(),
@@ -75,14 +79,26 @@ const Reports = () => {
       ]);
 
       const activeUsers = users.filter(u => u.status === 'active' && u.role !== 'admin');
-      const totalSalary = payslips.reduce((sum, p) => sum + (p.breakdown?.net_pay || 0), 0);
-      const approvedBills = bills.filter(b => b.status === 'approved').reduce((sum, b) => sum + (b.approved_amount || 0), 0);
+      
+      // Filter payslips by selected month/year
+      const monthPayslips = payslips.filter(p => p.month === monthName && p.year === yearNum);
+      const totalSalary = monthPayslips.reduce((sum, p) => sum + (p.breakdown?.net_pay || 0), 0);
+      
+      // Filter bills by selected month/year
+      const monthBills = bills.filter(b => b.month === monthName && b.year === yearNum && b.status === 'approved');
+      const approvedBills = monthBills.reduce((sum, b) => sum + (b.approved_amount || 0), 0);
+      
       const totalAdvances = advances.filter(a => a.status === 'approved').reduce((sum, a) => sum + (a.amount || 0), 0);
 
-      // Attendance summary
-      const present = attendance.filter(a => a.attendance_status === 'full_day' || a.status === 'present').length;
+      // Attendance summary - include leave as full day
+      const fullDay = attendance.filter(a => a.attendance_status === 'full_day' || a.status === 'present').length;
       const halfDay = attendance.filter(a => a.attendance_status === 'half_day').length;
+      const leaveDays = attendance.filter(a => a.attendance_status === 'leave' || a.status === 'leave').length;
       const absent = attendance.filter(a => a.attendance_status === 'absent' || a.status === 'absent').length;
+
+      // Filter leaves by month
+      const monthStr = `${yearNum}-${String(monthNum).padStart(2, '0')}`;
+      const monthLeaves = leaves.filter(l => l.from_date && l.from_date.startsWith(monthStr));
 
       setStats({
         totalEmployees: users.filter(u => u.role !== 'admin').length,
@@ -90,9 +106,9 @@ const Reports = () => {
         totalSalaryPaid: totalSalary,
         totalBillsApproved: approvedBills,
         totalAdvances: totalAdvances,
-        attendanceSummary: { present, absent, halfDay },
-        pendingLeaves: leaves.filter(l => l.status === 'pending').length,
-        approvedLeaves: leaves.filter(l => l.status === 'approved').length
+        attendanceSummary: { present: fullDay, absent, halfDay, leave: leaveDays },
+        pendingLeaves: monthLeaves.filter(l => l.status === 'pending').length,
+        approvedLeaves: monthLeaves.filter(l => l.status === 'approved').length
       });
     } catch (error) {
       console.error('Error loading stats:', error);
