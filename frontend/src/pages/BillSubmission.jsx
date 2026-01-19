@@ -204,6 +204,28 @@ const BillSubmission = () => {
     }
   };
 
+  const handleApproveAdvance = async (advanceId) => {
+    try {
+      await advanceAPI.approve(advanceId, user.id);
+      toast.success('Advance approved');
+      loadAdvances();
+    } catch (error) {
+      console.error('Error approving advance:', error);
+      toast.error('Failed to approve advance');
+    }
+  };
+
+  const handleRejectAdvance = async (advanceId) => {
+    try {
+      await advanceAPI.reject(advanceId, user.id);
+      toast.success('Advance rejected');
+      loadAdvances();
+    } catch (error) {
+      console.error('Error rejecting advance:', error);
+      toast.error('Failed to reject advance');
+    }
+  };
+
   const handleSubmitAdvance = async () => {
     if (!newAdvance.amount || !newAdvance.reason || !newAdvance.deductFromMonth || !newAdvance.deductFromYear) {
       toast.error('Please fill all required fields');
