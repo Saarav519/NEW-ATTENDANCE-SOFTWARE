@@ -637,9 +637,9 @@ const BillSubmission = () => {
                         )}
                       </div>
 
-                      {/* Actions for Admin - Pending Bills */}
+                      {/* Actions for Admin - Pending Bills: 3 Clear Options */}
                       {isAdmin && bill.status === 'pending' && (
-                        <div className="flex gap-2 mt-3 pt-3 border-t">
+                        <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t">
                           <Button
                             size="sm"
                             className="bg-green-500 hover:bg-green-600"
@@ -647,10 +647,20 @@ const BillSubmission = () => {
                             onClick={() => {
                               setApproveDialog({ open: true, bill });
                               setApprovedAmount(bill.total_amount);
-                              setSendToRevalidation(false);
                             }}
                           >
                             <Check size={14} className="mr-1" /> Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="bg-orange-500 hover:bg-orange-600"
+                            data-testid={`revalidate-btn-${bill.id}`}
+                            onClick={() => {
+                              setApproveDialog({ open: true, bill, isRevalidation: true });
+                              setApprovedAmount(0);
+                            }}
+                          >
+                            <RefreshCw size={14} className="mr-1" /> Revalidate
                           </Button>
                           <Button
                             size="sm"
