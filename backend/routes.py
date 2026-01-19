@@ -2597,3 +2597,574 @@ async def export_advances(
         media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+# ==================== CASHBOOK / COMPANY FINANCE ROUTES ====================
+
+MONTHS_LIST = ["January", "February", "March", "April", "May", "June", 
+               "July", "August", "September", "October", "November", "December"]
+
+def get_month_year_from_date(date_str: str):
+    """Extract month name and year from date string"""
+    try:
+        dt = datetime.strptime(date_str[:10], "%Y-%m-%d")
+        return MONTHS_LIST[dt.month - 1], dt.year
+    except:
+        return None, None
+
+# --- Cash In (Client Invoices) ---
+
+@router.post("/cashbook/cash-in", response_model=CashInResponse)
+async def create_cash_in(data: CashInCreate):
+    """Create a new cash in entry (client invoice)"""
+    month, year = get_month_year_from_date(data.invoice_date)
+    
+    # Check if month is locked
+    lock = await db.month_locks.find_one({"month": month, "year": year, "is_locked": True})
+    if lock:
+        raise HTTPException(status_code=400, detail=f"{month} {year} is locked. Cannot add entries.")
+    
+    pending_balance = data.invoice_amount - data.amount_received
+    
+    cash_in_doc = {
+        "id": generate_id(),
+        "client_name": data.client_name,
+        "invoice_number": data.invoice_number,
+        "invoice_date": data.invoice_date,
+        "invoice_amount": data.invoice_amount,
+        "invoice_pdf_url": data.invoice_pdf_url,
+        "payment_status": data.payment_status,
+        "amount_received": data.amount_received,
+        "pending_balance": pending_balance,
+        "notes": data.notes,
+        "created_at": get_utc_now_str(),
+        "month": month,
+        "year": year
+    }
+    
+    await db.cash_in.insert_one(cash_in_doc)
+    cash_in_doc.pop("_id", None)
+    return CashInResponse(**cash_in_doc)
+
+@router.get("/cashbook/cash-in", response_model=List[CashInResponse])
+async def get_cash_in(month: Optional[str] = None, year: Optional[int] = None):
+    """Get cash in entries filtered by month/year"""
+    query = {}
+    if month:
+        query["month"] = month
+    if year:
+        query["year"] = year
+    
+    entries = await db.cash_in.find(query, {"_id": 0}).sort("invoice_date", -1).to_list(1000)
+    return entries
+
+@router.put("/cashbook/cash-in/{entry_id}", response_model=CashInResponse)
+async def update_cash_in(entry_id: str, data: CashInCreate):
+    """Update a cash in entry"""
+    entry = await db.cash_in.find_one({"id": entry_id}, {"_id": 0})
+    if not entry:
+        raise HTTPException(status_code=404, detail="Entry not found")
+    
+    # Check if month is locked
+    lock = await db.month_locks.find_one({"month": entry["month"], "year": entry["year"], "is_locked": True})
+    if lock:
+        raise HTTPException(status_code=400, detail=f"{entry['month']} {entry['year']} is locked. Cannot edit entries.")
+    
+    month, year = get_month_year_from_date(data.invoice_date)
+    pending_balance = data.invoice_amount - data.amount_received
+    
+    # Auto-update payment status based on amounts
+    if data.amount_received >= data.invoice_amount:
+        payment_status = PaymentStatus.PAID
+    elif data.amount_received > 0:
+        payment_status = PaymentStatus.PARTIAL
+    else:
+        payment_status = PaymentStatus.PENDING
+    
+    update_data = {
+        "client_name": data.client_name,
+        "invoice_number": data.invoice_number,
+        "invoice_date": data.invoice_date,
+        "invoice_amount": data.invoice_amount,
+        "invoice_pdf_url": data.invoice_pdf_url,
+        "payment_status": payment_status,
+        "amount_received": data.amount_received,
+        "pending_balance": pending_balance,
+        "notes": data.notes,
+        "month": month,
+        "year": year
+    }
+    
+    await db.cash_in.update_one({"id": entry_id}, {"$set": update_data})
+    updated = await db.cash_in.find_one({"id": entry_id}, {"_id": 0})
+    return CashInResponse(**updated)
+
+@router.delete("/cashbook/cash-in/{entry_id}")
+async def delete_cash_in(entry_id: str):
+    """Delete a cash in entry"""
+    entry = await db.cash_in.find_one({"id": entry_id}, {"_id": 0})
+    if not entry:
+        raise HTTPException(status_code=404, detail="Entry not found")
+    
+    # Check if month is locked
+    lock = await db.month_locks.find_one({"month": entry["month"], "year": entry["year"], "is_locked": True})
+    if lock:
+        raise HTTPException(status_code=400, detail=f"{entry['month']} {entry['year']} is locked. Cannot delete entries.")
+    
+    await db.cash_in.delete_one({"id": entry_id})
+    return {"message": "Entry deleted"}
+
+# --- Invoice PDF Upload ---
+
+@router.post("/cashbook/upload-invoice")
+async def upload_invoice(file: UploadFile = File(...)):
+    """Upload invoice PDF (max 10MB)"""
+    contents = await file.read()
+    if len(contents) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File size exceeds 10MB limit")
+    
+    if not file.content_type == "application/pdf":
+        raise HTTPException(status_code=400, detail="Only PDF files are allowed")
+    
+    file_id = generate_id()
+    file_path = f"/app/backend/uploads/invoices/{file_id}.pdf"
+    
+    os.makedirs("/app/backend/uploads/invoices", exist_ok=True)
+    with open(file_path, "wb") as f:
+        f.write(contents)
+    
+    return {"file_id": file_id, "url": f"/api/cashbook/invoices/{file_id}"}
+
+@router.get("/cashbook/invoices/{file_id}")
+async def get_invoice_pdf(file_id: str):
+    """Download invoice PDF"""
+    from fastapi.responses import FileResponse
+    file_path = f"/app/backend/uploads/invoices/{file_id}.pdf"
+    
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    
+    return FileResponse(file_path, media_type="application/pdf", filename=f"invoice_{file_id}.pdf")
+
+# --- Cash Out (Expenses) ---
+
+@router.post("/cashbook/cash-out", response_model=CashOutResponse)
+async def create_cash_out(data: CashOutCreate):
+    """Create a manual cash out entry"""
+    month, year = get_month_year_from_date(data.date)
+    
+    # Check if month is locked
+    lock = await db.month_locks.find_one({"month": month, "year": year, "is_locked": True})
+    if lock:
+        raise HTTPException(status_code=400, detail=f"{month} {year} is locked. Cannot add entries.")
+    
+    cash_out_doc = {
+        "id": generate_id(),
+        "category": data.category,
+        "description": data.description,
+        "amount": data.amount,
+        "date": data.date,
+        "reference_id": data.reference_id,
+        "reference_type": data.reference_type or "manual",
+        "notes": data.notes,
+        "created_at": get_utc_now_str(),
+        "month": month,
+        "year": year,
+        "is_auto": False
+    }
+    
+    await db.cash_out.insert_one(cash_out_doc)
+    cash_out_doc.pop("_id", None)
+    return CashOutResponse(**cash_out_doc)
+
+@router.get("/cashbook/cash-out", response_model=List[CashOutResponse])
+async def get_cash_out(month: Optional[str] = None, year: Optional[int] = None):
+    """Get cash out entries filtered by month/year"""
+    query = {}
+    if month:
+        query["month"] = month
+    if year:
+        query["year"] = year
+    
+    entries = await db.cash_out.find(query, {"_id": 0}).sort("date", -1).to_list(1000)
+    return entries
+
+@router.put("/cashbook/cash-out/{entry_id}", response_model=CashOutResponse)
+async def update_cash_out(entry_id: str, data: CashOutCreate):
+    """Update a manual cash out entry (only non-auto entries)"""
+    entry = await db.cash_out.find_one({"id": entry_id}, {"_id": 0})
+    if not entry:
+        raise HTTPException(status_code=404, detail="Entry not found")
+    
+    if entry.get("is_auto"):
+        raise HTTPException(status_code=400, detail="Cannot edit auto-generated entries")
+    
+    # Check if month is locked
+    lock = await db.month_locks.find_one({"month": entry["month"], "year": entry["year"], "is_locked": True})
+    if lock:
+        raise HTTPException(status_code=400, detail=f"{entry['month']} {entry['year']} is locked. Cannot edit entries.")
+    
+    month, year = get_month_year_from_date(data.date)
+    
+    update_data = {
+        "category": data.category,
+        "description": data.description,
+        "amount": data.amount,
+        "date": data.date,
+        "notes": data.notes,
+        "month": month,
+        "year": year
+    }
+    
+    await db.cash_out.update_one({"id": entry_id}, {"$set": update_data})
+    updated = await db.cash_out.find_one({"id": entry_id}, {"_id": 0})
+    return CashOutResponse(**updated)
+
+@router.delete("/cashbook/cash-out/{entry_id}")
+async def delete_cash_out(entry_id: str):
+    """Delete a manual cash out entry"""
+    entry = await db.cash_out.find_one({"id": entry_id}, {"_id": 0})
+    if not entry:
+        raise HTTPException(status_code=404, detail="Entry not found")
+    
+    if entry.get("is_auto"):
+        raise HTTPException(status_code=400, detail="Cannot delete auto-generated entries")
+    
+    # Check if month is locked
+    lock = await db.month_locks.find_one({"month": entry["month"], "year": entry["year"], "is_locked": True})
+    if lock:
+        raise HTTPException(status_code=400, detail=f"{entry['month']} {entry['year']} is locked. Cannot delete entries.")
+    
+    await db.cash_out.delete_one({"id": entry_id})
+    return {"message": "Entry deleted"}
+
+# --- Custom Categories ---
+
+@router.get("/cashbook/categories")
+async def get_categories():
+    """Get all expense categories (predefined + custom)"""
+    predefined = [
+        {"id": "salary", "name": "Salary", "is_predefined": True},
+        {"id": "bills", "name": "Bills & Reimbursements", "is_predefined": True},
+        {"id": "audit_expenses", "name": "Audit Expenses", "is_predefined": True},
+        {"id": "advances", "name": "Salary Advances", "is_predefined": True},
+        {"id": "rent", "name": "Rent", "is_predefined": True},
+        {"id": "utilities", "name": "Utilities", "is_predefined": True},
+        {"id": "office_expenses", "name": "Office Expenses", "is_predefined": True},
+    ]
+    
+    custom = await db.custom_categories.find({}, {"_id": 0}).to_list(100)
+    for c in custom:
+        c["is_predefined"] = False
+    
+    return predefined + custom
+
+@router.post("/cashbook/categories", response_model=CustomCategoryResponse)
+async def create_custom_category(data: CustomCategoryCreate):
+    """Create a custom expense category"""
+    cat_doc = {
+        "id": generate_id(),
+        "name": data.name,
+        "description": data.description,
+        "created_at": get_utc_now_str()
+    }
+    await db.custom_categories.insert_one(cat_doc)
+    cat_doc.pop("_id", None)
+    return CustomCategoryResponse(**cat_doc)
+
+@router.delete("/cashbook/categories/{category_id}")
+async def delete_custom_category(category_id: str):
+    """Delete a custom category"""
+    result = await db.custom_categories.delete_one({"id": category_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Category not found")
+    return {"message": "Category deleted"}
+
+# --- Month Lock/Unlock ---
+
+@router.get("/cashbook/locks")
+async def get_month_locks(year: Optional[int] = None):
+    """Get all month locks"""
+    query = {}
+    if year:
+        query["year"] = year
+    locks = await db.month_locks.find(query, {"_id": 0}).to_list(100)
+    return locks
+
+@router.post("/cashbook/lock")
+async def lock_month(data: MonthLockCreate, locked_by: str):
+    """Lock a month to prevent edits"""
+    existing = await db.month_locks.find_one({"month": data.month, "year": data.year})
+    
+    if existing:
+        await db.month_locks.update_one(
+            {"month": data.month, "year": data.year},
+            {"$set": {
+                "is_locked": True,
+                "locked_by": locked_by,
+                "locked_at": get_utc_now_str()
+            }}
+        )
+    else:
+        lock_doc = {
+            "id": generate_id(),
+            "month": data.month,
+            "year": data.year,
+            "is_locked": True,
+            "locked_by": locked_by,
+            "locked_at": get_utc_now_str(),
+            "unlocked_by": None,
+            "unlocked_at": None
+        }
+        await db.month_locks.insert_one(lock_doc)
+    
+    return {"message": f"{data.month} {data.year} locked successfully"}
+
+@router.post("/cashbook/unlock")
+async def unlock_month(data: MonthLockCreate, unlocked_by: str):
+    """Unlock a month to allow edits (Admin only)"""
+    result = await db.month_locks.update_one(
+        {"month": data.month, "year": data.year},
+        {"$set": {
+            "is_locked": False,
+            "unlocked_by": unlocked_by,
+            "unlocked_at": get_utc_now_str()
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Lock record not found")
+    
+    return {"message": f"{data.month} {data.year} unlocked successfully"}
+
+# --- Cashbook Summary ---
+
+@router.get("/cashbook/summary", response_model=CashbookSummary)
+async def get_cashbook_summary(month: Optional[str] = None, year: int = None):
+    """Get cashbook summary (totals, profit/loss)"""
+    if not year:
+        year = datetime.now().year
+    
+    cash_in_query = {"year": year}
+    cash_out_query = {"year": year}
+    
+    if month:
+        cash_in_query["month"] = month
+        cash_out_query["month"] = month
+    
+    # Get Cash In total (only amount_received, not invoice_amount)
+    cash_in_entries = await db.cash_in.find(cash_in_query, {"_id": 0}).to_list(10000)
+    total_cash_in = sum(entry.get("amount_received", 0) for entry in cash_in_entries)
+    
+    # Get Cash Out total
+    cash_out_entries = await db.cash_out.find(cash_out_query, {"_id": 0}).to_list(10000)
+    total_cash_out = sum(entry.get("amount", 0) for entry in cash_out_entries)
+    
+    # Check if locked
+    lock_query = {"year": year, "is_locked": True}
+    if month:
+        lock_query["month"] = month
+    is_locked = await db.month_locks.count_documents(lock_query) > 0
+    
+    return CashbookSummary(
+        month=month,
+        year=year,
+        total_cash_in=round(total_cash_in, 2),
+        total_cash_out=round(total_cash_out, 2),
+        net_profit_loss=round(total_cash_in - total_cash_out, 2),
+        is_locked=is_locked
+    )
+
+# --- Cashbook Exports ---
+
+@router.get("/export/cashbook")
+async def export_cashbook(month: Optional[str] = None, year: Optional[int] = None):
+    """Export cashbook report to CSV"""
+    cash_in_query = {}
+    cash_out_query = {}
+    
+    if month:
+        cash_in_query["month"] = month
+        cash_out_query["month"] = month
+    if year:
+        cash_in_query["year"] = year
+        cash_out_query["year"] = year
+    
+    cash_in_entries = await db.cash_in.find(cash_in_query, {"_id": 0}).sort("invoice_date", 1).to_list(10000)
+    cash_out_entries = await db.cash_out.find(cash_out_query, {"_id": 0}).sort("date", 1).to_list(10000)
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Cash In Section
+    writer.writerow(["=== CASH IN (INCOME) ==="])
+    writer.writerow(["Date", "Client Name", "Invoice No", "Invoice Amount", "Amount Received", "Pending Balance", "Status"])
+    
+    total_in = 0
+    for entry in cash_in_entries:
+        writer.writerow([
+            entry.get("invoice_date", ""),
+            entry.get("client_name", ""),
+            entry.get("invoice_number", ""),
+            entry.get("invoice_amount", 0),
+            entry.get("amount_received", 0),
+            entry.get("pending_balance", 0),
+            entry.get("payment_status", "")
+        ])
+        total_in += entry.get("amount_received", 0)
+    
+    writer.writerow(["", "", "", "", f"Total: {total_in}", "", ""])
+    writer.writerow([])
+    
+    # Cash Out Section
+    writer.writerow(["=== CASH OUT (EXPENSES) ==="])
+    writer.writerow(["Date", "Category", "Description", "Amount", "Reference Type", "Notes"])
+    
+    total_out = 0
+    for entry in cash_out_entries:
+        writer.writerow([
+            entry.get("date", ""),
+            entry.get("category", ""),
+            entry.get("description", ""),
+            entry.get("amount", 0),
+            entry.get("reference_type", ""),
+            entry.get("notes", "")
+        ])
+        total_out += entry.get("amount", 0)
+    
+    writer.writerow(["", "", f"Total:", total_out, "", ""])
+    writer.writerow([])
+    
+    # Summary
+    writer.writerow(["=== SUMMARY ==="])
+    writer.writerow(["Total Cash In", total_in])
+    writer.writerow(["Total Cash Out", total_out])
+    writer.writerow(["Net Profit/Loss", total_in - total_out])
+    
+    output.seek(0)
+    period = f"{month}_{year}" if month else f"Year_{year}"
+    filename = f"cashbook_{period}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@router.get("/export/invoices")
+async def export_invoices(month: Optional[str] = None, year: Optional[int] = None):
+    """Export invoice details to CSV"""
+    query = {}
+    if month:
+        query["month"] = month
+    if year:
+        query["year"] = year
+    
+    invoices = await db.cash_in.find(query, {"_id": 0}).sort("invoice_date", -1).to_list(10000)
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    writer.writerow([
+        "Invoice Date", "Client Name", "Invoice Number", "Invoice Amount",
+        "Payment Status", "Amount Received", "Pending Balance", "Has PDF", "Notes"
+    ])
+    
+    for inv in invoices:
+        writer.writerow([
+            inv.get("invoice_date", ""),
+            inv.get("client_name", ""),
+            inv.get("invoice_number", ""),
+            inv.get("invoice_amount", 0),
+            inv.get("payment_status", ""),
+            inv.get("amount_received", 0),
+            inv.get("pending_balance", 0),
+            "Yes" if inv.get("invoice_pdf_url") else "No",
+            inv.get("notes", "")
+        ])
+    
+    output.seek(0)
+    period = f"{month}_{year}" if month else f"Year_{year}"
+    filename = f"invoices_{period}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@router.get("/export/invoices-zip")
+async def export_invoices_zip(month: Optional[str] = None, year: Optional[int] = None):
+    """Export all invoice PDFs as a ZIP file"""
+    query = {"invoice_pdf_url": {"$ne": None}}
+    if month:
+        query["month"] = month
+    if year:
+        query["year"] = year
+    
+    invoices = await db.cash_in.find(query, {"_id": 0}).to_list(10000)
+    
+    if not invoices:
+        raise HTTPException(status_code=404, detail="No invoices with PDFs found")
+    
+    # Create ZIP in memory
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        for inv in invoices:
+            pdf_url = inv.get("invoice_pdf_url", "")
+            if pdf_url:
+                file_id = pdf_url.split("/")[-1]
+                file_path = f"/app/backend/uploads/invoices/{file_id}.pdf"
+                if os.path.exists(file_path):
+                    invoice_name = f"{inv.get('client_name', 'Unknown')}_{inv.get('invoice_number', 'Unknown')}.pdf"
+                    invoice_name = invoice_name.replace(" ", "_").replace("/", "_")
+                    zip_file.write(file_path, invoice_name)
+    
+    zip_buffer.seek(0)
+    period = f"{month}_{year}" if month else f"Year_{year}"
+    filename = f"invoices_pdfs_{period}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
+    
+    return StreamingResponse(
+        iter([zip_buffer.getvalue()]),
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+# --- Auto-Integration Helper Function ---
+
+async def create_auto_cash_out(
+    category: str,
+    description: str,
+    amount: float,
+    date: str,
+    reference_id: str,
+    reference_type: str
+):
+    """Helper to create auto cash out entry from other modules"""
+    month, year = get_month_year_from_date(date)
+    
+    # Check if entry already exists (prevent duplicates)
+    existing = await db.cash_out.find_one({
+        "reference_id": reference_id,
+        "reference_type": reference_type
+    })
+    if existing:
+        return  # Already exists
+    
+    cash_out_doc = {
+        "id": generate_id(),
+        "category": category,
+        "description": description,
+        "amount": amount,
+        "date": date,
+        "reference_id": reference_id,
+        "reference_type": reference_type,
+        "notes": f"Auto-generated from {reference_type}",
+        "created_at": get_utc_now_str(),
+        "month": month,
+        "year": year,
+        "is_auto": True
+    }
+    
+    await db.cash_out.insert_one(cash_out_doc)
+
