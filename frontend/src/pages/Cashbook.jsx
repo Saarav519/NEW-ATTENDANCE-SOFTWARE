@@ -1266,46 +1266,82 @@ const Cashbook = () => {
             <DialogTitle>{loanDialog.mode === 'add' ? 'Add New Loan' : 'Edit Loan'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto">
+            {/* Loan Type Selector */}
+            <div className="space-y-2">
+              <Label>Loan Type *</Label>
+              <Select value={newLoan.loan_type} onValueChange={(value) => setNewLoan({...newLoan, loan_type: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select loan type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="emi_based">EMI-Based Loan (Bank/Institution)</SelectItem>
+                  <SelectItem value="lump_sum">Lump Sum Loan (Personal/Friend)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500">
+                {newLoan.loan_type === 'emi_based' 
+                  ? 'For loans with monthly EMI payments (banks, financial institutions)' 
+                  : 'For personal loans paid back in lump sum (friends, family)'}
+              </p>
+            </div>
+            
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Loan Name *</Label>
-                <Input placeholder="e.g., Home Loan - HDFC" value={newLoan.loan_name} onChange={(e) => setNewLoan({...newLoan, loan_name: e.target.value})} />
+                <Input placeholder={newLoan.loan_type === 'emi_based' ? "e.g., Home Loan - HDFC" : "e.g., Personal Loan - John"} value={newLoan.loan_name} onChange={(e) => setNewLoan({...newLoan, loan_name: e.target.value})} />
               </div>
               <div className="space-y-2">
                 <Label>Lender Name *</Label>
-                <Input placeholder="e.g., HDFC Bank" value={newLoan.lender_name} onChange={(e) => setNewLoan({...newLoan, lender_name: e.target.value})} />
+                <Input placeholder={newLoan.loan_type === 'emi_based' ? "e.g., HDFC Bank" : "e.g., John Doe"} value={newLoan.lender_name} onChange={(e) => setNewLoan({...newLoan, lender_name: e.target.value})} />
               </div>
             </div>
+            
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Total Loan Amount (₹) *</Label>
                 <Input type="number" placeholder="600000" value={newLoan.total_loan_amount} onChange={(e) => setNewLoan({...newLoan, total_loan_amount: e.target.value})} />
               </div>
               <div className="space-y-2">
-                <Label>EMI Amount (₹) *</Label>
-                <Input type="number" placeholder="16232" value={newLoan.emi_amount} onChange={(e) => setNewLoan({...newLoan, emi_amount: e.target.value})} />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>EMI Day (1-28) *</Label>
-                <Input type="number" min="1" max="28" placeholder="10" value={newLoan.emi_day} onChange={(e) => setNewLoan({...newLoan, emi_day: e.target.value})} />
-              </div>
-              <div className="space-y-2">
-                <Label>Loan Start Date *</Label>
+                <Label>Loan {newLoan.loan_type === 'emi_based' ? 'Start' : 'Taken'} Date *</Label>
                 <Input type="date" value={newLoan.loan_start_date} onChange={(e) => setNewLoan({...newLoan, loan_start_date: e.target.value})} />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            
+            {/* EMI-Based Loan Fields */}
+            {newLoan.loan_type === 'emi_based' && (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>EMI Amount (₹) *</Label>
+                    <Input type="number" placeholder="16232" value={newLoan.emi_amount} onChange={(e) => setNewLoan({...newLoan, emi_amount: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>EMI Day (1-28) *</Label>
+                    <Input type="number" min="1" max="28" placeholder="10" value={newLoan.emi_day} onChange={(e) => setNewLoan({...newLoan, emi_day: e.target.value})} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>Interest Rate (% p.a.)</Label>
+                    <Input type="number" step="0.01" placeholder="8.5" value={newLoan.interest_rate} onChange={(e) => setNewLoan({...newLoan, interest_rate: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Tenure (Months)</Label>
+                    <Input type="number" placeholder="60" value={newLoan.loan_tenure_months} onChange={(e) => setNewLoan({...newLoan, loan_tenure_months: e.target.value})} />
+                  </div>
+                </div>
+              </>
+            )}
+            
+            {/* Lump Sum Loan Fields */}
+            {newLoan.loan_type === 'lump_sum' && (
               <div className="space-y-2">
-                <Label>Interest Rate (% p.a.)</Label>
-                <Input type="number" step="0.01" placeholder="8.5" value={newLoan.interest_rate} onChange={(e) => setNewLoan({...newLoan, interest_rate: e.target.value})} />
+                <Label>Due Date (Optional)</Label>
+                <Input type="date" value={newLoan.due_date} onChange={(e) => setNewLoan({...newLoan, due_date: e.target.value})} />
+                <p className="text-xs text-gray-500">When do you plan to repay this loan?</p>
               </div>
-              <div className="space-y-2">
-                <Label>Tenure (Months)</Label>
-                <Input type="number" placeholder="60" value={newLoan.loan_tenure_months} onChange={(e) => setNewLoan({...newLoan, loan_tenure_months: e.target.value})} />
-              </div>
-            </div>
+            )}
+            
             <div className="space-y-2">
               <Label>Notes</Label>
               <Textarea placeholder="Additional details about the loan..." value={newLoan.notes} onChange={(e) => setNewLoan({...newLoan, notes: e.target.value})} rows={2} />
