@@ -595,7 +595,7 @@ const Employees = () => {
   );
 };
 
-const EmployeeList = ({ employees, onView, onToggle, canResetPassword, onResetPassword, navigate }) => {
+const EmployeeList = ({ employees, onView, onToggle, canResetPassword, canManageEmployees, onResetPassword, onEdit, onViewHistory, getTeamLeaderName, navigate }) => {
   if (employees.length === 0) {
     return (
       <Card>
@@ -610,7 +610,7 @@ const EmployeeList = ({ employees, onView, onToggle, canResetPassword, onResetPa
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {employees.map((emp) => (
-        <Card key={emp.id} className="hover:shadow-lg transition-shadow">
+        <Card key={emp.id} className="hover:shadow-lg transition-shadow" data-testid={`employee-card-${emp.id}`}>
           <CardContent className="p-4">
             <div className="space-y-3">
               <div className="flex items-start justify-between">
@@ -632,14 +632,29 @@ const EmployeeList = ({ employees, onView, onToggle, canResetPassword, onResetPa
                 <div className="flex items-center gap-2 text-gray-600">
                   <IndianRupee size={14} /> ₹{emp.salary?.toLocaleString()}
                 </div>
+                {emp.role === 'employee' && (
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Users size={14} /> TL: {getTeamLeaderName(emp.team_lead_id)}
+                  </div>
+                )}
               </div>
-              <div className="flex gap-2 pt-2">
-                <Button size="sm" variant="outline" onClick={() => onView(emp)} className="flex-1">
+              <div className="flex flex-wrap gap-2 pt-2">
+                <Button size="sm" variant="outline" onClick={() => onView(emp)} className="flex-1" data-testid={`view-employee-${emp.id}`}>
                   <Eye size={14} className="mr-1" /> View
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => navigate(`/attendance/${emp.id}`)} className="flex-1 text-blue-600 border-blue-200">
                   <Calendar size={14} className="mr-1" /> Attendance
                 </Button>
+                {canManageEmployees && emp.role === 'employee' && (
+                  <>
+                    <Button size="sm" variant="outline" onClick={() => onEdit(emp)} className="text-purple-600 border-purple-200" data-testid={`edit-employee-${emp.id}`}>
+                      <Edit size={14} />
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => onViewHistory(emp)} className="text-gray-600 border-gray-200" data-testid={`history-employee-${emp.id}`}>
+                      <History size={14} />
+                    </Button>
+                  </>
+                )}
                 {canResetPassword && (
                   <Button size="sm" variant="outline" onClick={() => onResetPassword(emp)} className="text-orange-600 border-orange-200">
                     <Key size={14} />
