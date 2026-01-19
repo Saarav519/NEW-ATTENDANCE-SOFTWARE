@@ -61,6 +61,7 @@ class UserBase(BaseModel):
     team_members: Optional[List[str]] = []
 
 class UserCreate(UserBase):
+    id: Optional[str] = None  # Allow manual employee ID (optional for backwards compatibility)
     password: str
 
 class UserResponse(UserBase):
