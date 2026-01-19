@@ -213,25 +213,33 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 ## Changelog
 
 ### January 19, 2026
+- **NEW FEATURE:** Loan / EMI Management (Completed ✅)
+  - **Add External Loans:** Capture loan name, lender, total amount, EMI amount, EMI day (1-28), start date, interest rate, tenure
+  - **EMI Payments:** Record regular EMI or extra payments with principal/interest split auto-calculated
+  - **Pre-closure:** Close loans early with final settlement payment
+  - **Auto Cash Out:** EMI payments automatically appear in Cash Out as "Loan EMI" category
+  - **Payment History:** View complete payment history with principal, interest, and balance tracking
+  - **Loan Summary:** Cards showing total loans, active loans, total paid, remaining balance
+  - **Reports:** Added Loan Report option in Reports page with CSV export
+  - **Balance Tracking:** Remaining balance auto-updates after each payment
+
 - **NEW FEATURE:** Cashbook / Company Finance Module (Completed ✅)
   - **Cash In (Income):** Track client invoices with Client Name, Invoice Number, Date, Amount, Payment Status (Paid/Pending/Partial), Amount Received, PDF upload
   - **Cash Out (Expenses):** Auto-integrated from settled salaries, approved bills, and audit expenses + Manual entries with predefined categories
-  - **Predefined Categories:** Rent, Utilities, Office Supplies, Travel, Marketing, Miscellaneous, Other (Custom)
+  - **Predefined Categories:** Rent, Utilities, Office Supplies, Travel, Marketing, Miscellaneous, Loan EMI, Other (Custom)
   - **Summary Cards:** Total Cash In, Total Cash Out, Net Profit/Loss with auto-calculation
   - **Month/Year Filters:** View data monthly or yearly
   - **Month Locking:** Admin can lock/unlock months to prevent edits
-  - **Exports:** Cashbook CSV, Invoices CSV, Invoice PDFs (ZIP download)
-  - **Reports Integration:** Added Cashbook Report and Invoice Report options to Reports page
+  - **Exports:** Cashbook CSV, Invoices CSV, Invoice PDFs (ZIP download), Loans CSV
 
 - **Updated Backend:**
-  - Added `/api/cashbook/*` endpoints for Cash In/Out CRUD, Categories, Month Locks, Summary
-  - Added `/api/export/cashbook`, `/api/export/invoices`, `/api/export/invoices-zip` endpoints
-  - Auto-creation of Cash Out entries when payslips settled or bills approved
-  
+  - Added `/api/loans/*` endpoints for Loan CRUD, EMI payments, pre-closure
+  - Added `/api/export/loans`, `/api/export/emi-payments` endpoints
+  - EMI payments auto-create Cash Out entries with "loan_emi" category
+
 - **Updated Frontend:**
-  - New `Cashbook.jsx` page with full UI implementation
-  - Updated `Reports.jsx` with Cashbook and Invoice report options
-  - Cashbook added as top-level sidebar menu item
+  - Added Loans tab in Cashbook page with full loan management UI
+  - Added Loan Report to Reports page
 
 ### January 18, 2026
 - **NEW FEATURE:** Audit Expenses - Partial Payment & Balance Tracking
