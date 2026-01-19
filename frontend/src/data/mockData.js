@@ -250,8 +250,8 @@ export const sidebarNavItems = {
     { id: "attendance", label: "Attendance", icon: "CalendarCheck", path: "/attendance" },
     { id: "leaves", label: "Leaves", icon: "CalendarOff", path: "/leaves" },
     { id: "bills", label: "Bills", icon: "Receipt", path: "/bills" },
-    { id: "audit-expenses", label: "Audit Expenses", icon: "Plane", path: "/audit-expenses" },
     { id: "advances", label: "Advances", icon: "Wallet", path: "/advances" },
+    { id: "audit-expenses", label: "Audit Expenses", icon: "Plane", path: "/audit-expenses" },
     { id: "payroll", label: "Payroll", icon: "Banknote", path: "/payroll" },
     { id: "shift-templates", label: "Shift Templates", icon: "Clock", path: "/shift-templates" },
     { id: "cashbook", label: "Cashbook", icon: "BookOpen", path: "/cashbook" },
@@ -264,6 +264,7 @@ export const sidebarNavItems = {
     { id: "team", label: "My Team", icon: "Users", path: "/team" },
     { id: "leaves", label: "Leaves", icon: "CalendarOff", path: "/leaves" },
     { id: "bills", label: "Bills", icon: "Receipt", path: "/bills" },
+    { id: "advances", label: "Advances", icon: "Wallet", path: "/advances" },
     { id: "audit-expenses", label: "Audit Expenses", icon: "Plane", path: "/audit-expenses" },
     { id: "payslip", label: "Payslip", icon: "FileText", path: "/payslip" },
     { id: "profile", label: "Profile", icon: "User", path: "/profile" },
@@ -272,8 +273,9 @@ export const sidebarNavItems = {
     { id: "dashboard", label: "Home", icon: "Home", path: "/dashboard" },
     { id: "attendance", label: "Attendance", icon: "CalendarCheck", path: "/attendance-details" },
     { id: "leaves", label: "Leaves", icon: "CalendarOff", path: "/leaves" },
+    { id: "bills", label: "Bills", icon: "Receipt", path: "/bills" },
+    { id: "advances", label: "Advances", icon: "Wallet", path: "/advances" },
     { id: "payslip", label: "Payslip", icon: "FileText", path: "/payslip" },
     { id: "profile", label: "Profile", icon: "User", path: "/profile" },
-    { id: "bills", label: "Bills", icon: "Receipt", path: "/bills" },
   ]
 };
