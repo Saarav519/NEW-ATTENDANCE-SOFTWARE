@@ -519,6 +519,48 @@ export const cashbookAPI = {
   },
 };
 
+// Loan / EMI API
+export const loanAPI = {
+  // Loans
+  getAll: (status) => {
+    const params = status ? `?status=${status}` : '';
+    return apiCall(`/loans${params}`);
+  },
+  getById: (loanId) => apiCall(`/loans/${loanId}`),
+  create: (data) => apiCall('/loans', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  update: (loanId, data) => apiCall(`/loans/${loanId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  delete: (loanId) => apiCall(`/loans/${loanId}`, { method: 'DELETE' }),
+  
+  // EMI Payments
+  payEmi: (loanId, data) => apiCall(`/loans/${loanId}/pay-emi`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  preclose: (loanId, paymentDate, finalAmount, notes) => {
+    const params = new URLSearchParams();
+    params.append('payment_date', paymentDate);
+    params.append('final_amount', finalAmount);
+    if (notes) params.append('notes', notes);
+    return apiCall(`/loans/${loanId}/preclose?${params}`, { method: 'POST' });
+  },
+  getPayments: (loanId) => apiCall(`/loans/${loanId}/payments`),
+  getAllPayments: (month, year) => {
+    const params = new URLSearchParams();
+    if (month) params.append('month', month);
+    if (year) params.append('year', year);
+    return apiCall(`/emi-payments?${params}`);
+  },
+  
+  // Summary
+  getSummary: () => apiCall('/loans/summary'),
+};
+
 // WebSocket URL for real-time updates
 export const getWebSocketURL = (userId, role) => {
   const wsBase = API_URL.replace('http', 'ws');
@@ -546,5 +588,6 @@ export default {
   analytics: analyticsAPI,
   export: exportAPI,
   cashbook: cashbookAPI,
+  loan: loanAPI,
   getWebSocketURL,
 };
