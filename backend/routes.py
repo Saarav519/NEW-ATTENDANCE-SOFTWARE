@@ -331,17 +331,6 @@ async def reset_password(user_id: str, new_password: str, reset_by: str):
     
     return {"message": f"Password reset successfully for {user['name']}", "success": True}
 
-    updates.pop("_id", None)
-    updates.pop("id", None)
-    updates.pop("password", None)
-    
-    result = await db.users.update_one({"id": user_id}, {"$set": updates})
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
-    return UserResponse(**user)
-
 @router.get("/users/team/{team_lead_id}", response_model=List[UserResponse])
 async def get_team_members(team_lead_id: str):
     """Get all employees assigned to a specific team leader"""
