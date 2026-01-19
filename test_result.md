@@ -463,10 +463,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Analytics APIs"
-    - "Export to CSV APIs"
-    - "Notification APIs"
-    - "Real-time Features (WebSocket + Notifications)"
+    - "Dual Loan Type Support (EMI-based & Lump Sum)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
