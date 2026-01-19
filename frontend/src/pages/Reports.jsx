@@ -62,17 +62,19 @@ const Reports = () => {
   const loadStats = async () => {
     setLoading(true);
     try {
-      const [users, attendance, leaves, payslips, bills] = await Promise.all([
+      const [users, attendance, leaves, payslips, bills, advances] = await Promise.all([
         usersAPI.getAll(),
         attendanceAPI.getAll(),
         leaveAPI.getAll(),
         payslipAPI.getAll(null, 'settled'),
-        billAPI.getAll()
+        billAPI.getAll(),
+        advanceAPI.getAll()
       ]);
 
       const activeUsers = users.filter(u => u.status === 'active' && u.role !== 'admin');
       const totalSalary = payslips.reduce((sum, p) => sum + (p.breakdown?.net_pay || 0), 0);
       const approvedBills = bills.filter(b => b.status === 'approved').reduce((sum, b) => sum + (b.approved_amount || 0), 0);
+      const totalAdvances = advances.filter(a => a.status === 'approved').reduce((sum, a) => sum + (a.amount || 0), 0);
 
       // Attendance summary
       const present = attendance.filter(a => a.attendance_status === 'full_day' || a.status === 'present').length;
@@ -84,6 +86,7 @@ const Reports = () => {
         activeEmployees: activeUsers.length,
         totalSalaryPaid: totalSalary,
         totalBillsApproved: approvedBills,
+        totalAdvances: totalAdvances,
         attendanceSummary: { present, absent, halfDay },
         pendingLeaves: leaves.filter(l => l.status === 'pending').length,
         approvedLeaves: leaves.filter(l => l.status === 'approved').length
