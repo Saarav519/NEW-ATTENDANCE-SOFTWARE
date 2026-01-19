@@ -453,6 +453,19 @@ async def direct_punch_in(emp_id: str, location: str = "Office", shift_type: str
     else:
         actual_conveyance = 0
     
+    # Get employee salary for daily duty calculation
+    user = await db.users.find_one({"id": emp_id}, {"_id": 0})
+    emp_salary = user.get("salary", 0) if user else 0
+    daily_rate = emp_salary / 26  # 26 working days per month
+    
+    # Calculate daily duty based on attendance status
+    if attendance_status == "full_day":
+        daily_duty = round(daily_rate, 2)
+    elif attendance_status == "half_day":
+        daily_duty = round(daily_rate / 2, 2)
+    else:
+        daily_duty = 0
+    
     attendance_doc = {
         "id": generate_id(),
         "emp_id": emp_id,
@@ -465,6 +478,7 @@ async def direct_punch_in(emp_id: str, location: str = "Office", shift_type: str
         "qr_code_id": None,
         "location": location,
         "conveyance_amount": actual_conveyance,
+        "daily_duty_amount": daily_duty,
         "shift_type": shift_type,
         "shift_start": shift_start,
         "shift_end": shift_end
