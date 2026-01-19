@@ -648,8 +648,17 @@ async def reject_bill(bill_id: str, rejected_by: str):
         {"id": bill_id},
         {"$set": {"status": BillStatus.REJECTED, "rejected_by": rejected_by}}
     )
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Bill not found")
+    
+    # Notify employee
+    await create_notification(
+        recipient_id=bill["emp_id"],
+        title="Bill Rejected",
+        message=f"Your bill of ₹{bill['total_amount']} for {bill['month']} has been rejected",
+        notification_type="bill",
+        related_id=bill_id,
+        data={"action": "rejected"}
+    )
+    
     return {"message": "Bill rejected"}
 
 # File upload for bill attachments
