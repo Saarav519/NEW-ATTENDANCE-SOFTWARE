@@ -209,6 +209,27 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 
 ## Changelog
 
+### January 19, 2026
+- **NEW FEATURE:** Cashbook / Company Finance Module (Completed ✅)
+  - **Cash In (Income):** Track client invoices with Client Name, Invoice Number, Date, Amount, Payment Status (Paid/Pending/Partial), Amount Received, PDF upload
+  - **Cash Out (Expenses):** Auto-integrated from settled salaries, approved bills, and audit expenses + Manual entries with predefined categories
+  - **Predefined Categories:** Rent, Utilities, Office Supplies, Travel, Marketing, Miscellaneous, Other (Custom)
+  - **Summary Cards:** Total Cash In, Total Cash Out, Net Profit/Loss with auto-calculation
+  - **Month/Year Filters:** View data monthly or yearly
+  - **Month Locking:** Admin can lock/unlock months to prevent edits
+  - **Exports:** Cashbook CSV, Invoices CSV, Invoice PDFs (ZIP download)
+  - **Reports Integration:** Added Cashbook Report and Invoice Report options to Reports page
+
+- **Updated Backend:**
+  - Added `/api/cashbook/*` endpoints for Cash In/Out CRUD, Categories, Month Locks, Summary
+  - Added `/api/export/cashbook`, `/api/export/invoices`, `/api/export/invoices-zip` endpoints
+  - Auto-creation of Cash Out entries when payslips settled or bills approved
+  
+- **Updated Frontend:**
+  - New `Cashbook.jsx` page with full UI implementation
+  - Updated `Reports.jsx` with Cashbook and Invoice report options
+  - Cashbook added as top-level sidebar menu item
+
 ### January 18, 2026
 - **NEW FEATURE:** Audit Expenses - Partial Payment & Balance Tracking
   - Admin can make partial payments (e.g., pay ₹3,000 of ₹8,000)
@@ -231,4 +252,4 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 ---
 
 ## Last Updated
-January 18, 2026
+January 19, 2026
