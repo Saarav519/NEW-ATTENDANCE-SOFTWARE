@@ -60,13 +60,18 @@ const Attendance = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      // Fetch all employees
-      const usersData = await usersAPI.getAll();
+      // Fetch employees based on role
+      let usersData;
+      if (isTeamLead) {
+        // Team Lead sees only their team members
+        usersData = await fetch(`${API_URL}/api/users/team/${user.id}`).then(r => r.json());
+      } else {
+        usersData = await usersAPI.getAll();
+      }
       const activeEmployees = usersData.filter(u => u.status === 'active' && u.role !== 'admin');
       setEmployees(activeEmployees);
 
       // Fetch attendance for the selected month/year
-      // getAll(empId, date, month, year)
       const attendanceData = await attendanceAPI.getAll(null, null, selectedMonth, selectedYear);
       setAttendanceRecords(attendanceData || []);
     } catch (error) {
@@ -77,27 +82,73 @@ const Attendance = () => {
     }
   };
 
-  // Get attendance for selected date - map API response to expected format
-  const dateAttendance = employees.map(emp => {
-    const record = attendanceRecords.find(r => r.emp_id === emp.id && r.date === selectedDate);
-    return {
-      ...emp,
-      attendance: record ? {
-        status: record.status || 'present',
-        punchIn: record.punch_in || null,
-        punchOut: record.punch_out || null,
-        workHours: record.work_hours || 0,
-        attendanceStatus: record.attendance_status || 'full_day',
-        location: record.location || '',
-        conveyance: record.conveyance_amount || 0,
-        dailyDuty: record.daily_duty_amount || 0
-      } : { 
-        status: 'not-marked', 
-        punchIn: null, 
-        punchOut: null, 
-        workHours: 0,
-        conveyance: 0,
-        dailyDuty: 0
+  // Open mark attendance dialog
+  const openMarkDialog = (emp) => {
+    const existing = attendanceRecords.find(r => r.emp_id === emp.id && r.date === selectedDate);
+    setMarkData({
+      status: existing?.attendance_status || 'full_day',
+      conveyance: existing?.conveyance_amount || 0,
+      location: existing?.location || 'Office'
+    });
+    setMarkDialog({ open: true, employee: emp });
+  };
+
+  // Submit attendance
+  const submitAttendance = async () => {
+    if (!markDialog.employee) return;
+    setSubmitting(true);
+    try {
+      const params = new URLSearchParams({
+        emp_id: markDialog.employee.id,
+        date: selectedDate,
+        status: markData.status,
+        marked_by: user?.id || 'ADMIN001',
+        conveyance: markData.conveyance,
+        location: markData.location
+      });
+      
+      const response = await fetch(`${API_URL}/api/attendance/mark?${params}`, { method: 'POST' });
+      const result = await response.json();
+      
+      if (response.ok) {
+        toast.success(`Attendance marked: ${markData.status} | ₹${result.daily_duty_amount || 0} earned`);
+        setMarkDialog({ open: false, employee: null });
+        loadData();
+      } else {
+        toast.error(result.detail || 'Failed to mark attendance');
+      }
+    } catch (error) {
+      toast.error('Failed to mark attendance');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Quick mark (for mobile - just sets status without dialog)
+  const quickMark = async (empId, status) => {
+    try {
+      const params = new URLSearchParams({
+        emp_id: empId,
+        date: selectedDate,
+        status: status,
+        marked_by: user?.id || 'ADMIN001',
+        conveyance: status === 'absent' ? 0 : 200,
+        location: 'Office'
+      });
+      
+      const response = await fetch(`${API_URL}/api/attendance/mark?${params}`, { method: 'POST' });
+      const result = await response.json();
+      
+      if (response.ok) {
+        toast.success(`Marked ${status}`);
+        loadData();
+      } else {
+        toast.error(result.detail || 'Failed');
+      }
+    } catch (error) {
+      toast.error('Failed to mark attendance');
+    }
+  };
       }
     };
   });
