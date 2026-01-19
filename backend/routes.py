@@ -1753,3 +1753,599 @@ async def get_audit_expense_summary(emp_id: str, month: Optional[str] = None, ye
         "expense_count": len(expenses)
     }
 
+
+# ==================== WEBSOCKET CONNECTION MANAGER ====================
+
+class ConnectionManager:
+    """Manages WebSocket connections for real-time updates"""
+    def __init__(self):
+        self.active_connections: dict = {}  # {user_id: WebSocket}
+        self.role_connections: dict = defaultdict(list)  # {role: [WebSocket]}
+    
+    async def connect(self, websocket: WebSocket, user_id: str, role: str):
+        await websocket.accept()
+        self.active_connections[user_id] = websocket
+        self.role_connections[role].append(websocket)
+    
+    def disconnect(self, user_id: str, role: str):
+        if user_id in self.active_connections:
+            ws = self.active_connections[user_id]
+            del self.active_connections[user_id]
+            if ws in self.role_connections[role]:
+                self.role_connections[role].remove(ws)
+    
+    async def send_to_user(self, user_id: str, message: dict):
+        if user_id in self.active_connections:
+            try:
+                await self.active_connections[user_id].send_json(message)
+            except Exception:
+                pass
+    
+    async def broadcast_to_role(self, role: str, message: dict):
+        """Broadcast to all users with a specific role"""
+        dead_connections = []
+        for ws in self.role_connections[role]:
+            try:
+                await ws.send_json(message)
+            except Exception:
+                dead_connections.append(ws)
+        # Clean up dead connections
+        for ws in dead_connections:
+            self.role_connections[role].remove(ws)
+    
+    async def broadcast_to_admins_and_teamleads(self, message: dict):
+        """Broadcast to admins and team leads"""
+        await self.broadcast_to_role("admin", message)
+        await self.broadcast_to_role("teamlead", message)
+
+manager = ConnectionManager()
+
+@router.websocket("/ws/{user_id}")
+async def websocket_endpoint(websocket: WebSocket, user_id: str, role: str = "employee"):
+    """WebSocket endpoint for real-time updates"""
+    await manager.connect(websocket, user_id, role)
+    try:
+        while True:
+            # Keep connection alive and listen for messages
+            data = await websocket.receive_text()
+            # Echo back or handle commands if needed
+            await websocket.send_json({"type": "pong", "message": "connected"})
+    except WebSocketDisconnect:
+        manager.disconnect(user_id, role)
+
+
+# ==================== NOTIFICATION ROUTES ====================
+
+async def create_notification(
+    recipient_id: str,
+    title: str,
+    message: str,
+    notification_type: str,
+    related_id: str = None,
+    data: dict = None,
+    recipient_role: str = None
+):
+    """Helper function to create a notification"""
+    notification_doc = {
+        "id": generate_id(),
+        "recipient_id": recipient_id,
+        "recipient_role": recipient_role,
+        "title": title,
+        "message": message,
+        "type": notification_type,
+        "related_id": related_id,
+        "data": data,
+        "is_read": False,
+        "created_at": get_utc_now_str()
+    }
+    await db.notifications.insert_one(notification_doc)
+    
+    # Send real-time notification via WebSocket
+    ws_message = {
+        "type": "notification",
+        "notification": {k: v for k, v in notification_doc.items() if k != "_id"}
+    }
+    
+    if recipient_id:
+        await manager.send_to_user(recipient_id, ws_message)
+    elif recipient_role:
+        await manager.broadcast_to_role(recipient_role, ws_message)
+    
+    return notification_doc
+
+@router.get("/notifications", response_model=List[NotificationResponse])
+async def get_notifications(user_id: str, unread_only: bool = False, limit: int = 50):
+    """Get notifications for a user"""
+    query = {"$or": [{"recipient_id": user_id}, {"recipient_role": {"$exists": True}}]}
+    if unread_only:
+        query["is_read"] = False
+    
+    notifications = await db.notifications.find(
+        query, {"_id": 0}
+    ).sort("created_at", -1).limit(limit).to_list(limit)
+    
+    return notifications
+
+@router.get("/notifications/unread-count")
+async def get_unread_count(user_id: str):
+    """Get unread notification count"""
+    count = await db.notifications.count_documents({
+        "$or": [{"recipient_id": user_id}, {"recipient_role": {"$exists": True}}],
+        "is_read": False
+    })
+    return {"count": count}
+
+@router.put("/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str):
+    """Mark a notification as read"""
+    result = await db.notifications.update_one(
+        {"id": notification_id},
+        {"$set": {"is_read": True}}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    return {"message": "Notification marked as read"}
+
+@router.put("/notifications/mark-all-read")
+async def mark_all_notifications_read(user_id: str):
+    """Mark all notifications as read for a user"""
+    await db.notifications.update_many(
+        {"$or": [{"recipient_id": user_id}, {"recipient_role": {"$exists": True}}]},
+        {"$set": {"is_read": True}}
+    )
+    return {"message": "All notifications marked as read"}
+
+
+# ==================== ANALYTICS ROUTES ====================
+
+def get_date_range(time_filter: str):
+    """Get start and end dates based on time filter"""
+    today = datetime.now(timezone.utc)
+    
+    if time_filter == "this_week":
+        start = today - timedelta(days=today.weekday())
+        end = today
+    elif time_filter == "this_month":
+        start = today.replace(day=1)
+        end = today
+    elif time_filter == "this_quarter":
+        quarter_month = ((today.month - 1) // 3) * 3 + 1
+        start = today.replace(month=quarter_month, day=1)
+        end = today
+    elif time_filter == "this_year":
+        start = today.replace(month=1, day=1)
+        end = today
+    else:
+        start = today - timedelta(days=30)
+        end = today
+    
+    return start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
+
+@router.get("/analytics/attendance-trends")
+async def get_attendance_trends(time_filter: str = "this_month"):
+    """Get attendance trends data for charts"""
+    start_date, end_date = get_date_range(time_filter)
+    
+    attendance_records = await db.attendance.find({
+        "date": {"$gte": start_date, "$lte": end_date}
+    }, {"_id": 0}).to_list(10000)
+    
+    # Group by date
+    daily_data = defaultdict(lambda: {"present": 0, "absent": 0, "half_day": 0, "total": 0})
+    
+    for record in attendance_records:
+        date = record.get("date")
+        status = record.get("attendance_status", record.get("status", "absent"))
+        
+        daily_data[date]["total"] += 1
+        if status in ["full_day", "present"]:
+            daily_data[date]["present"] += 1
+        elif status == "half_day":
+            daily_data[date]["half_day"] += 1
+        else:
+            daily_data[date]["absent"] += 1
+    
+    # Convert to list sorted by date
+    result = [
+        {"date": date, **data}
+        for date, data in sorted(daily_data.items())
+    ]
+    
+    return result
+
+@router.get("/analytics/leave-distribution")
+async def get_leave_distribution(time_filter: str = "this_month"):
+    """Get leave distribution by type"""
+    start_date, end_date = get_date_range(time_filter)
+    
+    leaves = await db.leaves.find({
+        "from_date": {"$gte": start_date, "$lte": end_date}
+    }, {"_id": 0}).to_list(1000)
+    
+    # Group by leave type
+    type_counts = defaultdict(int)
+    total = 0
+    
+    for leave in leaves:
+        leave_type = leave.get("type", "Other")
+        type_counts[leave_type] += 1
+        total += 1
+    
+    result = [
+        {
+            "type": leave_type,
+            "count": count,
+            "percentage": round((count / total) * 100, 1) if total > 0 else 0
+        }
+        for leave_type, count in type_counts.items()
+    ]
+    
+    return result
+
+@router.get("/analytics/department-attendance")
+async def get_department_attendance(time_filter: str = "this_month"):
+    """Get attendance summary by department"""
+    start_date, end_date = get_date_range(time_filter)
+    
+    # Get all users with their departments
+    users = await db.users.find({"role": {"$ne": "admin"}}, {"_id": 0}).to_list(1000)
+    user_dept = {u["id"]: u.get("department", "Unknown") for u in users}
+    
+    attendance_records = await db.attendance.find({
+        "date": {"$gte": start_date, "$lte": end_date}
+    }, {"_id": 0}).to_list(10000)
+    
+    # Group by department
+    dept_data = defaultdict(lambda: {"present": 0, "absent": 0, "total": 0})
+    
+    for record in attendance_records:
+        emp_id = record.get("emp_id")
+        dept = user_dept.get(emp_id, "Unknown")
+        status = record.get("attendance_status", record.get("status", "absent"))
+        
+        dept_data[dept]["total"] += 1
+        if status in ["full_day", "present", "half_day"]:
+            dept_data[dept]["present"] += 1
+        else:
+            dept_data[dept]["absent"] += 1
+    
+    result = [
+        {
+            "department": dept,
+            "present": data["present"],
+            "absent": data["absent"],
+            "attendance_rate": round((data["present"] / data["total"]) * 100, 1) if data["total"] > 0 else 0
+        }
+        for dept, data in dept_data.items()
+    ]
+    
+    return result
+
+@router.get("/analytics/salary-overview")
+async def get_salary_overview(time_filter: str = "this_year"):
+    """Get salary/payroll overview"""
+    start_date, end_date = get_date_range(time_filter)
+    
+    payslips = await db.payslips.find({
+        "status": "settled"
+    }, {"_id": 0}).to_list(1000)
+    
+    # Group by month
+    monthly_data = defaultdict(lambda: {"total_salary": 0, "total_deductions": 0, "net_paid": 0})
+    
+    for payslip in payslips:
+        month_key = f"{payslip.get('month', '')} {payslip.get('year', '')}"
+        breakdown = payslip.get("breakdown", {})
+        
+        monthly_data[month_key]["total_salary"] += breakdown.get("gross_pay", 0)
+        monthly_data[month_key]["total_deductions"] += breakdown.get("deductions", 0)
+        monthly_data[month_key]["net_paid"] += breakdown.get("net_pay", 0)
+    
+    result = [
+        {
+            "month": month,
+            "total_salary": round(data["total_salary"], 2),
+            "total_deductions": round(data["total_deductions"], 2),
+            "net_paid": round(data["net_paid"], 2)
+        }
+        for month, data in monthly_data.items()
+    ]
+    
+    return result
+
+@router.get("/analytics/employee-counts")
+async def get_employee_counts():
+    """Get employee counts by role and status"""
+    users = await db.users.find({}, {"_id": 0}).to_list(1000)
+    
+    role_data = defaultdict(lambda: {"count": 0, "active": 0, "inactive": 0})
+    
+    for user in users:
+        role = user.get("role", "employee")
+        status = user.get("status", "active")
+        
+        role_data[role]["count"] += 1
+        if status == "active":
+            role_data[role]["active"] += 1
+        else:
+            role_data[role]["inactive"] += 1
+    
+    result = [
+        {
+            "role": role,
+            "count": data["count"],
+            "active": data["active"],
+            "inactive": data["inactive"]
+        }
+        for role, data in role_data.items()
+    ]
+    
+    return result
+
+@router.get("/analytics/summary")
+async def get_analytics_summary(time_filter: str = "this_month"):
+    """Get all analytics data in one call"""
+    attendance_trends = await get_attendance_trends(time_filter)
+    leave_distribution = await get_leave_distribution(time_filter)
+    department_attendance = await get_department_attendance(time_filter)
+    salary_overview = await get_salary_overview(time_filter)
+    employee_counts = await get_employee_counts()
+    
+    return {
+        "attendance_trends": attendance_trends,
+        "leave_distribution": leave_distribution,
+        "department_attendance": department_attendance,
+        "salary_overview": salary_overview,
+        "employee_counts": employee_counts
+    }
+
+
+# ==================== EXPORT ROUTES (CSV) ====================
+
+@router.get("/export/attendance")
+async def export_attendance(
+    month: Optional[int] = None,
+    year: Optional[int] = None,
+    emp_id: Optional[str] = None
+):
+    """Export attendance records to CSV"""
+    query = {}
+    if emp_id:
+        query["emp_id"] = emp_id
+    if month and year:
+        month_str = f"{year}-{month:02d}"
+        query["date"] = {"$regex": f"^{month_str}"}
+    
+    records = await db.attendance.find(query, {"_id": 0}).sort("date", -1).to_list(10000)
+    
+    # Get user names
+    users = await db.users.find({}, {"_id": 0, "id": 1, "name": 1}).to_list(1000)
+    user_names = {u["id"]: u["name"] for u in users}
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Header
+    writer.writerow([
+        "Date", "Employee ID", "Employee Name", "Punch In", "Punch Out",
+        "Work Hours", "Status", "Location", "Conveyance", "Shift Type"
+    ])
+    
+    # Data rows
+    for record in records:
+        writer.writerow([
+            record.get("date", ""),
+            record.get("emp_id", ""),
+            user_names.get(record.get("emp_id", ""), "Unknown"),
+            record.get("punch_in", ""),
+            record.get("punch_out", ""),
+            record.get("work_hours", 0),
+            record.get("attendance_status", record.get("status", "")),
+            record.get("location", ""),
+            record.get("conveyance_amount", 0),
+            record.get("shift_type", "")
+        ])
+    
+    output.seek(0)
+    
+    filename = f"attendance_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@router.get("/export/employees")
+async def export_employees():
+    """Export employee list to CSV"""
+    users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Header
+    writer.writerow([
+        "Employee ID", "Name", "Email", "Phone", "Role", "Department",
+        "Designation", "Joining Date", "Salary", "Status"
+    ])
+    
+    # Data rows
+    for user in users:
+        writer.writerow([
+            user.get("id", ""),
+            user.get("name", ""),
+            user.get("email", ""),
+            user.get("phone", ""),
+            user.get("role", ""),
+            user.get("department", ""),
+            user.get("designation", ""),
+            user.get("joining_date", ""),
+            user.get("salary", 0),
+            user.get("status", "")
+        ])
+    
+    output.seek(0)
+    
+    filename = f"employees_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@router.get("/export/leaves")
+async def export_leaves(
+    status: Optional[str] = None,
+    emp_id: Optional[str] = None
+):
+    """Export leave records to CSV"""
+    query = {}
+    if status:
+        query["status"] = status
+    if emp_id:
+        query["emp_id"] = emp_id
+    
+    leaves = await db.leaves.find(query, {"_id": 0}).sort("applied_on", -1).to_list(10000)
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Header
+    writer.writerow([
+        "Leave ID", "Employee ID", "Employee Name", "Type", "From Date",
+        "To Date", "Days", "Reason", "Status", "Applied On"
+    ])
+    
+    # Data rows
+    for leave in leaves:
+        writer.writerow([
+            leave.get("id", ""),
+            leave.get("emp_id", ""),
+            leave.get("emp_name", ""),
+            leave.get("type", ""),
+            leave.get("from_date", ""),
+            leave.get("to_date", ""),
+            leave.get("days", 0),
+            leave.get("reason", ""),
+            leave.get("status", ""),
+            leave.get("applied_on", "")
+        ])
+    
+    output.seek(0)
+    
+    filename = f"leaves_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@router.get("/export/payslips")
+async def export_payslips(
+    status: Optional[str] = None,
+    emp_id: Optional[str] = None,
+    year: Optional[int] = None
+):
+    """Export payslip records to CSV"""
+    query = {}
+    if status:
+        query["status"] = status
+    if emp_id:
+        query["emp_id"] = emp_id
+    if year:
+        query["year"] = year
+    
+    payslips = await db.payslips.find(query, {"_id": 0}).sort("created_on", -1).to_list(10000)
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Header
+    writer.writerow([
+        "Payslip ID", "Employee ID", "Employee Name", "Month", "Year",
+        "Basic", "HRA", "Special Allowance", "Conveyance", "Extra Conveyance",
+        "Leave Adjustment", "Attendance Adjustment", "Gross Pay", "Deductions",
+        "Net Pay", "Status", "Paid On"
+    ])
+    
+    # Data rows
+    for payslip in payslips:
+        breakdown = payslip.get("breakdown", {})
+        writer.writerow([
+            payslip.get("id", ""),
+            payslip.get("emp_id", ""),
+            payslip.get("emp_name", ""),
+            payslip.get("month", ""),
+            payslip.get("year", ""),
+            breakdown.get("basic", 0),
+            breakdown.get("hra", 0),
+            breakdown.get("special_allowance", 0),
+            breakdown.get("conveyance", 0),
+            breakdown.get("extra_conveyance", 0),
+            breakdown.get("leave_adjustment", 0),
+            breakdown.get("attendance_adjustment", 0),
+            breakdown.get("gross_pay", 0),
+            breakdown.get("deductions", 0),
+            breakdown.get("net_pay", 0),
+            payslip.get("status", ""),
+            payslip.get("paid_on", "")
+        ])
+    
+    output.seek(0)
+    
+    filename = f"payslips_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@router.get("/export/bills")
+async def export_bills(
+    status: Optional[str] = None,
+    emp_id: Optional[str] = None
+):
+    """Export bill/expense records to CSV"""
+    query = {}
+    if status:
+        query["status"] = status
+    if emp_id:
+        query["emp_id"] = emp_id
+    
+    bills = await db.bills.find(query, {"_id": 0}).sort("submitted_on", -1).to_list(10000)
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Header
+    writer.writerow([
+        "Bill ID", "Employee ID", "Employee Name", "Month", "Year",
+        "Total Amount", "Approved Amount", "Status", "Submitted On",
+        "Approved By", "Approved On", "Remarks"
+    ])
+    
+    # Data rows
+    for bill in bills:
+        writer.writerow([
+            bill.get("id", ""),
+            bill.get("emp_id", ""),
+            bill.get("emp_name", ""),
+            bill.get("month", ""),
+            bill.get("year", ""),
+            bill.get("total_amount", 0),
+            bill.get("approved_amount", 0),
+            bill.get("status", ""),
+            bill.get("submitted_on", ""),
+            bill.get("approved_by", ""),
+            bill.get("approved_on", ""),
+            bill.get("remarks", "")
+        ])
+    
+    output.seek(0)
+    
+    filename = f"bills_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
