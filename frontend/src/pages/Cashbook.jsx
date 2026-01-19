@@ -47,6 +47,11 @@ const Cashbook = () => {
   const [selectedLoan, setSelectedLoan] = useState(null);
   const [loanPayments, setLoanPayments] = useState([]);
   
+  // Payable states
+  const [payables, setPayables] = useState([]);
+  const [payableSummary, setPayableSummary] = useState({ total_payables: 0, pending_payables: 0, total_remaining: 0 });
+  const [payablePayments, setPayablePayments] = useState([]);
+  
   // Loading states
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -59,6 +64,9 @@ const Cashbook = () => {
   const [emiDialog, setEmiDialog] = useState({ open: false, loan: null });
   const [precloseDialog, setPrecloseDialog] = useState({ open: false, loan: null });
   const [paymentsDialog, setPaymentsDialog] = useState({ open: false, loan: null });
+  const [payableDialog, setPayableDialog] = useState({ open: false, mode: 'add', data: null });
+  const [payablePayDialog, setPayablePayDialog] = useState({ open: false, payable: null });
+  const [payableHistoryDialog, setPayableHistoryDialog] = useState({ open: false, payable: null });
   
   // Form states
   const [newCashIn, setNewCashIn] = useState({
@@ -77,6 +85,12 @@ const Cashbook = () => {
     payment_date: '', amount: '', is_extra_payment: false, notes: ''
   });
   const [precloseAmount, setPrecloseAmount] = useState('');
+  const [newPayable, setNewPayable] = useState({
+    creditor_name: '', total_amount: '', due_date: '', description: '', notes: ''
+  });
+  const [newPayablePayment, setNewPayablePayment] = useState({
+    payment_date: '', amount: '', notes: ''
+  });
   const [uploadingInvoice, setUploadingInvoice] = useState(false);
 
   useEffect(() => {
