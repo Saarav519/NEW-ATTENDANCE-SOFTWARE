@@ -442,6 +442,7 @@ export const exportAPI = {
     if (year) params.append('year', year);
     return `${API_URL}/api/export/emi-payments?${params}`;
   },
+  payables: () => `${API_URL}/api/export/payables`,
 };
 
 // Cashbook API
