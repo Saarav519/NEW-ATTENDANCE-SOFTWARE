@@ -1030,25 +1030,30 @@ async def settle_payslip(payslip_id: str):
     # Auto-create Cash Out entry for salary
     net_pay = payslip.get("breakdown", {}).get("net_pay", 0)
     if net_pay > 0:
+        payslip_month = payslip.get("month", "January")
+        payslip_year = payslip.get("year", 2026)
         month_num = ["January", "February", "March", "April", "May", "June", 
-                     "July", "August", "September", "October", "November", "December"].index(payslip.get("month", "January").split()[0]) + 1
-        date_str = f"{payslip.get('year', 2026)}-{month_num:02d}-{datetime.now().day:02d}"
+                     "July", "August", "September", "October", "November", "December"].index(payslip_month.split()[0]) + 1
+        # Use the last day of the payslip month for the date
+        date_str = f"{payslip_year}-{month_num:02d}-28"
         
         # Delete any existing auto cash-out entry for this employee/month/year to avoid duplicates
         await db.cash_out.delete_many({
             "reference_type": "payslip",
-            "month": payslip.get("month", ""),
-            "year": payslip.get("year", 0),
+            "month": payslip_month,
+            "year": payslip_year,
             "description": {"$regex": f".*{payslip.get('emp_name', '')}.*"}
         })
         
         await create_auto_cash_out(
             category="salary",
-            description=f"Salary - {payslip.get('emp_name', '')} ({payslip.get('month', '')} {payslip.get('year', '')})",
+            description=f"Salary - {payslip.get('emp_name', '')} ({payslip_month} {payslip_year})",
             amount=net_pay,
             date=date_str,
             reference_id=payslip_id,
-            reference_type="payslip"
+            reference_type="payslip",
+            month=payslip_month,
+            year=payslip_year
         )
     
     return {"message": "Payslip settled"}
