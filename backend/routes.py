@@ -551,6 +551,95 @@ async def get_monthly_attendance(emp_id: str, month: int, year: int):
     ).to_list(100)
     return attendance
 
+# Admin mark attendance endpoint
+@router.post("/attendance/mark")
+async def mark_attendance(
+    emp_id: str,
+    date: str,
+    status: str,  # 'present' or 'absent'
+    marked_by: str = "ADMIN001"
+):
+    """Admin marks attendance for employee/team leader - updates all related calculations"""
+    
+    # Get employee details for salary calculation
+    user = await db.users.find_one({"id": emp_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    
+    emp_salary = user.get("salary", 0)
+    daily_rate = round(emp_salary / 26, 2)  # 26 working days per month
+    
+    # Determine attendance status, conveyance, and daily duty based on status
+    if status == 'present':
+        attendance_status = "full_day"
+        conveyance = 200
+        daily_duty = daily_rate
+        punch_in = "10:00"
+        punch_out = "19:00"
+        work_hours = 9.0
+    else:  # absent
+        attendance_status = "absent"
+        conveyance = 0
+        daily_duty = 0
+        punch_in = None
+        punch_out = None
+        work_hours = 0
+    
+    # Check if attendance record already exists for this date
+    existing = await db.attendance.find_one({"emp_id": emp_id, "date": date})
+    
+    if existing:
+        # Update existing record
+        await db.attendance.update_one(
+            {"emp_id": emp_id, "date": date},
+            {"$set": {
+                "status": status,
+                "attendance_status": attendance_status,
+                "punch_in": punch_in,
+                "punch_out": punch_out,
+                "work_hours": work_hours,
+                "conveyance_amount": conveyance,
+                "daily_duty_amount": daily_duty,
+                "marked_by": marked_by,
+                "updated_at": get_utc_now_str()
+            }}
+        )
+        message = "Attendance updated"
+    else:
+        # Create new attendance record
+        attendance_doc = {
+            "id": generate_id(),
+            "emp_id": emp_id,
+            "date": date,
+            "punch_in": punch_in,
+            "punch_out": punch_out,
+            "status": status,
+            "attendance_status": attendance_status,
+            "work_hours": work_hours,
+            "qr_code_id": None,
+            "location": "Marked by Admin",
+            "conveyance_amount": conveyance,
+            "daily_duty_amount": daily_duty,
+            "shift_type": "day",
+            "shift_start": "10:00",
+            "shift_end": "19:00",
+            "marked_by": marked_by,
+            "created_at": get_utc_now_str()
+        }
+        await db.attendance.insert_one(attendance_doc)
+        message = "Attendance created"
+    
+    return {
+        "message": message,
+        "emp_id": emp_id,
+        "date": date,
+        "status": status,
+        "attendance_status": attendance_status,
+        "conveyance_amount": conveyance,
+        "daily_duty_amount": daily_duty,
+        "work_hours": work_hours
+    }
+
 # ==================== LEAVE ROUTES ====================
 
 @router.post("/leaves", response_model=LeaveResponse)
