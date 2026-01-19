@@ -260,7 +260,7 @@ const Reports = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
             <Users size={24} className="mx-auto text-blue-600 mb-2" />
@@ -287,6 +287,13 @@ const Reports = () => {
             <Receipt size={24} className="mx-auto text-orange-600 mb-2" />
             <p className="text-2xl font-bold text-gray-800">₹{stats.totalBillsApproved.toLocaleString()}</p>
             <p className="text-xs text-gray-500">Bills Approved</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <Plane size={24} className="mx-auto text-cyan-600 mb-2" />
+            <p className="text-2xl font-bold text-gray-800">₹{stats.totalAuditExpenses.toLocaleString()}</p>
+            <p className="text-xs text-gray-500">Audit Expenses</p>
           </CardContent>
         </Card>
         <Card>
