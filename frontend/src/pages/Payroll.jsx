@@ -36,7 +36,8 @@ const Payroll = () => {
         usersAPI.getAll()
       ]);
       setPayslips(payslipsData);
-      setEmployees(employeesData.filter(e => e.status === 'active'));
+      // Include both employees and team leads (exclude admin only)
+      setEmployees(employeesData.filter(e => e.status === 'active' && e.role !== 'admin'));
     } catch (error) {
       toast.error('Failed to load data');
     } finally {
