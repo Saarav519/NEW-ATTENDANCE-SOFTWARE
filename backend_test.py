@@ -941,6 +941,223 @@ def test_notification_apis():
     except Exception as e:
         log_test("Verify All Read", False, f"Exception: {str(e)}")
 
+def test_dual_loan_type_support():
+    """Test NEW Dual Loan Type Support (EMI-based & Lump Sum)"""
+    print("=" * 60)
+    print("TESTING: NEW Dual Loan Type Support")
+    print("=" * 60)
+    
+    global emi_loan_id, lumpsum_loan_id
+    emi_loan_id = None
+    lumpsum_loan_id = None
+    
+    # Test 1: Create EMI-Based Loan
+    try:
+        emi_loan_data = {
+            "loan_type": "emi_based",
+            "loan_name": "Home Loan - HDFC",
+            "lender_name": "HDFC Bank",
+            "total_loan_amount": 500000,
+            "emi_amount": 15000,
+            "emi_day": 10,
+            "loan_start_date": "2026-01-01",
+            "interest_rate": 8.5,
+            "loan_tenure_months": 60
+        }
+        response = requests.post(f"{API_URL}/loans", json=emi_loan_data)
+        if response.status_code == 200:
+            loan = response.json()
+            emi_loan_id = loan.get("id")
+            if (loan.get("loan_type") == "emi_based" and 
+                loan.get("emi_amount") == 15000 and 
+                loan.get("emi_day") == 10 and
+                loan.get("interest_rate") == 8.5):
+                log_test("Create EMI-Based Loan", True, f"EMI Loan created: {emi_loan_id}, Type: {loan.get('loan_type')}, EMI: ₹{loan.get('emi_amount')}")
+            else:
+                log_test("Create EMI-Based Loan", False, f"EMI fields missing or incorrect in response")
+        else:
+            log_test("Create EMI-Based Loan", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Create EMI-Based Loan", False, f"Exception: {str(e)}")
+    
+    # Test 2: Create Lump Sum Loan
+    try:
+        lumpsum_loan_data = {
+            "loan_type": "lump_sum",
+            "loan_name": "Personal Loan - Friend John",
+            "lender_name": "John Doe",
+            "total_loan_amount": 50000,
+            "loan_start_date": "2026-01-15",
+            "due_date": "2026-06-15",
+            "notes": "Borrowed for emergency"
+        }
+        response = requests.post(f"{API_URL}/loans", json=lumpsum_loan_data)
+        if response.status_code == 200:
+            loan = response.json()
+            lumpsum_loan_id = loan.get("id")
+            if (loan.get("loan_type") == "lump_sum" and 
+                loan.get("emi_amount") is None and 
+                loan.get("emi_day") is None and
+                loan.get("due_date") == "2026-06-15"):
+                log_test("Create Lump Sum Loan", True, f"Lump Sum Loan created: {lumpsum_loan_id}, Type: {loan.get('loan_type')}, Due: {loan.get('due_date')}")
+            else:
+                log_test("Create Lump Sum Loan", False, f"Lump sum fields incorrect in response")
+        else:
+            log_test("Create Lump Sum Loan", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Create Lump Sum Loan", False, f"Exception: {str(e)}")
+    
+    # Test 3: Validation - EMI loan without emi_amount should fail
+    try:
+        invalid_emi_data = {
+            "loan_type": "emi_based",
+            "loan_name": "Invalid EMI Loan",
+            "lender_name": "Test Bank",
+            "total_loan_amount": 100000,
+            "loan_start_date": "2026-01-01"
+            # Missing emi_amount and emi_day
+        }
+        response = requests.post(f"{API_URL}/loans", json=invalid_emi_data)
+        if response.status_code == 400:
+            log_test("EMI Validation - Missing EMI Fields", True, "Correctly rejected EMI loan without emi_amount/emi_day")
+        else:
+            log_test("EMI Validation - Missing EMI Fields", False, f"Should have failed with 400, got {response.status_code}")
+    except Exception as e:
+        log_test("EMI Validation - Missing EMI Fields", False, f"Exception: {str(e)}")
+    
+    # Test 4: Pay EMI for EMI-Based Loan
+    if emi_loan_id:
+        try:
+            emi_payment_data = {
+                "loan_id": emi_loan_id,
+                "payment_date": "2026-01-10",
+                "amount": 15000
+            }
+            response = requests.post(f"{API_URL}/loans/{emi_loan_id}/pay-emi", json=emi_payment_data)
+            if response.status_code == 200:
+                payment = response.json()
+                if (payment.get("amount") == 15000 and 
+                    payment.get("principal_amount") is not None and
+                    payment.get("interest_amount") is not None):
+                    log_test("Pay EMI for EMI Loan", True, f"EMI payment recorded: ₹{payment.get('amount')}, Principal: ₹{payment.get('principal_amount')}, Interest: ₹{payment.get('interest_amount')}")
+                else:
+                    log_test("Pay EMI for EMI Loan", False, "EMI payment fields missing")
+            else:
+                log_test("Pay EMI for EMI Loan", False, f"Status: {response.status_code}, Response: {response.text}")
+        except Exception as e:
+            log_test("Pay EMI for EMI Loan", False, f"Exception: {str(e)}")
+    
+    # Test 5: Pay Lump Sum for Personal Loan (Partial Payment)
+    if lumpsum_loan_id:
+        try:
+            lumpsum_payment_data = {
+                "loan_id": lumpsum_loan_id,
+                "payment_date": "2026-01-20",
+                "amount": 25000
+            }
+            response = requests.post(f"{API_URL}/loans/{lumpsum_loan_id}/pay-lumpsum", json=lumpsum_payment_data)
+            if response.status_code == 200:
+                payment = response.json()
+                if (payment.get("amount") == 25000 and 
+                    payment.get("principal_amount") == 25000 and
+                    payment.get("interest_amount") == 0):
+                    log_test("Pay Lump Sum (Partial)", True, f"Lump sum payment recorded: ₹{payment.get('amount')}, Balance after: ₹{payment.get('balance_after_payment')}")
+                else:
+                    log_test("Pay Lump Sum (Partial)", False, "Lump sum payment fields incorrect")
+            else:
+                log_test("Pay Lump Sum (Partial)", False, f"Status: {response.status_code}, Response: {response.text}")
+        except Exception as e:
+            log_test("Pay Lump Sum (Partial)", False, f"Exception: {str(e)}")
+    
+    # Test 6: Pay Full Remaining Lump Sum
+    if lumpsum_loan_id:
+        try:
+            final_payment_data = {
+                "loan_id": lumpsum_loan_id,
+                "payment_date": "2026-02-01",
+                "amount": 25000
+            }
+            response = requests.post(f"{API_URL}/loans/{lumpsum_loan_id}/pay-lumpsum", json=final_payment_data)
+            if response.status_code == 200:
+                payment = response.json()
+                if payment.get("balance_after_payment") == 0:
+                    log_test("Pay Full Lump Sum", True, f"Final payment recorded, balance: ₹{payment.get('balance_after_payment')}")
+                    
+                    # Verify loan status is now closed
+                    loan_response = requests.get(f"{API_URL}/loans/{lumpsum_loan_id}")
+                    if loan_response.status_code == 200:
+                        loan = loan_response.json()
+                        if loan.get("status") == "closed":
+                            log_test("Loan Status Update", True, f"Loan status updated to: {loan.get('status')}")
+                        else:
+                            log_test("Loan Status Update", False, f"Expected 'closed', got: {loan.get('status')}")
+                else:
+                    log_test("Pay Full Lump Sum", False, f"Balance should be 0, got: ₹{payment.get('balance_after_payment')}")
+            else:
+                log_test("Pay Full Lump Sum", False, f"Status: {response.status_code}, Response: {response.text}")
+        except Exception as e:
+            log_test("Pay Full Lump Sum", False, f"Exception: {str(e)}")
+    
+    # Test 7: Cross-Endpoint Validation - Try using /pay-lumpsum on EMI loan
+    if emi_loan_id:
+        try:
+            invalid_payment_data = {
+                "loan_id": emi_loan_id,
+                "payment_date": "2026-01-15",
+                "amount": 10000
+            }
+            response = requests.post(f"{API_URL}/loans/{emi_loan_id}/pay-lumpsum", json=invalid_payment_data)
+            if response.status_code == 400:
+                log_test("Cross-Endpoint Validation", True, "Correctly rejected lump sum payment on EMI loan")
+            else:
+                log_test("Cross-Endpoint Validation", False, f"Should have failed with 400, got {response.status_code}")
+        except Exception as e:
+            log_test("Cross-Endpoint Validation", False, f"Exception: {str(e)}")
+    
+    # Test 8: Get All Loans
+    try:
+        response = requests.get(f"{API_URL}/loans")
+        if response.status_code == 200:
+            loans = response.json()
+            emi_loans = [l for l in loans if l.get("loan_type") == "emi_based"]
+            lumpsum_loans = [l for l in loans if l.get("loan_type") == "lump_sum"]
+            log_test("Get All Loans", True, f"Retrieved {len(loans)} loans: {len(emi_loans)} EMI-based, {len(lumpsum_loans)} Lump Sum")
+        else:
+            log_test("Get All Loans", False, f"Status: {response.status_code}")
+    except Exception as e:
+        log_test("Get All Loans", False, f"Exception: {str(e)}")
+    
+    # Test 9: Get Loan Summary
+    try:
+        response = requests.get(f"{API_URL}/loans/summary")
+        if response.status_code == 200:
+            summary = response.json()
+            if ("total_loans" in summary and 
+                "active_loans" in summary and 
+                "total_loan_amount" in summary):
+                log_test("Get Loan Summary", True, f"Summary: {summary.get('total_loans')} total, {summary.get('active_loans')} active, ₹{summary.get('total_loan_amount')} total amount")
+            else:
+                log_test("Get Loan Summary", False, "Missing fields in summary response")
+        else:
+            log_test("Get Loan Summary", False, f"Status: {response.status_code}")
+    except Exception as e:
+        log_test("Get Loan Summary", False, f"Exception: {str(e)}")
+    
+    # Test 10: Verify Cash Out entries were auto-created
+    try:
+        response = requests.get(f"{API_URL}/cash-out")
+        if response.status_code == 200:
+            cash_outs = response.json()
+            loan_payments = [co for co in cash_outs if "loan" in co.get("description", "").lower()]
+            if len(loan_payments) > 0:
+                log_test("Auto Cash Out Creation", True, f"Found {len(loan_payments)} auto-created Cash Out entries for loan payments")
+            else:
+                log_test("Auto Cash Out Creation", False, "No Cash Out entries found for loan payments")
+        else:
+            log_test("Auto Cash Out Creation", False, f"Status: {response.status_code}")
+    except Exception as e:
+        log_test("Auto Cash Out Creation", False, f"Exception: {str(e)}")
+
 def run_all_tests():
     """Run all backend API tests"""
     print("🚀 Starting SuperManage Backend API Tests")
