@@ -501,7 +501,7 @@ const Cashbook = () => {
                     </thead>
                     <tbody className="divide-y">
                       {cashInEntries.map((entry) => (
-                        <tr key={entry.id} className="hover:bg-gray-50">
+                        <tr key={entry.id} className="hover:bg-gray-50" data-testid={`cash-in-row-${entry.id}`}>
                           <td className="p-3 text-sm">{entry.invoice_date}</td>
                           <td className="p-3 font-medium">{entry.client_name}</td>
                           <td className="p-3 text-sm text-gray-600">{entry.invoice_number}</td>
@@ -516,6 +516,7 @@ const Cashbook = () => {
                                 target="_blank" 
                                 rel="noopener noreferrer"
                                 className="text-blue-600 hover:text-blue-800"
+                                data-testid={`view-pdf-${entry.id}`}
                               >
                                 <Eye size={18} />
                               </a>
@@ -524,10 +525,10 @@ const Cashbook = () => {
                           <td className="p-3 text-center">
                             {!isMonthLocked() && viewMode === 'monthly' && (
                               <div className="flex justify-center gap-2">
-                                <button onClick={() => editCashIn(entry)} className="text-blue-600 hover:text-blue-800">
+                                <button onClick={() => editCashIn(entry)} className="text-blue-600 hover:text-blue-800" data-testid={`edit-cash-in-${entry.id}`}>
                                   <Edit2 size={16} />
                                 </button>
-                                <button onClick={() => handleDeleteCashIn(entry.id)} className="text-red-600 hover:text-red-800">
+                                <button onClick={() => handleDeleteCashIn(entry.id)} className="text-red-600 hover:text-red-800" data-testid={`delete-cash-in-${entry.id}`}>
                                   <Trash2 size={16} />
                                 </button>
                               </div>
