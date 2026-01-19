@@ -851,10 +851,12 @@ async def generate_payslip(data: PayslipCreate):
     leave_adjustment = -(leave_days * daily_rate) if leave_days > 0 else 0
     
     # Get approved advances for this month that need to be deducted
+    # Handle both month formats: "January" and "January 2026"
+    month_variants = [data.month, data.month.split()[0]]  # Try both "January 2026" and "January"
     advances = await db.advances.find({
         "emp_id": data.emp_id,
         "status": AdvanceStatus.APPROVED,
-        "deduct_from_month": data.month,
+        "deduct_from_month": {"$in": month_variants},
         "deduct_from_year": data.year,
         "is_deducted": {"$ne": True}  # Not yet deducted
     }).to_list(100)
