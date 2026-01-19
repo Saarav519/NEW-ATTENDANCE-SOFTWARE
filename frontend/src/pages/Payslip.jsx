@@ -373,12 +373,14 @@ const Payslip = () => {
                       <span className="text-gray-700">PF & Tax</span>
                       <span className="font-semibold text-red-500">-₹{(breakdown.deductions || 0).toLocaleString()}</span>
                     </div>
-                    {(breakdown.advance_deduction || 0) > 0 && (
-                      <div className="flex justify-between items-center p-3 bg-orange-50 rounded-xl">
-                        <span className="text-gray-700">Salary Advance Deduction</span>
-                        <span className="font-semibold text-orange-600">-₹{(breakdown.advance_deduction || 0).toLocaleString()}</span>
-                      </div>
-                    )}
+                    <div className="flex justify-between items-center p-3 bg-orange-50 rounded-xl">
+                      <span className="text-gray-700">Salary Advance</span>
+                      <span className="font-semibold text-orange-600">-₹{(breakdown.advance_deduction || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                      <span className="text-gray-700">Attendance Adjustment</span>
+                      <span className="font-semibold text-gray-600">₹{(breakdown.attendance_adjustment || 0).toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
 
