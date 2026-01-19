@@ -128,7 +128,8 @@ async def seed_database():
     print(f"  Half Days: {half_days} (3)")
     print(f"  Absent Days: {absent_days} (1)")
     print(f"  Total: {full_days + half_days + absent_days}")
-    print(f"  Total Conveyance: ₹{total_conveyance}")
+    print(f"  Total Conveyance: ₹{total_conveyance:,.2f}")
+    print(f"  Total Daily Duty: ₹{total_daily_duty:,.2f}")
     print(f"  Total Hours: {total_hours:.2f}h")
     
     # Create payslip with NO deductions (PF/Tax = 0)
