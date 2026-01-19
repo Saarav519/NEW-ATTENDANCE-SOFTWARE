@@ -254,12 +254,9 @@ class ProfileUpdate(BaseModel):
 
 # Leave Balance Model
 class LeaveBalance(BaseModel):
-    casual_leave: int = 12
-    sick_leave: int = 6
-    vacation: int = 15
-    casual_used: int = 0
-    sick_used: int = 0
-    vacation_used: int = 0
+    total_leave: int = 0  # Accrued based on working days (1 leave per 24 working days)
+    total_used: int = 0
+    working_days_count: int = 0  # Track working days for accrual calculation
 
 class LeaveBalanceResponse(LeaveBalance):
     emp_id: str
