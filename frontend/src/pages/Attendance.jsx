@@ -338,10 +338,15 @@ const Attendance = () => {
                             {emp.attendance.status === 'not-marked' ? 'Not Marked' : 
                              emp.attendance.attendanceStatus === 'half_day' ? 'Half Day' :
                              emp.attendance.attendanceStatus === 'absent' ? 'Absent' :
-                             emp.attendance.status}
+                             'Full Day'}
                           </span>
                         </td>
-                        <td className="p-4 text-gray-700">{emp.attendance.location || '-'}</td>
+                        <td className="p-4 text-right font-medium text-green-600">
+                          {emp.attendance.dailyDuty > 0 ? `₹${emp.attendance.dailyDuty.toLocaleString('en-IN')}` : '-'}
+                        </td>
+                        <td className="p-4 text-right font-medium text-blue-600">
+                          {emp.attendance.conveyance > 0 ? `₹${emp.attendance.conveyance}` : '-'}
+                        </td>
                         <td className="p-4">
                           <div className="flex gap-1">
                             <button
