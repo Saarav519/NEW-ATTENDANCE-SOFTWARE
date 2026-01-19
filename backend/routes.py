@@ -2893,7 +2893,10 @@ async def get_categories():
         {"id": "advances", "name": "Salary Advances", "is_predefined": True},
         {"id": "rent", "name": "Rent", "is_predefined": True},
         {"id": "utilities", "name": "Utilities", "is_predefined": True},
-        {"id": "office_expenses", "name": "Office Expenses", "is_predefined": True},
+        {"id": "office_supplies", "name": "Office Supplies", "is_predefined": True},
+        {"id": "travel", "name": "Travel", "is_predefined": True},
+        {"id": "marketing", "name": "Marketing", "is_predefined": True},
+        {"id": "miscellaneous", "name": "Miscellaneous", "is_predefined": True},
     ]
     
     custom = await db.custom_categories.find({}, {"_id": 0}).to_list(100)
