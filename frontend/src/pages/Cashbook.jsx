@@ -534,6 +534,122 @@ const Cashbook = () => {
     }
   };
 
+  // ===== Payable CRUD Functions =====
+  const resetPayableForm = () => {
+    setNewPayable({ creditor_name: '', total_amount: '', due_date: '', description: '', notes: '' });
+  };
+
+  const handleCreatePayable = async () => {
+    if (!newPayable.creditor_name || !newPayable.total_amount) {
+      toast.error('Please fill required fields');
+      return;
+    }
+    
+    setSubmitting(true);
+    try {
+      const payload = {
+        creditor_name: newPayable.creditor_name,
+        total_amount: parseFloat(newPayable.total_amount),
+        due_date: newPayable.due_date || null,
+        description: newPayable.description || null,
+        notes: newPayable.notes || null
+      };
+      
+      if (payableDialog.mode === 'edit' && payableDialog.data) {
+        await payableAPI.update(payableDialog.data.id, payload);
+        toast.success('Payable updated');
+      } else {
+        await payableAPI.create(payload);
+        toast.success('Payable added');
+      }
+      
+      setPayableDialog({ open: false, mode: 'add', data: null });
+      resetPayableForm();
+      loadData();
+    } catch (error) {
+      toast.error(error.message || 'Failed to save payable');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const editPayable = (payable) => {
+    setNewPayable({
+      creditor_name: payable.creditor_name,
+      total_amount: payable.total_amount.toString(),
+      due_date: payable.due_date || '',
+      description: payable.description || '',
+      notes: payable.notes || ''
+    });
+    setPayableDialog({ open: true, mode: 'edit', data: payable });
+  };
+
+  const handleDeletePayable = async (id) => {
+    if (!window.confirm('Delete this payable?')) return;
+    try {
+      await payableAPI.delete(id);
+      toast.success('Payable deleted');
+      loadData();
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete');
+    }
+  };
+
+  const openPayablePayDialog = (payable) => {
+    setNewPayablePayment({
+      payment_date: new Date().toISOString().split('T')[0],
+      amount: payable.remaining_balance.toString(),
+      notes: ''
+    });
+    setPayablePayDialog({ open: true, payable });
+  };
+
+  const handlePayPayable = async () => {
+    if (!newPayablePayment.payment_date || !newPayablePayment.amount) {
+      toast.error('Please fill required fields');
+      return;
+    }
+    
+    setSubmitting(true);
+    try {
+      await payableAPI.pay(payablePayDialog.payable.id, {
+        payable_id: payablePayDialog.payable.id,
+        payment_date: newPayablePayment.payment_date,
+        amount: parseFloat(newPayablePayment.amount),
+        notes: newPayablePayment.notes || null
+      });
+      
+      toast.success('Payment recorded');
+      setPayablePayDialog({ open: false, payable: null });
+      loadData();
+    } catch (error) {
+      toast.error(error.message || 'Failed to record payment');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const openPayableHistoryDialog = async (payable) => {
+    try {
+      const payments = await payableAPI.getPayments(payable.id);
+      setPayablePayments(payments || []);
+      setPayableHistoryDialog({ open: true, payable });
+    } catch (error) {
+      toast.error('Failed to load payment history');
+    }
+  };
+
+  const getPayableStatusBadge = (status) => {
+    switch (status) {
+      case 'paid':
+        return <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">Paid</span>;
+      case 'partial':
+        return <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700">Partial</span>;
+      default:
+        return <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-700">Pending</span>;
+    }
+  };
+
   const getCategoryName = (categoryId) => {
     const cat = categories.find(c => c.id === categoryId);
     return cat ? cat.name : categoryId?.replace(/_/g, ' ')?.replace(/\b\w/g, l => l.toUpperCase());
