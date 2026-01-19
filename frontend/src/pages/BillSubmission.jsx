@@ -751,19 +751,33 @@ const BillSubmission = () => {
                 <div className="p-8 text-center text-gray-500">
                   <Wallet className="h-12 w-12 mx-auto text-gray-300 mb-3" />
                   <p className="font-medium">No advance requests found</p>
-                  <p className="text-sm mt-1">Click "Request Advance" to create one</p>
+                  {!isAdmin && <p className="text-sm mt-1">Click "Request Advance" to create one</p>}
                 </div>
               ) : (
                 <div className="divide-y">
                   {filteredAdvances.map((adv) => (
                     <div key={adv.id} className="p-4 hover:bg-gray-50">
                       <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-bold text-xl text-purple-600">₹{adv.amount?.toLocaleString()}</p>
-                          <p className="text-sm text-gray-600 mt-1">{adv.reason}</p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            Requested on {adv.requested_on ? new Date(adv.requested_on).toLocaleDateString() : '-'}
-                          </p>
+                        <div className="flex items-center gap-4">
+                          {/* Show employee info for Admin */}
+                          {isAdmin && (
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                                {adv.emp_name?.split(' ').map(n => n[0]).join('') || '?'}
+                              </div>
+                              <div>
+                                <p className="font-medium">{adv.emp_name}</p>
+                                <p className="text-xs text-gray-500">{adv.emp_id}</p>
+                              </div>
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-bold text-xl text-purple-600">₹{adv.amount?.toLocaleString()}</p>
+                            <p className="text-sm text-gray-600 mt-1">{adv.reason}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Requested on {adv.requested_on ? new Date(adv.requested_on).toLocaleDateString() : '-'}
+                            </p>
+                          </div>
                         </div>
                         <div className="text-right">
                           {getStatusBadge(adv.status, adv.is_deducted)}
@@ -775,6 +789,27 @@ const BillSubmission = () => {
                           )}
                         </div>
                       </div>
+                      
+                      {/* Admin Approve/Reject Actions */}
+                      {isAdmin && adv.status === 'pending' && (
+                        <div className="flex gap-2 mt-3 pt-3 border-t">
+                          <Button
+                            size="sm"
+                            className="bg-green-500 hover:bg-green-600"
+                            onClick={() => handleApproveAdvance(adv.id)}
+                          >
+                            <Check size={14} className="mr-1" /> Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-red-500 border-red-200 hover:bg-red-50"
+                            onClick={() => handleRejectAdvance(adv.id)}
+                          >
+                            <X size={14} className="mr-1" /> Reject
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
