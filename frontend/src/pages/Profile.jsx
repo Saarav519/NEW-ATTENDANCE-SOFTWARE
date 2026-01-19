@@ -265,37 +265,18 @@ const Profile = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-4 bg-green-50 rounded-xl">
-                <div className="flex items-center justify-between">
-                  <span className="text-green-700 font-medium">Casual Leave</span>
-                  <CheckCircle size={18} className="text-green-600" />
-                </div>
-                <p className="text-2xl font-bold text-green-700 mt-2">
-                  {leaveBalance.casual_leave - leaveBalance.casual_used} / {leaveBalance.casual_leave}
-                </p>
-                <p className="text-xs text-green-600">Used: {leaveBalance.casual_used}</p>
+            <div className="p-4 bg-blue-50 rounded-xl">
+              <div className="flex items-center justify-between">
+                <span className="text-blue-700 font-medium">Total Leave</span>
+                <Calendar size={18} className="text-blue-600" />
               </div>
-              <div className="p-4 bg-orange-50 rounded-xl">
-                <div className="flex items-center justify-between">
-                  <span className="text-orange-700 font-medium">Sick Leave</span>
-                  <AlertCircle size={18} className="text-orange-600" />
-                </div>
-                <p className="text-2xl font-bold text-orange-700 mt-2">
-                  {leaveBalance.sick_leave - leaveBalance.sick_used} / {leaveBalance.sick_leave}
-                </p>
-                <p className="text-xs text-orange-600">Used: {leaveBalance.sick_used}</p>
-              </div>
-              <div className="p-4 bg-blue-50 rounded-xl">
-                <div className="flex items-center justify-between">
-                  <span className="text-blue-700 font-medium">Vacation</span>
-                  <Briefcase size={18} className="text-blue-600" />
-                </div>
-                <p className="text-2xl font-bold text-blue-700 mt-2">
-                  {leaveBalance.vacation - leaveBalance.vacation_used} / {leaveBalance.vacation}
-                </p>
-                <p className="text-xs text-blue-600">Used: {leaveBalance.vacation_used}</p>
-              </div>
+              <p className="text-3xl font-bold text-blue-700 mt-2">
+                {(leaveBalance.total_leave || 0) - (leaveBalance.total_used || 0)} / {leaveBalance.total_leave || 0}
+              </p>
+              <p className="text-xs text-blue-600 mt-1">Used: {leaveBalance.total_used || 0}</p>
+              <p className="text-xs text-gray-500 mt-2">
+                Working Days: {leaveBalance.working_days_count || 0} • Accrual: 1 leave per 24 working days
+              </p>
             </div>
           </CardContent>
         </Card>
