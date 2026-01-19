@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { payslipsAPI, usersAPI } from '../services/api';
+import { payslipAPI, usersAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -32,7 +32,7 @@ const Payroll = () => {
   const loadData = async () => {
     try {
       const [payslipsData, employeesData] = await Promise.all([
-        payslipsAPI.getAll(),
+        payslipAPI.getAll(),
         usersAPI.getAll()
       ]);
       setPayslips(payslipsData);
@@ -52,7 +52,7 @@ const Payroll = () => {
 
     setSubmitting(true);
     try {
-      await payslipsAPI.generate({
+      await payslipAPI.generate({
         emp_id: selectedEmp,
         month: selectedMonth,
         year: selectedYear
@@ -71,7 +71,7 @@ const Payroll = () => {
     if (!window.confirm(`Mark payslip for ${payslip.emp_name} as settled?`)) return;
 
     try {
-      await payslipsAPI.settle(payslip.id);
+      await payslipAPI.settle(payslip.id);
       toast.success('Payslip settled successfully');
       loadData();
     } catch (error) {
