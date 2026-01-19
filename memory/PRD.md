@@ -234,6 +234,49 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 
 ---
 
+## Database Schema
+
+### users Collection
+```javascript
+{
+  id: "EMP001",
+  name: "Rahul Kumar",
+  email: "rahul@audixsolutions.com",
+  phone: "+91 98765 43211",
+  role: "employee", // admin, teamlead, employee
+  department: "Development",
+  designation: "Software Engineer",
+  joining_date: "2023-01-15",
+  salary: 50000,
+  salary_type: "monthly",
+  status: "active",
+  team_lead_id: "TL001", // Assigned Team Leader (for employees)
+  team_members: [], // Legacy field for backward compatibility
+  bank_name: "State Bank of India",
+  bank_account_number: "32456789012345",
+  bank_ifsc: "SBIN0001234",
+  password: "emp001"
+}
+```
+
+### team_leader_history Collection
+```javascript
+{
+  id: "TLH001",
+  emp_id: "EMP001",
+  emp_name: "Rahul Kumar",
+  old_team_leader_id: "TL001",
+  old_team_leader_name: "Rajesh Verma",
+  new_team_leader_id: "TL002",
+  new_team_leader_name: "Meera Joshi",
+  changed_by: "ADMIN001",
+  changed_at: "2026-01-19T15:00:00Z",
+  reason: "Team restructuring"
+}
+```
+
+---
+
 ## Known Issues
 - None critical
 - Minor: Dashboard.jsx is 900+ lines - consider refactoring
