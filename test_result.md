@@ -353,15 +353,18 @@ backend:
 
   - task: "Dual Loan Type Support (EMI-based & Lump Sum)"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/models.py, /app/backend/routes.py, /app/frontend/src/pages/Cashbook.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "NEW FEATURE: Added support for two loan types - EMI-based loans (with monthly EMI payments for banks/institutions) and Lump Sum loans (personal loans from friends/family without EMI). Backend: Added LoanType enum, made EMI fields optional, added /loans/{loan_id}/pay-lumpsum endpoint. Frontend: Added loan type selector, conditional form fields, type badges in table, dynamic payment interface."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Dual Loan Type Support working perfectly. All test scenarios passed: 1) Database seeding ✅ 2) EMI-based loan creation with all required fields (emi_amount, emi_day, interest_rate, tenure) ✅ 3) Lump sum loan creation without EMI fields ✅ 4) Validation correctly rejects EMI loans missing required fields ✅ 5) EMI payments with principal/interest split calculation ✅ 6) Lump sum payments (full amount to principal) ✅ 7) Loan status updates to 'closed' when fully paid ✅ 8) Cross-endpoint validation prevents wrong payment types ✅ 9) Both loan types listed correctly in GET /loans ✅ 10) Loan summary includes both types ✅. Minor: Cash Out auto-creation endpoint not found (404) but this doesn't affect core loan functionality."
 
 
 frontend:
