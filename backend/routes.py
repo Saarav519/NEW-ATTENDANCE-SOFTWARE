@@ -2639,7 +2639,8 @@ async def export_payslips(
     writer.writerow([
         "Payslip ID", "Employee ID", "Employee Name", "Month", "Year",
         "Basic", "HRA", "Special Allowance", "Conveyance", "Extra Conveyance",
-        "Leave Adjustment", "Attendance Adjustment", "Gross Pay", "Deductions",
+        "Leave Adjustment", "Attendance Adjustment", "Full Days", "Half Days",
+        "Leave Days", "Absent Days", "Total Duty Earned", "Gross Pay", "Deductions",
         "Net Pay", "Status", "Paid On"
     ])
     
@@ -2659,6 +2660,11 @@ async def export_payslips(
             breakdown.get("extra_conveyance", 0),
             breakdown.get("leave_adjustment", 0),
             breakdown.get("attendance_adjustment", 0),
+            breakdown.get("full_days", 0),
+            breakdown.get("half_days", 0),
+            breakdown.get("leave_days", 0),
+            breakdown.get("absent_days", 0),
+            breakdown.get("total_duty_earned", 0),
             breakdown.get("gross_pay", 0),
             breakdown.get("deductions", 0),
             breakdown.get("net_pay", 0),
