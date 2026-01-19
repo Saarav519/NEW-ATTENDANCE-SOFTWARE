@@ -3598,3 +3598,223 @@ async def export_emi_payments(month: Optional[str] = None, year: Optional[int] =
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
+
+
+# ==================== PAYABLE / CREDIT ROUTES ====================
+
+@router.post("/payables", response_model=PayableResponse)
+async def create_payable(data: PayableCreate):
+    """Create a new payable/credit entry"""
+    payable_doc = {
+        "id": f"PAY{generate_id()}",
+        "creditor_name": data.creditor_name,
+        "total_amount": data.total_amount,
+        "due_date": data.due_date,
+        "description": data.description,
+        "amount_paid": 0,
+        "remaining_balance": data.total_amount,
+        "status": PayableStatus.PENDING,
+        "notes": data.notes,
+        "created_at": get_utc_now_str()
+    }
+    
+    await db.payables.insert_one(payable_doc)
+    payable_doc.pop("_id", None)
+    return PayableResponse(**payable_doc)
+
+
+@router.get("/payables", response_model=List[PayableResponse])
+async def get_payables(status: Optional[str] = None):
+    """Get all payables, optionally filtered by status"""
+    query = {}
+    if status:
+        query["status"] = status
+    
+    payables = await db.payables.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return payables
+
+
+@router.get("/payables/summary", response_model=PayableSummary)
+async def get_payable_summary():
+    """Get overall payable summary"""
+    payables = await db.payables.find({}, {"_id": 0}).to_list(100)
+    
+    pending = [p for p in payables if p.get("status") in [PayableStatus.PENDING, PayableStatus.PARTIAL]]
+    
+    return PayableSummary(
+        total_payables=len(payables),
+        pending_payables=len(pending),
+        total_payable_amount=sum(p.get("total_amount", 0) for p in payables),
+        total_paid=sum(p.get("amount_paid", 0) for p in payables),
+        total_remaining=sum(p.get("remaining_balance", 0) for p in pending)
+    )
+
+
+@router.get("/payables/{payable_id}", response_model=PayableResponse)
+async def get_payable(payable_id: str):
+    """Get a single payable by ID"""
+    payable = await db.payables.find_one({"id": payable_id}, {"_id": 0})
+    if not payable:
+        raise HTTPException(status_code=404, detail="Payable not found")
+    return payable
+
+
+@router.put("/payables/{payable_id}", response_model=PayableResponse)
+async def update_payable(payable_id: str, data: PayableCreate):
+    """Update payable details (only if no payments made)"""
+    payable = await db.payables.find_one({"id": payable_id}, {"_id": 0})
+    if not payable:
+        raise HTTPException(status_code=404, detail="Payable not found")
+    
+    if payable.get("amount_paid", 0) > 0:
+        raise HTTPException(status_code=400, detail="Cannot edit payable after payments have been made")
+    
+    update_data = {
+        "creditor_name": data.creditor_name,
+        "total_amount": data.total_amount,
+        "due_date": data.due_date,
+        "description": data.description,
+        "remaining_balance": data.total_amount,
+        "notes": data.notes
+    }
+    
+    await db.payables.update_one({"id": payable_id}, {"$set": update_data})
+    updated = await db.payables.find_one({"id": payable_id}, {"_id": 0})
+    return PayableResponse(**updated)
+
+
+@router.delete("/payables/{payable_id}")
+async def delete_payable(payable_id: str):
+    """Delete a payable (only if no payments made)"""
+    payable = await db.payables.find_one({"id": payable_id}, {"_id": 0})
+    if not payable:
+        raise HTTPException(status_code=404, detail="Payable not found")
+    
+    if payable.get("amount_paid", 0) > 0:
+        raise HTTPException(status_code=400, detail="Cannot delete payable with payments")
+    
+    await db.payables.delete_one({"id": payable_id})
+    return {"message": "Payable deleted"}
+
+
+@router.post("/payables/{payable_id}/pay", response_model=PayablePaymentResponse)
+async def record_payable_payment(payable_id: str, data: PayablePaymentCreate):
+    """Record a payment for a payable"""
+    payable = await db.payables.find_one({"id": payable_id}, {"_id": 0})
+    if not payable:
+        raise HTTPException(status_code=404, detail="Payable not found")
+    
+    if payable.get("status") == PayableStatus.PAID:
+        raise HTTPException(status_code=400, detail="Payable is already fully paid")
+    
+    # Calculate new balance
+    new_balance = max(0, payable["remaining_balance"] - data.amount)
+    new_total_paid = payable.get("amount_paid", 0) + data.amount
+    
+    # Determine new status
+    new_status = PayableStatus.PENDING
+    if new_balance <= 0:
+        new_status = PayableStatus.PAID
+    elif new_total_paid > 0:
+        new_status = PayableStatus.PARTIAL
+    
+    # Get month/year from payment date
+    month, year = get_month_year_from_date(data.payment_date)
+    
+    # Create payment record
+    payment_doc = {
+        "id": f"PAYPMT{generate_id()}",
+        "payable_id": payable_id,
+        "creditor_name": payable["creditor_name"],
+        "payment_date": data.payment_date,
+        "amount": data.amount,
+        "balance_after_payment": new_balance,
+        "notes": data.notes,
+        "created_at": get_utc_now_str(),
+        "month": month,
+        "year": year
+    }
+    
+    await db.payable_payments.insert_one(payment_doc)
+    
+    # Update payable balance
+    await db.payables.update_one(
+        {"id": payable_id},
+        {"$set": {
+            "remaining_balance": new_balance,
+            "amount_paid": new_total_paid,
+            "status": new_status
+        }}
+    )
+    
+    # Create auto Cash Out entry
+    await create_auto_cash_out(
+        category="credit_payable",
+        description=f"Payment to {payable['creditor_name']}" + (f" - {payable.get('description', '')}" if payable.get('description') else ""),
+        amount=data.amount,
+        date=data.payment_date,
+        reference_id=payment_doc["id"],
+        reference_type="payable_payment"
+    )
+    
+    payment_doc.pop("_id", None)
+    return PayablePaymentResponse(**payment_doc)
+
+
+@router.get("/payables/{payable_id}/payments", response_model=List[PayablePaymentResponse])
+async def get_payable_payments(payable_id: str):
+    """Get all payments for a payable"""
+    payments = await db.payable_payments.find(
+        {"payable_id": payable_id}, {"_id": 0}
+    ).sort("payment_date", -1).to_list(100)
+    return payments
+
+
+@router.get("/payable-payments", response_model=List[PayablePaymentResponse])
+async def get_all_payable_payments(month: Optional[str] = None, year: Optional[int] = None):
+    """Get all payable payments, optionally filtered by month/year"""
+    query = {}
+    if month:
+        query["month"] = month
+    if year:
+        query["year"] = year
+    
+    payments = await db.payable_payments.find(query, {"_id": 0}).sort("payment_date", -1).to_list(500)
+    return payments
+
+
+@router.get("/export/payables")
+async def export_payables():
+    """Export payable details to CSV"""
+    payables = await db.payables.find({}, {"_id": 0}).to_list(100)
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Headers
+    writer.writerow([
+        "Payable ID", "Creditor Name", "Description", "Total Amount", "Amount Paid",
+        "Remaining Balance", "Due Date", "Status", "Created At"
+    ])
+    
+    for p in payables:
+        writer.writerow([
+            p.get("id", ""),
+            p.get("creditor_name", ""),
+            p.get("description", ""),
+            p.get("total_amount", 0),
+            p.get("amount_paid", 0),
+            p.get("remaining_balance", 0),
+            p.get("due_date", "N/A"),
+            p.get("status", ""),
+            p.get("created_at", "")[:10]
+        ])
+    
+    output.seek(0)
+    filename = f"payables_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
