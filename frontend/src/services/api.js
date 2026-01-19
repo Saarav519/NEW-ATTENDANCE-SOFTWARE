@@ -427,6 +427,22 @@ export const exportAPI = {
     if (empId) params.append('emp_id', empId);
     return `${API_URL}/api/export/advances?${params}`;
   },
+  auditExpenses: (month, year, status, empId) => {
+    const params = new URLSearchParams();
+    if (month) params.append('month', month);
+    if (year) params.append('year', year);
+    if (status) params.append('status', status);
+    if (empId) params.append('emp_id', empId);
+    return `${API_URL}/api/export/audit-expenses?${params}`;
+  },
+  billsAdvances: (monthName, year, status, empId) => {
+    const params = new URLSearchParams();
+    if (monthName) params.append('month', monthName);
+    if (year) params.append('year', year);
+    if (status) params.append('status', status);
+    if (empId) params.append('emp_id', empId);
+    return `${API_URL}/api/export/bills-advances?${params}`;
+  },
   cashbook: (monthName, year) => {
     const params = new URLSearchParams();
     if (monthName) params.append('month', monthName);
