@@ -263,8 +263,12 @@ const Payslip = () => {
             <CardContent className="p-5">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-white/70">Net Salary</p>
-                <span className="text-xs px-2 py-1 rounded-full font-medium bg-green-500 flex items-center gap-1">
-                  <Check size={12} /> Settled
+                <span className={`text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1 ${
+                  selectedPayslip.status === 'settled' ? 'bg-green-500' : 
+                  selectedPayslip.status === 'generated' ? 'bg-blue-500' : 'bg-gray-500'
+                }`}>
+                  {selectedPayslip.status === 'settled' ? <><Check size={12} /> Paid</> : 
+                   selectedPayslip.status === 'generated' ? 'Generated' : 'Preview'}
                 </span>
               </div>
               <p className="text-4xl font-bold mb-1">₹{(breakdown.net_pay || 0).toLocaleString()}</p>
@@ -274,6 +278,29 @@ const Payslip = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Bank Details Card */}
+          {(user?.bank_name || user?.bank_account_number) && (
+            <Card className="border-l-4 border-l-blue-500">
+              <CardContent className="p-4">
+                <p className="text-xs text-gray-500 mb-2">BANK DETAILS</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Bank Name</span>
+                    <span className="font-medium">{user?.bank_name || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Account No.</span>
+                    <span className="font-medium font-mono">{user?.bank_account_number || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">IFSC Code</span>
+                    <span className="font-medium font-mono">{user?.bank_ifsc || 'N/A'}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Salary Breakdown */}
           <Card>
