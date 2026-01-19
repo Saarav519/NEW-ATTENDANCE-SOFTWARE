@@ -2535,3 +2535,61 @@ async def export_bills(
         media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+
+@router.get("/export/advances")
+async def export_advances(
+    status: Optional[str] = None,
+    emp_id: Optional[str] = None,
+    month: Optional[str] = None,
+    year: Optional[int] = None
+):
+    """Export salary advance records to CSV"""
+    query = {}
+    if status:
+        query["status"] = status
+    if emp_id:
+        query["emp_id"] = emp_id
+    if month:
+        query["deduct_from_month"] = month
+    if year:
+        query["deduct_from_year"] = year
+    
+    advances = await db.advances.find(query, {"_id": 0}).sort("requested_on", -1).to_list(10000)
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Header
+    writer.writerow([
+        "Advance ID", "Employee ID", "Employee Name", "Amount", "Reason",
+        "Deduct From Month", "Deduct From Year", "Status", "Requested On",
+        "Approved By", "Approved On", "Is Deducted", "Deducted On"
+    ])
+    
+    # Data rows
+    for advance in advances:
+        writer.writerow([
+            advance.get("id", ""),
+            advance.get("emp_id", ""),
+            advance.get("emp_name", ""),
+            advance.get("amount", 0),
+            advance.get("reason", ""),
+            advance.get("deduct_from_month", ""),
+            advance.get("deduct_from_year", ""),
+            advance.get("status", ""),
+            advance.get("requested_on", ""),
+            advance.get("approved_by", ""),
+            advance.get("approved_on", ""),
+            "Yes" if advance.get("is_deducted") else "No",
+            advance.get("deducted_on", "")
+        ])
+    
+    output.seek(0)
+    
+    filename = f"advances_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
