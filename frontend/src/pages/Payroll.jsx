@@ -304,9 +304,9 @@ const Payroll = () => {
                   <tr>
                     <th className="text-left p-3 text-sm font-semibold text-gray-600">Employee</th>
                     <th className="text-left p-3 text-sm font-semibold text-gray-600">Month</th>
-                    <th className="text-right p-3 text-sm font-semibold text-gray-600">Basic</th>
-                    <th className="text-right p-3 text-sm font-semibold text-gray-600">Gross</th>
-                    <th className="text-right p-3 text-sm font-semibold text-gray-600">Deductions</th>
+                    <th className="text-right p-3 text-sm font-semibold text-gray-600">Days</th>
+                    <th className="text-right p-3 text-sm font-semibold text-gray-600">Duty Earned</th>
+                    <th className="text-right p-3 text-sm font-semibold text-gray-600">Conveyance</th>
                     <th className="text-right p-3 text-sm font-semibold text-gray-600">Advance</th>
                     <th className="text-right p-3 text-sm font-semibold text-gray-600">Net Salary</th>
                     <th className="text-center p-3 text-sm font-semibold text-gray-600">Status</th>
@@ -318,23 +318,40 @@ const Payroll = () => {
                     <tr key={payslip.id} className="hover:bg-gray-50">
                       <td className="p-3 font-medium">{payslip.emp_name}</td>
                       <td className="p-3 text-sm text-gray-600">{payslip.month} {payslip.year}</td>
-                      <td className="p-3 text-right">₹{payslip.breakdown?.basic?.toLocaleString()}</td>
-                      <td className="p-3 text-right">₹{payslip.breakdown?.gross_pay?.toLocaleString()}</td>
-                      <td className="p-3 text-right text-red-600">-₹{payslip.breakdown?.deductions?.toLocaleString()}</td>
+                      <td className="p-3 text-right text-sm">
+                        <span className="text-green-600">{payslip.breakdown?.full_days || 0}F</span>
+                        {payslip.breakdown?.half_days > 0 && <span className="text-yellow-600 ml-1">{payslip.breakdown.half_days}H</span>}
+                        {payslip.breakdown?.leave_days > 0 && <span className="text-blue-600 ml-1">{payslip.breakdown.leave_days}L</span>}
+                        {payslip.breakdown?.absent_days > 0 && <span className="text-red-600 ml-1">{payslip.breakdown.absent_days}A</span>}
+                      </td>
+                      <td className="p-3 text-right">₹{(payslip.breakdown?.total_duty_earned || 0).toLocaleString()}</td>
+                      <td className="p-3 text-right">₹{(payslip.breakdown?.conveyance || 0).toLocaleString()}</td>
                       <td className="p-3 text-right text-orange-600">
                         {payslip.breakdown?.advance_deduction > 0 ? `-₹${payslip.breakdown.advance_deduction.toLocaleString()}` : '-'}
                       </td>
-                      <td className="p-3 text-right font-semibold text-green-600">₹{payslip.breakdown?.net_pay?.toLocaleString()}</td>
+                      <td className="p-3 text-right font-semibold text-green-600">₹{(payslip.breakdown?.net_pay || 0).toLocaleString()}</td>
                       <td className="p-3 text-center">{getStatusBadge(payslip.status)}</td>
                       <td className="p-3 text-center">
-                        <div className="flex justify-center gap-2">
-                          <Button size="sm" variant="outline" onClick={() => { setSelectedPayslip(payslip); setIsViewDialogOpen(true); }}>
+                        <div className="flex justify-center gap-1">
+                          <Button size="sm" variant="outline" onClick={() => { setSelectedPayslip(payslip); setIsViewDialogOpen(true); }} title="View Details">
                             <Eye size={14} />
                           </Button>
                           {(payslip.status === 'preview' || payslip.status === 'pending') && user?.role === 'admin' && (
-                            <Button size="sm" onClick={() => handleGeneratePayslip(payslip)} className="bg-blue-600 hover:bg-blue-700">
-                              Generate
-                            </Button>
+                            <>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                onClick={() => handleRecalculate(payslip)} 
+                                disabled={recalculating === payslip.id}
+                                className="text-orange-600 border-orange-300"
+                                title="Recalculate from attendance"
+                              >
+                                {recalculating === payslip.id ? <Loader2 className="animate-spin" size={14} /> : <RefreshCw size={14} />}
+                              </Button>
+                              <Button size="sm" onClick={() => handleGeneratePayslip(payslip)} className="bg-blue-600 hover:bg-blue-700">
+                                Generate
+                              </Button>
+                            </>
                           )}
                           {payslip.status === 'generated' && user?.role === 'admin' && (
                             <Button size="sm" onClick={() => handleSettle(payslip)} className="bg-green-600 hover:bg-green-700">
