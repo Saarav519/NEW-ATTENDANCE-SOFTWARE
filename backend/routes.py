@@ -189,7 +189,16 @@ async def create_user(user: UserCreate):
 @router.put("/users/{user_id}", response_model=UserResponse)
 async def update_user(user_id: str, updates: dict):
     # Remove sensitive fields from updates
-
+    updates.pop("_id", None)
+    updates.pop("id", None)
+    updates.pop("password", None)
+    
+    result = await db.users.update_one({"id": user_id}, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
+    return UserResponse(**user)
 
 @router.put("/users/{user_id}/reset-password")
 async def reset_password(user_id: str, new_password: str, reset_by: str):
