@@ -71,6 +71,7 @@ const Cashbook = () => {
   // Form states
   const [newCashIn, setNewCashIn] = useState({
     client_name: '', invoice_number: '', invoice_date: '', invoice_amount: '',
+    gst_percentage: '', gst_amount: '0',
     payment_status: 'pending', amount_received: '0', invoice_pdf_url: '', notes: ''
   });
   const [newCashOut, setNewCashOut] = useState({
