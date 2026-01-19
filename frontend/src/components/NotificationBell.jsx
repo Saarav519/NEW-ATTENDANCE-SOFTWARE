@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNotifications } from '../../context/NotificationContext';
+import { useNotifications } from '../context/NotificationContext';
 import { Bell, Check, CheckCheck, Clock, Calendar, Receipt, FileText, X } from 'lucide-react';
-import { Button } from '../ui/button';
+import { Button } from './ui/button';
 import { formatDistanceToNow } from 'date-fns';
 
 const NotificationBell = () => {
