@@ -2906,12 +2906,19 @@ async def export_payslips(
     
     payslips = await db.payslips.find(query, {"_id": 0}).sort("created_on", -1).to_list(10000)
     
+    # Get all user data for bank details lookup
+    users_data = {}
+    users_list = await db.users.find({}, {"_id": 0}).to_list(10000)
+    for u in users_list:
+        users_data[u.get("id")] = u
+    
     output = io.StringIO()
     writer = csv.writer(output)
     
-    # Header
+    # Header - includes bank details
     writer.writerow([
         "Payslip ID", "Employee ID", "Employee Name", "Month", "Year",
+        "Bank Name", "Account Number", "IFSC Code",
         "Basic", "HRA", "Special Allowance", "Conveyance", "Bills/Previous Pending Approved",
         "Leave Adjustment", "Attendance Adjustment", "Full Days", "Half Days",
         "Leave Days", "Absent Days", "Total Duty Earned", "Advance Deduction",
@@ -2921,12 +2928,16 @@ async def export_payslips(
     # Data rows
     for payslip in payslips:
         breakdown = payslip.get("breakdown", {})
+        emp_user = users_data.get(payslip.get("emp_id"), {})
         writer.writerow([
             payslip.get("id", ""),
             payslip.get("emp_id", ""),
             payslip.get("emp_name", ""),
             payslip.get("month", ""),
             payslip.get("year", ""),
+            emp_user.get("bank_name", ""),
+            emp_user.get("bank_account_number", ""),
+            emp_user.get("bank_ifsc", ""),
             breakdown.get("basic", 0),
             breakdown.get("hra", 0),
             breakdown.get("special_allowance", 0),
