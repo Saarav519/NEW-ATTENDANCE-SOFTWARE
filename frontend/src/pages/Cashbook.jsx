@@ -313,6 +313,11 @@ const Cashbook = () => {
     }
   };
 
+  const getCategoryName = (categoryId) => {
+    const cat = categories.find(c => c.id === categoryId);
+    return cat ? cat.name : categoryId?.replace(/_/g, ' ')?.replace(/\b\w/g, l => l.toUpperCase());
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
