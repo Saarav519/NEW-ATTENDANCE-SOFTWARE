@@ -15,10 +15,23 @@ const EmployeeAttendance = () => {
   const [employee, setEmployee] = useState(null);
   const [attendance, setAttendance] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedMonth, setSelectedMonth] = useState('January');
-  const [selectedYear, setSelectedYear] = useState(2026);
+  const [selectedMonth, setSelectedMonth] = useState(12); // December = 12
+  const [selectedYear, setSelectedYear] = useState(2025);
   
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const months = [
+    { value: 1, label: 'January' },
+    { value: 2, label: 'February' },
+    { value: 3, label: 'March' },
+    { value: 4, label: 'April' },
+    { value: 5, label: 'May' },
+    { value: 6, label: 'June' },
+    { value: 7, label: 'July' },
+    { value: 8, label: 'August' },
+    { value: 9, label: 'September' },
+    { value: 10, label: 'October' },
+    { value: 11, label: 'November' },
+    { value: 12, label: 'December' }
+  ];
   const years = [2024, 2025, 2026, 2027];
 
   useEffect(() => {
@@ -27,17 +40,15 @@ const EmployeeAttendance = () => {
 
   const loadData = async () => {
     try {
-      // Convert month name to number (1-12)
-      const monthNumber = months.indexOf(selectedMonth) + 1;
-      
       const [empData, attData] = await Promise.all([
         usersAPI.getById(empId),
-        attendanceAPI.getAll(empId, null, monthNumber, selectedYear)
+        attendanceAPI.getAll(empId, null, selectedMonth, selectedYear)
       ]);
       setEmployee(empData);
       setAttendance(attData);
     } catch (error) {
       toast.error('Failed to load data');
+      console.error('Load error:', error);
     } finally {
       setLoading(false);
     }
@@ -93,10 +104,10 @@ const EmployeeAttendance = () => {
           <div className="flex gap-4 items-center">
             <div className="flex-1">
               <label className="text-sm font-medium mb-2 block">Month</label>
-              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <Select value={selectedMonth.toString()} onValueChange={(v) => setSelectedMonth(parseInt(v))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {months.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                  {months.map(m => <SelectItem key={m.value} value={m.value.toString()}>{m.label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -167,7 +178,7 @@ const EmployeeAttendance = () => {
           {attendance.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
               <Calendar className="mx-auto h-12 w-12 mb-4 text-gray-300" />
-              <p>No attendance records found for {selectedMonth} {selectedYear}</p>
+              <p>No attendance records found for {months.find(m => m.value === selectedMonth)?.label} {selectedYear}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -237,7 +248,7 @@ const EmployeeAttendance = () => {
           <div className="flex items-start gap-3">
             <Calendar className="text-blue-600 mt-1" size={20} />
             <div className="text-sm text-blue-800">
-              <p className="font-semibold mb-1">Attendance Overview for {selectedMonth} {selectedYear}</p>
+              <p className="font-semibold mb-1">Attendance Overview for {months.find(m => m.value === selectedMonth)?.label} {selectedYear}</p>
               <ul className="space-y-1 text-xs">
                 <li>• <strong>Full Day:</strong> Employee worked complete shift hours</li>
                 <li>• <strong>Half Day:</strong> Employee worked partial shift</li>
