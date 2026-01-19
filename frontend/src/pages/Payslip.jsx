@@ -65,9 +65,19 @@ const Payslip = () => {
     doc.text(`Status: ${selectedPayslip.status.toUpperCase()}`, 140, 45);
     doc.text(`Paid On: ${selectedPayslip.paid_on || 'N/A'}`, 140, 52);
     
+    // Bank Details
+    if (user?.bank_name || user?.bank_account_number || user?.bank_ifsc) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('Bank Details:', 20, 68);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Bank: ${user?.bank_name || 'N/A'}`, 60, 68);
+      doc.text(`A/C No: ${user?.bank_account_number || 'N/A'}`, 20, 75);
+      doc.text(`IFSC: ${user?.bank_ifsc || 'N/A'}`, 110, 75);
+    }
+    
     // Separator
     doc.setLineWidth(0.5);
-    doc.line(20, 65, 190, 65);
+    doc.line(20, 80, 190, 80);
     
     // Attendance Summary
     if (breakdown.full_days || breakdown.half_days || breakdown.absent_days) {
