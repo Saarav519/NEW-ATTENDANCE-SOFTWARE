@@ -11,7 +11,7 @@ import {
 } from 'recharts';
 import {
   TrendingUp, Users, Calendar, IndianRupee, Download,
-  Building, Clock, PieChartIcon, BarChart3, FileDown
+  Building, Clock, PieChartIcon, BarChart3, FileDown, Receipt
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
