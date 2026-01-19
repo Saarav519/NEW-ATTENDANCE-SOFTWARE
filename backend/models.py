@@ -44,6 +44,7 @@ class AttendanceStatus(str, Enum):
     HALF_DAY = "half_day"
     ABSENT = "absent"
     PRESENT = "present"  # Legacy status
+    LEAVE = "leave"  # Approved leave
 
 # User Models
 class UserBase(BaseModel):
