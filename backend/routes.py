@@ -834,6 +834,12 @@ async def generate_payslip(data: PayslipCreate):
 
 @router.put("/payslips/{payslip_id}/settle")
 async def settle_payslip(payslip_id: str):
+    # Get the payslip first
+    payslip = await db.payslips.find_one({"id": payslip_id}, {"_id": 0})
+    if not payslip:
+        raise HTTPException(status_code=404, detail="Payslip not found")
+    
+    # Mark the payslip as settled
     result = await db.payslips.update_one(
         {"id": payslip_id},
         {"$set": {
@@ -842,8 +848,15 @@ async def settle_payslip(payslip_id: str):
             "settled_on": get_utc_now_str()[:10]
         }}
     )
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Payslip not found")
+    
+    # Mark associated advances as deducted
+    advance_ids = payslip.get("advance_ids", [])
+    if advance_ids:
+        await db.advances.update_many(
+            {"id": {"$in": advance_ids}},
+            {"$set": {"is_deducted": True, "deducted_on": get_utc_now_str()[:10]}}
+        )
+    
     return {"message": "Payslip settled"}
 
 @router.get("/payslips/{payslip_id}/download")
