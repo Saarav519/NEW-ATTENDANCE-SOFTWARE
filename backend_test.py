@@ -1197,6 +1197,13 @@ def run_all_tests():
     test_notification_apis()
     
     print("=" * 80)
+    print("🚀 TESTING DUAL LOAN TYPE SUPPORT (Latest Feature)")
+    print("=" * 80)
+    
+    # NEW: Test Dual Loan Type Support
+    test_dual_loan_type_support()
+    
+    print("=" * 80)
     print("🏁 Backend API Testing Complete")
     print("=" * 80)
 
