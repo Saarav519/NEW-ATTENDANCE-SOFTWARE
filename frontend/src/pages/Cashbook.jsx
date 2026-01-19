@@ -1167,7 +1167,34 @@ const Cashbook = () => {
               </div>
               <div className="space-y-2">
                 <Label>Invoice Amount (₹) *</Label>
-                <Input type="number" value={newCashIn.invoice_amount} onChange={(e) => setNewCashIn({...newCashIn, invoice_amount: e.target.value})} />
+                <Input type="number" value={newCashIn.invoice_amount} onChange={(e) => {
+                  const amount = e.target.value;
+                  setNewCashIn({...newCashIn, invoice_amount: amount});
+                  // Auto-calculate GST if percentage exists
+                  if (newCashIn.gst_percentage) {
+                    const gstAmt = (parseFloat(amount) * parseFloat(newCashIn.gst_percentage)) / 100;
+                    setNewCashIn(prev => ({...prev, invoice_amount: amount, gst_amount: gstAmt.toFixed(2)}));
+                  }
+                }} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>GST Percentage (%)</Label>
+                <Input type="number" step="0.01" placeholder="e.g., 18" value={newCashIn.gst_percentage} onChange={(e) => {
+                  const gstPercent = e.target.value;
+                  setNewCashIn({...newCashIn, gst_percentage: gstPercent});
+                  // Auto-calculate GST amount
+                  if (newCashIn.invoice_amount && gstPercent) {
+                    const gstAmt = (parseFloat(newCashIn.invoice_amount) * parseFloat(gstPercent)) / 100;
+                    setNewCashIn(prev => ({...prev, gst_percentage: gstPercent, gst_amount: gstAmt.toFixed(2)}));
+                  }
+                }} />
+              </div>
+              <div className="space-y-2">
+                <Label>GST Amount (₹) - Auto-calculated</Label>
+                <Input type="number" value={newCashIn.gst_amount} disabled className="bg-gray-100" />
+                <p className="text-xs text-gray-500">Automatically calculated based on percentage</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
