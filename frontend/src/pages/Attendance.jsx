@@ -69,12 +69,15 @@ const Attendance = () => {
         workHours: record.work_hours || 0,
         attendanceStatus: record.attendance_status || 'full_day',
         location: record.location || '',
-        conveyance: record.conveyance_amount || 0
+        conveyance: record.conveyance_amount || 0,
+        dailyDuty: record.daily_duty_amount || 0
       } : { 
         status: 'not-marked', 
         punchIn: null, 
         punchOut: null, 
-        workHours: 0 
+        workHours: 0,
+        conveyance: 0,
+        dailyDuty: 0
       }
     };
   });
