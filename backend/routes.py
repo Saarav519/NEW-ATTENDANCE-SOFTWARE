@@ -970,6 +970,7 @@ async def generate_payslip(data: PayslipCreate):
         full_days=full_days + leave_days,  # Include leave days as full days
         half_days=half_days,
         absent_days=absent_days,
+        leave_days=leave_days,  # Separate count of leave days
         total_duty_earned=round(total_duty_earned, 2),
         advance_deduction=advance_deduction,
         gross_pay=round(gross, 2),
