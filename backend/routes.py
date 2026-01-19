@@ -1373,9 +1373,9 @@ async def create_monthly_payslips(month: str, year: int):
             "year": year,
             "status": "preview",
             "breakdown": {
-                "basic": basic,
-                "hra": hra,
-                "special_allowance": special_allowance,
+                "basic": 0.0,  # Will be calculated from attendance
+                "hra": 0.0,
+                "special_allowance": 0.0,
                 "conveyance": 0.0,
                 "leave_adjustment": 0.0,
                 "extra_conveyance": 0.0,
@@ -1388,9 +1388,9 @@ async def create_monthly_payslips(month: str, year: int):
                 "total_duty_earned": 0.0,
                 "audit_expenses": 0.0,
                 "advance_deduction": 0.0,
-                "gross_pay": salary,
+                "gross_pay": 0.0,  # Will be calculated from attendance
                 "deductions": 0.0,
-                "net_pay": salary
+                "net_pay": 0.0  # FIXED: Start with 0, not full salary
             },
             "created_on": datetime.now().isoformat(),
             "paid_on": None
