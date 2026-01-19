@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import {
   TrendingUp, TrendingDown, Plus, Edit2, Trash2, Download, Lock, Unlock,
   FileText, Upload, Eye, IndianRupee, Calendar, Building, Loader2, X, FileDown,
-  Landmark, CreditCard, CheckCircle, AlertCircle, History
+  Landmark, CreditCard, CheckCircle, AlertCircle, History, Banknote, Clock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
