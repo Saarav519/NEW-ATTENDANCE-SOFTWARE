@@ -129,7 +129,7 @@ const EmployeeAttendance = () => {
       </Card>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -156,6 +156,17 @@ const EmployeeAttendance = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
+                <p className="text-sm text-gray-500">Leave</p>
+                <p className="text-2xl font-bold text-orange-600">{leaveDays}</p>
+              </div>
+              <Calendar className="text-orange-500" size={32} />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm text-gray-500">Absent</p>
                 <p className="text-2xl font-bold text-red-600">{absentDays}</p>
               </div>
@@ -170,7 +181,9 @@ const EmployeeAttendance = () => {
                 <p className="text-sm text-gray-500">Total Conveyance</p>
                 <p className="text-2xl font-bold text-blue-600">₹{totalConveyance.toLocaleString()}</p>
               </div>
-              <Calendar className="text-blue-500" size={32} />
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <span className="text-blue-600 font-bold">₹</span>
+              </div>
             </div>
           </CardContent>
         </Card>
