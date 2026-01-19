@@ -328,6 +328,35 @@ async def punch_in(data: AttendanceCreate, emp_id: str):
     await db.attendance.insert_one(attendance_doc)
     attendance_doc.pop("_id", None)
     
+    # Get employee name for notification
+    user = await db.users.find_one({"id": emp_id}, {"_id": 0})
+    emp_name = user.get("name", emp_id) if user else emp_id
+    
+    # Broadcast real-time attendance update to admins and team leads
+    await manager.broadcast_to_admins_and_teamleads({
+        "type": "attendance_update",
+        "action": "punch_in",
+        "data": {
+            "emp_id": emp_id,
+            "emp_name": emp_name,
+            "punch_in": punch_in_time,
+            "location": qr_code["location"],
+            "attendance_status": attendance_status,
+            "date": today
+        }
+    })
+    
+    # Create notification for admins/team leads
+    await create_notification(
+        recipient_id="",
+        recipient_role="admin",
+        title="Employee Punched In",
+        message=f"{emp_name} punched in at {punch_in_time} from {qr_code['location']}",
+        notification_type="attendance",
+        related_id=attendance_doc["id"],
+        data={"emp_id": emp_id, "action": "punch_in"}
+    )
+    
     return AttendanceResponse(**attendance_doc)
 
 # Direct punch-in for Team Leaders (without QR)
