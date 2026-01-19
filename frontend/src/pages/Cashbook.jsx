@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { cashbookAPI, exportAPI } from '../services/api';
+import { cashbookAPI, exportAPI, loanAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -15,7 +15,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import {
   TrendingUp, TrendingDown, Plus, Edit2, Trash2, Download, Lock, Unlock,
-  FileText, Upload, Eye, IndianRupee, Calendar, Building, Loader2, X, FileDown
+  FileText, Upload, Eye, IndianRupee, Calendar, Building, Loader2, X, FileDown,
+  Landmark, CreditCard, CheckCircle, AlertCircle, History
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -40,6 +41,12 @@ const Cashbook = () => {
   const [summary, setSummary] = useState({ total_cash_in: 0, total_cash_out: 0, net_profit_loss: 0, is_locked: false });
   const [locks, setLocks] = useState([]);
   
+  // Loan states
+  const [loans, setLoans] = useState([]);
+  const [loanSummary, setLoanSummary] = useState({ total_loans: 0, active_loans: 0, total_remaining: 0 });
+  const [selectedLoan, setSelectedLoan] = useState(null);
+  const [loanPayments, setLoanPayments] = useState([]);
+  
   // Loading states
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -48,6 +55,10 @@ const Cashbook = () => {
   const [cashInDialog, setCashInDialog] = useState({ open: false, mode: 'add', data: null });
   const [cashOutDialog, setCashOutDialog] = useState({ open: false, mode: 'add', data: null });
   const [categoryDialog, setCategoryDialog] = useState({ open: false });
+  const [loanDialog, setLoanDialog] = useState({ open: false, mode: 'add', data: null });
+  const [emiDialog, setEmiDialog] = useState({ open: false, loan: null });
+  const [precloseDialog, setPrecloseDialog] = useState({ open: false, loan: null });
+  const [paymentsDialog, setPaymentsDialog] = useState({ open: false, loan: null });
   
   // Form states
   const [newCashIn, setNewCashIn] = useState({
@@ -58,6 +69,14 @@ const Cashbook = () => {
     category: '', description: '', amount: '', date: '', notes: ''
   });
   const [newCategory, setNewCategory] = useState({ name: '', description: '' });
+  const [newLoan, setNewLoan] = useState({
+    loan_name: '', lender_name: '', total_loan_amount: '', emi_amount: '',
+    emi_day: '10', loan_start_date: '', interest_rate: '', loan_tenure_months: '', notes: ''
+  });
+  const [newEmi, setNewEmi] = useState({
+    payment_date: '', amount: '', is_extra_payment: false, notes: ''
+  });
+  const [precloseAmount, setPrecloseAmount] = useState('');
   const [uploadingInvoice, setUploadingInvoice] = useState(false);
 
   useEffect(() => {
