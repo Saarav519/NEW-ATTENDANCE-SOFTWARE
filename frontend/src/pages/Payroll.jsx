@@ -138,7 +138,7 @@ const Payroll = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -154,10 +154,10 @@ const Payroll = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Settled</p>
-                <p className="text-2xl font-bold text-green-600">{settledCount}</p>
+                <p className="text-sm text-gray-500">Preview</p>
+                <p className="text-2xl font-bold text-gray-600">{previewCount}</p>
               </div>
-              <Check className="text-green-500" size={32} />
+              <Clock className="text-gray-500" size={32} />
             </div>
           </CardContent>
         </Card>
@@ -165,10 +165,21 @@ const Payroll = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Pending</p>
-                <p className="text-2xl font-bold text-yellow-600">{pendingCount}</p>
+                <p className="text-sm text-gray-500">Generated</p>
+                <p className="text-2xl font-bold text-blue-600">{generatedCount}</p>
               </div>
-              <Clock className="text-yellow-500" size={32} />
+              <Check className="text-blue-500" size={32} />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Paid</p>
+                <p className="text-2xl font-bold text-green-600">{settledCount}</p>
+              </div>
+              <IndianRupee className="text-green-500" size={32} />
             </div>
           </CardContent>
         </Card>
