@@ -943,63 +943,97 @@ const BillSubmission = () => {
       </Tabs>
 
       {/* Approve Bill Dialog */}
-      <Dialog open={approveDialog.open} onOpenChange={(open) => { setApproveDialog({ open, bill: null }); setSendToRevalidation(false); }}>
-        <DialogContent className="max-w-sm">
+      <Dialog open={approveDialog.open} onOpenChange={(open) => { setApproveDialog({ open, bill: null, isRevalidation: false }); setSendToRevalidation(false); }}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Approve Bill Submission</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              {approveDialog.isRevalidation ? (
+                <><RefreshCw size={20} className="text-orange-500" /> Partial Approve & Revalidate</>
+              ) : (
+                <><Check size={20} className="text-green-500" /> Approve Bill</>
+              )}
+            </DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-4">
-            <div>
-              <p className="text-sm text-gray-500">Submitted Amount</p>
-              <p className="text-2xl font-bold">₹{approveDialog.bill?.total_amount?.toLocaleString()}</p>
+            {/* Bill Summary */}
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Employee</span>
+                <span className="font-medium">{approveDialog.bill?.emp_name}</span>
+              </div>
+              <div className="flex justify-between items-center mt-2">
+                <span className="text-gray-600">Total Bill Amount</span>
+                <span className="text-xl font-bold">₹{approveDialog.bill?.total_amount?.toLocaleString()}</span>
+              </div>
             </div>
+            
+            {/* Approved Amount Input */}
             <div className="space-y-2">
-              <Label>Approved Amount</Label>
+              <Label className="flex items-center gap-2">
+                <IndianRupee size={14} /> Approved Amount
+              </Label>
               <Input
                 type="number"
                 value={approvedAmount}
                 onChange={(e) => setApprovedAmount(parseFloat(e.target.value) || 0)}
+                max={approveDialog.bill?.total_amount || 0}
                 data-testid="approved-amount-input"
+                className="text-lg font-medium"
               />
-              {approvedAmount < (approveDialog.bill?.total_amount || 0) && approvedAmount > 0 && (
-                <p className="text-sm text-orange-600 flex items-center gap-1">
-                  <AlertCircle size={14} />
-                  Partial approval: ₹{((approveDialog.bill?.total_amount || 0) - approvedAmount).toLocaleString()} remaining
-                </p>
-              )}
             </div>
             
-            {/* Revalidation checkbox - only show for partial approvals */}
-            {approvedAmount < (approveDialog.bill?.total_amount || 0) && approvedAmount > 0 && (
-              <div className="flex items-center space-x-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+            {/* Remaining Balance Display - Always visible when there's a difference */}
+            {approvedAmount >= 0 && approvedAmount < (approveDialog.bill?.total_amount || 0) && (
+              <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="text-orange-700 font-medium">Remaining Balance</span>
+                  <span className="text-2xl font-bold text-orange-600">
+                    ₹{((approveDialog.bill?.total_amount || 0) - approvedAmount).toLocaleString()}
+                  </span>
+                </div>
+                {approveDialog.isRevalidation && (
+                  <p className="text-sm text-orange-600 mt-2">
+                    This remaining amount will be sent for revalidation
+                  </p>
+                )}
+              </div>
+            )}
+            
+            {/* Revalidation checkbox - only for regular approval with partial amount */}
+            {!approveDialog.isRevalidation && approvedAmount < (approveDialog.bill?.total_amount || 0) && approvedAmount > 0 && (
+              <div className="flex items-center space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <Checkbox
                   id="revalidation"
                   checked={sendToRevalidation}
                   onCheckedChange={setSendToRevalidation}
                   data-testid="revalidation-checkbox"
                 />
-                <label htmlFor="revalidation" className="text-sm font-medium cursor-pointer">
-                  Send remaining balance for revalidation
+                <label htmlFor="revalidation" className="text-sm font-medium cursor-pointer text-blue-700">
+                  Send remaining ₹{((approveDialog.bill?.total_amount || 0) - approvedAmount).toLocaleString()} for revalidation
                 </label>
               </div>
             )}
             
+            {/* Info text */}
             <p className="text-xs text-gray-500">
-              {sendToRevalidation 
-                ? "The approved amount will be added to salary. The remaining will require revalidation before settlement."
-                : "This amount will be added to the employee's salary"}
+              {approveDialog.isRevalidation || sendToRevalidation
+                ? "Approved amount will be added to salary. Remaining balance will need further approval."
+                : "This amount will be added to the employee's salary."}
             </p>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setApproveDialog({ open: false, bill: null }); setSendToRevalidation(false); }}>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setApproveDialog({ open: false, bill: null, isRevalidation: false }); setSendToRevalidation(false); }}>
               Cancel
             </Button>
             <Button 
-              className="bg-green-500 hover:bg-green-600" 
+              className={approveDialog.isRevalidation || sendToRevalidation ? "bg-orange-500 hover:bg-orange-600" : "bg-green-500 hover:bg-green-600"}
               onClick={handleApproveBill}
+              disabled={approvedAmount <= 0}
               data-testid="confirm-approve-btn"
             >
-              {sendToRevalidation ? 'Approve & Send for Revalidation' : 'Confirm Approval'}
+              {approveDialog.isRevalidation || sendToRevalidation 
+                ? `Approve ₹${approvedAmount.toLocaleString()} & Revalidate` 
+                : `Approve ₹${approvedAmount.toLocaleString()}`}
             </Button>
           </DialogFooter>
         </DialogContent>
