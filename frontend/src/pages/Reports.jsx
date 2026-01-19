@@ -41,6 +41,7 @@ const Reports = () => {
     totalSalaryPaid: 0,
     totalBillsApproved: 0,
     totalAdvances: 0,
+    totalAuditExpenses: 0,
     attendanceSummary: { present: 0, absent: 0, halfDay: 0, leave: 0 },
     pendingLeaves: 0,
     approvedLeaves: 0
@@ -50,8 +51,8 @@ const Reports = () => {
     { id: 'attendance', name: 'Attendance Report', icon: Calendar, description: 'Daily/monthly attendance summary' },
     { id: 'payroll', name: 'Payroll Report', icon: IndianRupee, description: 'Salary disbursement details' },
     { id: 'leave', name: 'Leave Report', icon: Calendar, description: 'Leave balance and history' },
-    { id: 'bills', name: 'Bills Report', icon: Receipt, description: 'Bill submissions and approvals' },
-    { id: 'advances', name: 'Advance Report', icon: Wallet, description: 'Salary advance requests' },
+    { id: 'bills-advances', name: 'Bills & Advances Report', icon: Receipt, description: 'Bill submissions and salary advances combined' },
+    { id: 'audit-expenses', name: 'Audit Expenses Report', icon: Plane, description: 'Team Leader travel/audit expense claims' },
     { id: 'cashbook', name: 'Cashbook Report', icon: BookOpen, description: 'Cash in/out and profit/loss summary' },
     { id: 'invoices', name: 'Invoice Report', icon: FileTextIcon, description: 'Client invoice details and payments' },
     { id: 'loans', name: 'Loan Report', icon: Landmark, description: 'Loan details, EMIs paid and balances' },
