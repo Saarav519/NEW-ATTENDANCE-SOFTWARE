@@ -166,9 +166,11 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 ---
 
 ## Testing Status
-- **Backend**: 21/21 tests passed (pytest)
+- **Backend**: 45/45 tests passed (pytest)
+  - 21 core API tests
+  - 24 Cashbook module tests
 - **Frontend**: 95% coverage
-- Test files: `/app/tests/test_backend_api.py`
+- Test files: `/app/tests/test_backend_api.py`, `/app/tests/test_cashbook_api.py`
 
 ---
 
