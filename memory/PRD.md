@@ -331,6 +331,14 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
     - Amount breakdown shows approved/remaining on bill cards
   - **Backend Fix:** Added REVALIDATION status to BillStatus enum
 
+- **CRITICAL BUG FIX:** Cash Out Double Counting (Fixed ✅)
+  - **Issue**: Net Salary was being pushed to Cash Out, but Net Salary includes approved bills which already have their own Cash Out entries
+  - **Fix**: Changed `generate_payslip_final` to push only `Duty Earned + Conveyance - Advance` to Cash Out
+  - Bills, Audit Expenses continue to create their own Cash Out entries when approved
+  - **Formula Change**:
+    - OLD: Cash Out for Salary = Net Pay (includes bills + audit expenses) ❌
+    - NEW: Cash Out for Salary = Duty Earned + Conveyance - Advance ✅
+
 ### January 19, 2026 (Session 2)
 - **NEW FEATURE:** Bank Details (Mandatory for Employees/Team Leads) ✅
   - Added `bank_name`, `bank_account_number`, `bank_ifsc` fields to user model
