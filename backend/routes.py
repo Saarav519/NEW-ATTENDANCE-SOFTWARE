@@ -2353,6 +2353,7 @@ async def export_leaves(
 async def export_payslips(
     status: Optional[str] = None,
     emp_id: Optional[str] = None,
+    month: Optional[str] = None,
     year: Optional[int] = None
 ):
     """Export payslip records to CSV"""
@@ -2363,6 +2364,8 @@ async def export_payslips(
         query["emp_id"] = emp_id
     if year:
         query["year"] = year
+    if month:
+        query["month"] = month
     
     payslips = await db.payslips.find(query, {"_id": 0}).sort("created_on", -1).to_list(10000)
     
