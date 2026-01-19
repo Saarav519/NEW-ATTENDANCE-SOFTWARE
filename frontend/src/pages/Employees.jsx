@@ -89,6 +89,14 @@ const Employees = () => {
       return;
     }
     
+    // Check bank details for employees and team leads
+    if (newEmployee.role !== 'admin') {
+      if (!newEmployee.bank_name || !newEmployee.bank_account_number || !newEmployee.bank_ifsc) {
+        toast.error('Bank details (Bank Name, Account Number, IFSC) are mandatory');
+        return;
+      }
+    }
+    
     setSubmitting(true);
     try {
       await usersAPI.create({
@@ -106,6 +114,42 @@ const Employees = () => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleEditEmployee = async () => {
+    if (!editDialog.employee) return;
+    
+    setSubmitting(true);
+    try {
+      const updates = {
+        team_lead_id: editEmployee.team_lead_id || null,
+        changed_by: user.id,
+        change_reason: editEmployee.change_reason || 'Team Leader reassignment'
+      };
+      
+      await usersAPI.update(editDialog.employee.id, updates);
+      toast.success('Employee updated successfully');
+      setEditDialog({ open: false, employee: null });
+      setEditEmployee({ team_lead_id: '', change_reason: '' });
+      loadEmployees();
+    } catch (error) {
+      toast.error(error.message || 'Failed to update employee');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const openEditDialog = (emp) => {
+    setEditEmployee({
+      team_lead_id: emp.team_lead_id || '',
+      change_reason: ''
+    });
+    setEditDialog({ open: true, employee: emp });
+  };
+
+  const openHistoryDialog = async (emp) => {
+    const history = await loadTLHistory(emp.id);
+    setHistoryDialog({ open: true, employee: emp, history });
   };
 
   const handleResetPassword = async () => {
