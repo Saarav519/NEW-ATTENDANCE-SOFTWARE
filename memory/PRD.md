@@ -313,6 +313,23 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 
 ## Changelog
 
+### January 19, 2026 (Session 3)
+- **NEW FEATURE:** Bill Partial Approval & Revalidation (Completed ✅)
+  - Admins can partially approve bills with a specific amount
+  - When amount < total, option to "Send remaining balance for revalidation"
+  - Bills in "revalidation" status display with orange styling
+  - Revalidation filter added to Bills dropdown
+  - Revalidate dialog allows admins to approve additional amount from remaining balance
+  - **Backend APIs:**
+    - `PUT /api/bills/{id}/approve` - now accepts `send_to_revalidation` param
+    - `PUT /api/bills/{id}/revalidate` - approve additional amount for revalidation bills
+  - **UI Updates:**
+    - 4 stat cards: Pending, Revalidation, Pending Amount, Approved Total
+    - Filter dropdown includes "Revalidation" option
+    - Approve dialog shows checkbox for partial approval
+    - Amount breakdown shows approved/remaining on bill cards
+  - **Backend Fix:** Added REVALIDATION status to BillStatus enum
+
 ### January 19, 2026 (Session 2)
 - **NEW FEATURE:** Bank Details (Mandatory for Employees/Team Leads) ✅
   - Added `bank_name`, `bank_account_number`, `bank_ifsc` fields to user model
