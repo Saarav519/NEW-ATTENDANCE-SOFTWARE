@@ -2415,7 +2415,9 @@ async def export_payslips(
 @router.get("/export/bills")
 async def export_bills(
     status: Optional[str] = None,
-    emp_id: Optional[str] = None
+    emp_id: Optional[str] = None,
+    month: Optional[str] = None,
+    year: Optional[int] = None
 ):
     """Export bill/expense records to CSV"""
     query = {}
@@ -2423,6 +2425,10 @@ async def export_bills(
         query["status"] = status
     if emp_id:
         query["emp_id"] = emp_id
+    if month:
+        query["month"] = month
+    if year:
+        query["year"] = year
     
     bills = await db.bills.find(query, {"_id": 0}).sort("submitted_on", -1).to_list(10000)
     
