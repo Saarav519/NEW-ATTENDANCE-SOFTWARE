@@ -188,9 +188,10 @@ class SalaryBreakdown(BaseModel):
     extra_conveyance: float = 0  # From approved bill submissions
     previous_pending_allowances: float = 0
     attendance_adjustment: float = 0  # Deduction for half days/absents
-    full_days: int = 0  # Count of full days
+    full_days: int = 0  # Count of full days (includes approved leave days)
     half_days: int = 0  # Count of half days
     absent_days: int = 0  # Count of absent days
+    leave_days: int = 0  # Count of approved leave days
     total_duty_earned: float = 0  # Total daily duty amount earned
     audit_expenses: float = 0  # Approved audit expense reimbursements
     advance_deduction: float = 0  # Salary advance deduction
