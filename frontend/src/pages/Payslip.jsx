@@ -80,23 +80,27 @@ const Payslip = () => {
     doc.line(20, 80, 190, 80);
     
     // Attendance Summary
+    let y = 90;
     if (breakdown.full_days || breakdown.half_days || breakdown.absent_days) {
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.text('ATTENDANCE SUMMARY', 20, 75);
+      doc.text('ATTENDANCE SUMMARY', 20, y);
+      y += 10;
       
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
-      doc.text(`Full Days: ${breakdown.full_days || 0}  |  Half Days: ${breakdown.half_days || 0}  |  Absent: ${breakdown.absent_days || 0}`, 20, 85);
+      doc.text(`Full Days: ${breakdown.full_days || 0}  |  Half Days: ${breakdown.half_days || 0}  |  Absent: ${breakdown.absent_days || 0}`, 20, y);
+      y += 7;
       
       // Total Duty Earned
       if (breakdown.total_duty_earned && breakdown.total_duty_earned > 0) {
-        doc.text(`Total Duty Earned: Rs. ${breakdown.total_duty_earned.toLocaleString()}`, 20, 92);
+        doc.text(`Total Duty Earned: Rs. ${breakdown.total_duty_earned.toLocaleString()}`, 20, y);
+        y += 10;
       }
     }
     
     // Earnings Section
-    let y = breakdown.full_days ? (breakdown.total_duty_earned ? 107 : 100) : 75;
+    y += 5;
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text('EARNINGS', 20, y);
