@@ -54,6 +54,7 @@ const Reports = () => {
     { id: 'advances', name: 'Advance Report', icon: Wallet, description: 'Salary advance requests' },
     { id: 'cashbook', name: 'Cashbook Report', icon: BookOpen, description: 'Cash in/out and profit/loss summary' },
     { id: 'invoices', name: 'Invoice Report', icon: FileTextIcon, description: 'Client invoice details and payments' },
+    { id: 'loans', name: 'Loan Report', icon: Landmark, description: 'Loan details, EMIs paid and balances' },
     { id: 'employee', name: 'Employee Report', icon: Users, description: 'Employee details and status' },
   ];
 
