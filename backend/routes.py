@@ -3507,30 +3507,6 @@ async def preclose_loan(loan_id: str, payment_date: str, final_amount: float, no
     return {"message": "Loan pre-closed successfully", "final_payment": final_amount}
 
 
-@router.get("/loans/summary", response_model=LoanSummary)
-async def get_loan_summary():
-    """Get overall loan summary"""
-    loans = await db.loans.find({}, {"_id": 0}).to_list(100)
-    
-    active_loans = [l for l in loans if l.get("status") == LoanStatus.ACTIVE]
-    
-    # Calculate upcoming EMIs for current month
-    current_day = datetime.now().day
-    upcoming_emis = sum(
-        l["emi_amount"] for l in active_loans 
-        if l.get("emi_day", 0) >= current_day
-    )
-    
-    return LoanSummary(
-        total_loans=len(loans),
-        active_loans=len(active_loans),
-        total_loan_amount=sum(l.get("total_loan_amount", 0) for l in loans),
-        total_paid=sum(l.get("total_paid", 0) for l in loans),
-        total_remaining=sum(l.get("remaining_balance", 0) for l in active_loans),
-        upcoming_emis_this_month=upcoming_emis
-    )
-
-
 @router.get("/export/loans")
 async def export_loans():
     """Export loan details to CSV"""
