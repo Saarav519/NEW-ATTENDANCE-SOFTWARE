@@ -910,7 +910,9 @@ async def generate_payslip(data: PayslipCreate):
     full_days = 0
     half_days = 0
     absent_days = 0
+    leave_days = 0
     attendance_conveyance = 0
+    total_duty_earned = 0
     
     for record in attendance_records:
         att_status = record.get("attendance_status", record.get("status", "present"))
@@ -920,25 +922,25 @@ async def generate_payslip(data: PayslipCreate):
             half_days += 1
         elif att_status == "absent":
             absent_days += 1
+        elif att_status == "leave":
+            leave_days += 1
+            # Leave counts as full day - already has conveyance and duty set
         attendance_conveyance += record.get("conveyance_amount", 0)
+        total_duty_earned += record.get("daily_duty_amount", 0)
     
-    # Calculate attendance adjustment (deductions for half days and absents)
+    # Calculate attendance adjustment (deductions for half days and absents ONLY)
+    # Leave days are NOT deducted as they are approved
     # Assuming 26 working days per month
     working_days = 26
     daily_rate = basic / working_days
     
-    # Half day = 0.5 day deduction, Absent = 1 day deduction
+    # Half day = 0.5 day deduction, Absent = 1 day deduction, Leave = NO deduction
     attendance_adjustment = -((half_days * 0.5 * daily_rate) + (absent_days * daily_rate))
     attendance_adjustment = round(attendance_adjustment, 2)
     
-    # Calculate leave adjustment
-    leaves = await db.leaves.find({
-        "emp_id": data.emp_id,
-        "status": LeaveStatus.APPROVED,
-        "from_date": {"$regex": f"^{month_str}"}
-    }).to_list(100)
-    leave_days = sum(l.get("days", 0) for l in leaves)
-    leave_adjustment = -(leave_days * daily_rate) if leave_days > 0 else 0
+    # Leave adjustment is now 0 since approved leaves don't get deducted
+    # and attendance is already updated to "leave" status with full credits
+    leave_adjustment = 0
     
     # Get approved advances for this month that need to be deducted
     # Handle both month formats: "January" and "January 2026"
