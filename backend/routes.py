@@ -1003,17 +1003,36 @@ async def get_bills(
     return bills
 
 @router.put("/bills/{bill_id}/approve")
-async def approve_bill(bill_id: str, approved_by: str, approved_amount: float):
+async def approve_bill(bill_id: str, approved_by: str, approved_amount: float, send_to_revalidation: bool = False):
+    """
+    Approve bill with partial amount support.
+    If approved_amount < total_amount and send_to_revalidation=True, 
+    bill goes to 'revalidation' status (not settled, no cash out).
+    """
     bill = await db.bills.find_one({"id": bill_id}, {"_id": 0})
     if not bill:
         raise HTTPException(status_code=404, detail="Bill not found")
     
+    total_amount = bill.get("total_amount", 0)
+    remaining_balance = total_amount - approved_amount
+    
+    # Determine status based on partial approval and revalidation flag
+    if send_to_revalidation and remaining_balance > 0:
+        new_status = "revalidation"
+        message = f"Bill partially approved (₹{approved_amount}). Remaining ₹{remaining_balance} sent for revalidation."
+        create_cash_out = False
+    else:
+        new_status = BillStatus.APPROVED
+        message = f"Bill approved for ₹{approved_amount}"
+        create_cash_out = True
+    
     result = await db.bills.update_one(
         {"id": bill_id},
         {"$set": {
-            "status": BillStatus.APPROVED,
+            "status": new_status,
             "approved_by": approved_by,
             "approved_amount": approved_amount,
+            "remaining_balance": remaining_balance,
             "approved_on": get_utc_now_str()[:10]
         }}
     )
@@ -1021,15 +1040,16 @@ async def approve_bill(bill_id: str, approved_by: str, approved_amount: float):
     # Notify employee
     await create_notification(
         recipient_id=bill["emp_id"],
-        title="Bill Approved",
-        message=f"Your bill of ₹{bill['total_amount']} for {bill['month']} has been approved (₹{approved_amount})",
+        title="Bill Partially Approved" if send_to_revalidation else "Bill Approved",
+        message=f"Your bill of ₹{total_amount} for {bill['month']} has been approved (₹{approved_amount})" + 
+                (f". Remaining ₹{remaining_balance} needs revalidation." if send_to_revalidation else ""),
         notification_type="bill",
         related_id=bill_id,
-        data={"action": "approved", "approved_amount": approved_amount}
+        data={"action": "approved", "approved_amount": approved_amount, "remaining_balance": remaining_balance}
     )
     
-    # Auto-create Cash Out entry for approved bill
-    if approved_amount > 0:
+    # Auto-create Cash Out entry ONLY for fully approved bills (not revalidation)
+    if create_cash_out and approved_amount > 0:
         month_num = ["January", "February", "March", "April", "May", "June", 
                      "July", "August", "September", "October", "November", "December"].index(bill.get("month", "January")) + 1
         date_str = f"{bill.get('year', 2026)}-{month_num:02d}-{datetime.now().day:02d}"
@@ -1043,7 +1063,63 @@ async def approve_bill(bill_id: str, approved_by: str, approved_amount: float):
             reference_type="bill"
         )
     
-    return {"message": "Bill approved"}
+    return {"message": message, "status": new_status, "remaining_balance": remaining_balance}
+
+
+@router.put("/bills/{bill_id}/revalidate")
+async def revalidate_bill(bill_id: str, revalidated_by: str, additional_amount: float = 0):
+    """
+    Revalidate a bill that was partially approved.
+    Admin can approve additional amount or reject the remaining.
+    """
+    bill = await db.bills.find_one({"id": bill_id}, {"_id": 0})
+    if not bill:
+        raise HTTPException(status_code=404, detail="Bill not found")
+    
+    if bill.get("status") != "revalidation":
+        raise HTTPException(status_code=400, detail="Bill is not in revalidation status")
+    
+    current_approved = bill.get("approved_amount", 0)
+    new_total_approved = current_approved + additional_amount
+    remaining = bill.get("total_amount", 0) - new_total_approved
+    
+    await db.bills.update_one(
+        {"id": bill_id},
+        {"$set": {
+            "status": BillStatus.APPROVED,
+            "approved_amount": new_total_approved,
+            "remaining_balance": remaining,
+            "revalidated_by": revalidated_by,
+            "revalidated_on": get_utc_now_str()[:10]
+        }}
+    )
+    
+    # Create cash out for additional approved amount
+    if additional_amount > 0:
+        month_num = ["January", "February", "March", "April", "May", "June", 
+                     "July", "August", "September", "October", "November", "December"].index(bill.get("month", "January")) + 1
+        date_str = f"{bill.get('year', 2026)}-{month_num:02d}-{datetime.now().day:02d}"
+        
+        await create_auto_cash_out(
+            category="bills",
+            description=f"Bill Revalidation - {bill.get('emp_name', '')} ({bill.get('month', '')} {bill.get('year', '')})",
+            amount=additional_amount,
+            date=date_str,
+            reference_id=bill_id,
+            reference_type="bill_revalidation"
+        )
+    
+    # Notify employee
+    await create_notification(
+        recipient_id=bill["emp_id"],
+        title="Bill Revalidated",
+        message=f"Your bill has been revalidated. Total approved: ₹{new_total_approved}",
+        notification_type="bill",
+        related_id=bill_id,
+        data={"action": "revalidated", "total_approved": new_total_approved}
+    )
+    
+    return {"message": "Bill revalidated", "total_approved": new_total_approved, "remaining_balance": remaining}
 
 @router.put("/bills/{bill_id}/reject")
 async def reject_bill(bill_id: str, rejected_by: str):
