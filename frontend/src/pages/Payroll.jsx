@@ -119,6 +119,45 @@ const Payroll = () => {
     }
   };
 
+  // Recalculate payslip from attendance
+  const handleRecalculate = async (payslip) => {
+    setRecalculating(payslip.id);
+    try {
+      const result = await payslipAPI.recalculate(payslip.id);
+      toast.success(`Payslip recalculated! ${result.attendance_days} attendance days found. Net Pay: ₹${result.breakdown?.net_pay?.toLocaleString()}`);
+      loadData();
+    } catch (error) {
+      toast.error(error.message || 'Failed to recalculate payslip');
+    } finally {
+      setRecalculating(null);
+    }
+  };
+
+  // Recalculate all preview payslips for the selected month
+  const handleRecalculateAll = async () => {
+    const previewPayslips = filteredPayslips.filter(p => p.status === 'preview' || p.status === 'pending');
+    if (previewPayslips.length === 0) {
+      toast.error('No preview payslips to recalculate');
+      return;
+    }
+    
+    setCreatingMonthly(true);
+    let successCount = 0;
+    
+    for (const payslip of previewPayslips) {
+      try {
+        await payslipAPI.recalculate(payslip.id);
+        successCount++;
+      } catch (error) {
+        console.error(`Failed to recalculate ${payslip.emp_name}:`, error);
+      }
+    }
+    
+    toast.success(`Recalculated ${successCount}/${previewPayslips.length} payslips`);
+    loadData();
+    setCreatingMonthly(false);
+  };
+
   const filteredPayslips = payslips.filter(p => {
     if (selectedMonth && selectedYear) {
       return p.month === selectedMonth && p.year === selectedYear;
