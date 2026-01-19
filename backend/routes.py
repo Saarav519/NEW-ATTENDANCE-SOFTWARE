@@ -3384,10 +3384,14 @@ async def create_auto_cash_out(
     amount: float,
     date: str,
     reference_id: str,
-    reference_type: str
+    reference_type: str,
+    month: str = None,
+    year: int = None
 ):
     """Helper to create auto cash out entry from other modules"""
-    month, year = get_month_year_from_date(date)
+    # Use provided month/year or extract from date
+    if month is None or year is None:
+        month, year = get_month_year_from_date(date)
     
     # Check if entry already exists (prevent duplicates)
     existing = await db.cash_out.find_one({
