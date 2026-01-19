@@ -325,18 +325,18 @@ const Cashbook = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="cashbook-page">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Cashbook / Company Finance</h1>
+          <h1 className="text-2xl font-bold text-gray-800" data-testid="cashbook-title">Cashbook / Company Finance</h1>
           <p className="text-gray-500">Track income, expenses, and profit/loss</p>
         </div>
         
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3" data-testid="cashbook-filters">
           <Select value={viewMode} onValueChange={setViewMode}>
-            <SelectTrigger className="w-[120px]">
+            <SelectTrigger className="w-[120px]" data-testid="view-mode-select">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -347,7 +347,7 @@ const Cashbook = () => {
           
           {viewMode === 'monthly' && (
             <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-[130px]">
+              <SelectTrigger className="w-[130px]" data-testid="month-select">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -357,7 +357,7 @@ const Cashbook = () => {
           )}
           
           <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
-            <SelectTrigger className="w-[100px]">
+            <SelectTrigger className="w-[100px]" data-testid="year-select">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -368,11 +368,11 @@ const Cashbook = () => {
           {/* Lock/Unlock Button */}
           {viewMode === 'monthly' && (
             isMonthLocked() ? (
-              <Button variant="outline" onClick={handleUnlockMonth} className="text-orange-600 border-orange-200">
+              <Button variant="outline" onClick={handleUnlockMonth} className="text-orange-600 border-orange-200" data-testid="unlock-month-btn">
                 <Unlock size={16} className="mr-2" /> Unlock Month
               </Button>
             ) : (
-              <Button variant="outline" onClick={handleLockMonth} className="text-green-600 border-green-200">
+              <Button variant="outline" onClick={handleLockMonth} className="text-green-600 border-green-200" data-testid="lock-month-btn">
                 <Lock size={16} className="mr-2" /> Lock Month
               </Button>
             )
