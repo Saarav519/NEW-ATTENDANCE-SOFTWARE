@@ -58,22 +58,27 @@ async def add_attendance(emp_id, month, year):
         date_str = f"{year}-{month_num:02d}-{day:02d}"
         
         # Include ALL days (including Sundays/holidays)
+        punch_in = f"{date_str}T10:00:00+00:00"
+        punch_out = f"{date_str}T19:00:00+00:00"
         
         # Create attendance record with full day status
         record = {
             "id": f"ATT{year}{month_num:02d}{day:02d}{emp_id}",
             "emp_id": emp_id,
-            "emp_name": user['name'],
+            "emp_name": user['name'],  # Important for display
             "date": date_str,
-            "punch_in": f"{date_str}T10:00:00+00:00",
-            "punch_out": f"{date_str}T19:00:00+00:00",
+            "punch_in": punch_in,
+            "punch_out": punch_out,
+            "status": "present",  # Must be "present" to show as marked
+            "work_hours": 9.0,  # Hours worked (19:00 - 10:00 = 9 hours)
             "location": "Main Office",
             "shift_type": "day",
             "shift_start": "10:00",
             "shift_end": "19:00",
             "attendance_status": "full_day",
             "conveyance_amount": 200.0,
-            "created_at": f"{date_str}T10:00:00+00:00",
+            "qr_code_id": None,
+            "created_at": punch_in,
             "month": month,
             "year": year
         }
