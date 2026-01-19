@@ -48,6 +48,7 @@ const Employees = () => {
 
   useEffect(() => {
     loadEmployees();
+    loadTeamLeaders();
   }, []);
 
   const loadEmployees = async () => {
@@ -58,6 +59,27 @@ const Employees = () => {
       toast.error('Failed to load employees');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTeamLeaders = async () => {
+    try {
+      const data = await usersAPI.getAll();
+      const tls = data.filter(u => u.role === 'teamlead' && u.status === 'active');
+      setTeamLeaders(tls);
+    } catch (error) {
+      console.error('Failed to load team leaders');
+    }
+  };
+
+  const loadTLHistory = async (empId) => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/users/${empId}/team-leader-history`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Failed to load TL history');
+      return [];
     }
   };
 
