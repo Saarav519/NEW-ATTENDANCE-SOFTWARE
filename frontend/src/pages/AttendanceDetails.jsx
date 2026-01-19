@@ -165,8 +165,21 @@ const AttendanceDetails = () => {
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-500">Absent/Leave</p>
-                <p className="text-xl font-bold text-red-600">{absentDays + leaveDays} days</p>
+                <p className="text-xs text-gray-500">Leave</p>
+                <p className="text-xl font-bold text-orange-600">{leaveDays} days</p>
+              </div>
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                <Calendar size={18} className="text-orange-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-500">Absent</p>
+                <p className="text-xl font-bold text-red-600">{absentDays} days</p>
               </div>
               <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
                 <XCircle size={18} className="text-red-600" />
