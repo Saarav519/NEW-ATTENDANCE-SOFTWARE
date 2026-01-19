@@ -451,7 +451,10 @@ const Cashbook = () => {
 
   const openEmiDialog = (loan) => {
     resetEmiForm();
-    setNewEmi(prev => ({ ...prev, amount: loan.emi_amount.toString() }));
+    // For EMI-based loans, pre-fill with EMI amount. For lump sum, leave empty
+    if (loan.loan_type === 'emi_based' && loan.emi_amount) {
+      setNewEmi(prev => ({ ...prev, amount: loan.emi_amount.toString() }));
+    }
     setEmiDialog({ open: true, loan });
   };
 
@@ -463,15 +466,23 @@ const Cashbook = () => {
     
     setSubmitting(true);
     try {
-      await loanAPI.payEmi(emiDialog.loan.id, {
+      const paymentData = {
         loan_id: emiDialog.loan.id,
         payment_date: newEmi.payment_date,
         amount: parseFloat(newEmi.amount),
         is_extra_payment: newEmi.is_extra_payment,
         notes: newEmi.notes || null
-      });
+      };
       
-      toast.success(newEmi.is_extra_payment ? 'Extra payment recorded' : 'EMI payment recorded');
+      // Use appropriate endpoint based on loan type
+      if (emiDialog.loan.loan_type === 'lump_sum') {
+        await loanAPI.payLumpsum(emiDialog.loan.id, paymentData);
+        toast.success('Payment recorded successfully');
+      } else {
+        await loanAPI.payEmi(emiDialog.loan.id, paymentData);
+        toast.success(newEmi.is_extra_payment ? 'Extra payment recorded' : 'EMI payment recorded');
+      }
+      
       setEmiDialog({ open: false, loan: null });
       resetEmiForm();
       loadData();
