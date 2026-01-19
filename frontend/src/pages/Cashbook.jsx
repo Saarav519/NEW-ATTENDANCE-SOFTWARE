@@ -433,14 +433,14 @@ const Cashbook = () => {
 
       {/* Export Buttons */}
       <Card>
-        <CardContent className="p-4 flex flex-wrap gap-3">
-          <Button variant="outline" onClick={() => handleExport('cashbook')}>
+        <CardContent className="p-4 flex flex-wrap gap-3" data-testid="export-buttons">
+          <Button variant="outline" onClick={() => handleExport('cashbook')} data-testid="export-cashbook-btn">
             <Download size={16} className="mr-2" /> Export Cashbook (CSV)
           </Button>
-          <Button variant="outline" onClick={() => handleExport('invoices')}>
+          <Button variant="outline" onClick={() => handleExport('invoices')} data-testid="export-invoices-btn">
             <FileText size={16} className="mr-2" /> Export Invoices (CSV)
           </Button>
-          <Button variant="outline" onClick={() => handleExport('invoices-zip')}>
+          <Button variant="outline" onClick={() => handleExport('invoices-zip')} data-testid="export-invoices-zip-btn">
             <FileDown size={16} className="mr-2" /> Download Invoice PDFs (ZIP)
           </Button>
         </CardContent>
