@@ -621,5 +621,6 @@ export default {
   export: exportAPI,
   cashbook: cashbookAPI,
   loan: loanAPI,
+  payable: payableAPI,
   getWebSocketURL,
 };
