@@ -199,7 +199,11 @@ const Payroll = () => {
           <p className="text-gray-500">Generate and manage employee payslips</p>
         </div>
         {user?.role === 'admin' && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={handleRecalculateAll} variant="outline" className="border-orange-500 text-orange-600 hover:bg-orange-50" disabled={creatingMonthly}>
+              {creatingMonthly ? <Loader2 className="animate-spin mr-2" size={16} /> : <RefreshCw size={16} className="mr-2" />}
+              Refresh All
+            </Button>
             <Button onClick={() => setMonthlyDialog(true)} variant="outline" className="border-[#1E2A5E] text-[#1E2A5E]">
               <Calendar size={18} className="mr-2" /> Create Monthly
             </Button>
