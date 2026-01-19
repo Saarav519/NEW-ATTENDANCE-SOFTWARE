@@ -97,6 +97,11 @@ export const attendanceAPI = {
       method: 'POST',
       body: JSON.stringify({ emp_id: empId, date }),
     }),
+  // Admin mark attendance
+  markAttendance: (empId, date, status, markedBy = 'ADMIN001') => 
+    apiCall(`/attendance/mark?emp_id=${empId}&date=${date}&status=${status}&marked_by=${markedBy}`, {
+      method: 'POST',
+    }),
   getAll: (empId, date, month, year) => {
     const params = new URLSearchParams();
     if (empId) params.append('emp_id', empId);
