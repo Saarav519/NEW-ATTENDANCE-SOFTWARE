@@ -189,6 +189,35 @@ async def create_user(user: UserCreate):
 @router.put("/users/{user_id}", response_model=UserResponse)
 async def update_user(user_id: str, updates: dict):
     # Remove sensitive fields from updates
+
+
+@router.put("/users/{user_id}/reset-password")
+async def reset_password(user_id: str, new_password: str, reset_by: str):
+    """Reset user password - Only Admin and Team Leader can reset passwords"""
+    # Verify the person resetting the password is Admin or Team Leader
+    reset_by_user = await db.users.find_one({"id": reset_by}, {"_id": 0})
+    if not reset_by_user:
+        raise HTTPException(status_code=404, detail="Reset by user not found")
+    
+    if reset_by_user.get("role") not in ["admin", "teamlead"]:
+        raise HTTPException(status_code=403, detail="Only Admin and Team Leader can reset passwords")
+    
+    # Find the user whose password needs to be reset
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Update password
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"password": new_password}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": f"Password reset successfully for {user['name']}", "success": True}
+
     updates.pop("_id", None)
     updates.pop("id", None)
     updates.pop("password", None)
