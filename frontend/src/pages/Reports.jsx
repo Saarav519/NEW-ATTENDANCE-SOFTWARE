@@ -73,15 +73,19 @@ const Reports = () => {
         usersAPI.getAll(),
         attendanceAPI.getAll(null, null, monthNum, yearNum),
         leaveAPI.getAll(),
-        payslipAPI.getAll(null, 'settled'),
+        payslipAPI.getAll(),  // Get all payslips
         billAPI.getAll(),
         advanceAPI.getAll()
       ]);
 
       const activeUsers = users.filter(u => u.status === 'active' && u.role !== 'admin');
       
-      // Filter payslips by selected month/year
-      const monthPayslips = payslips.filter(p => p.month === monthName && p.year === yearNum);
+      // Filter payslips by selected month/year AND only include generated/settled (not preview)
+      const monthPayslips = payslips.filter(p => 
+        p.month === monthName && 
+        p.year === yearNum && 
+        (p.status === 'generated' || p.status === 'settled')
+      );
       const totalSalary = monthPayslips.reduce((sum, p) => sum + (p.breakdown?.net_pay || 0), 0);
       
       // Filter bills by selected month/year
