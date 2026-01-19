@@ -1546,24 +1546,34 @@ async def upload_profile_photo(user_id: str, photo: UploadFile = File(...)):
 
 @router.get("/leave-balance/{emp_id}", response_model=LeaveBalanceResponse)
 async def get_leave_balance(emp_id: str, year: int = None):
-    """Get employee leave balance for a year - calculated based on working days"""
+    """Get employee leave balance for a year - calculated based on monthly working days"""
     if year is None:
         year = datetime.now().year
     
-    # Calculate working days from attendance (full_day + leave count as working days)
-    year_start = f"{year}-01"
-    year_end = f"{year}-12"
-    attendance_records = await db.attendance.find({
-        "emp_id": emp_id,
-        "date": {"$gte": f"{year}-01-01", "$lte": f"{year}-12-31"}
-    }).to_list(1000)
+    # Calculate leave accrual per month
+    # Rule: If employee has 24+ working days in a month, 1 leave is accrued for that month
+    total_accrued = 0
+    total_working_days = 0
     
-    # Count full days and leaves as working days
-    working_days = sum(1 for a in attendance_records 
-                       if a.get("attendance_status") in ["full_day", "leave"])
-    
-    # Calculate accrued leave: 1 leave per 24 working days
-    accrued_leave = working_days // 24
+    for month in range(1, 13):
+        month_str = f"{year}-{month:02d}"
+        
+        # Get attendance records for this month
+        attendance_records = await db.attendance.find({
+            "emp_id": emp_id,
+            "date": {"$regex": f"^{month_str}"}
+        }).to_list(100)
+        
+        # Count full days (actual working days via QR punch-in)
+        # Only full_day counts towards the 24 days requirement
+        working_days_in_month = sum(1 for a in attendance_records 
+                                    if a.get("attendance_status") == "full_day")
+        
+        total_working_days += working_days_in_month
+        
+        # If 24+ working days in this month, add 1 leave
+        if working_days_in_month >= 24:
+            total_accrued += 1
     
     # Get used leaves from approved leave requests
     approved_leaves = await db.leaves.find({
@@ -1577,9 +1587,9 @@ async def get_leave_balance(emp_id: str, year: int = None):
     balance = {
         "emp_id": emp_id,
         "year": year,
-        "total_leave": accrued_leave,
+        "total_leave": total_accrued,
         "total_used": total_used,
-        "working_days_count": working_days
+        "working_days_count": total_working_days
     }
     
     return LeaveBalanceResponse(**balance)
