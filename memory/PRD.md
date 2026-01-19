@@ -181,6 +181,7 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 - ✅ Salary Breakdown update
 - ✅ Shift-based attendance calculation
 - ✅ Team Leader payslip access
+- ✅ Cashbook / Company Finance Module
 
 ### P1 (Important)
 - [ ] Swipe gestures for approvals (Admin/Team Lead)
