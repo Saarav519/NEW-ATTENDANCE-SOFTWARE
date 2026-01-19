@@ -90,11 +90,11 @@ const Reports = () => {
       
       const totalAdvances = advances.filter(a => a.status === 'approved').reduce((sum, a) => sum + (a.amount || 0), 0);
 
-      // Attendance summary - include leave as full day
-      const fullDay = attendance.filter(a => a.attendance_status === 'full_day' || a.status === 'present').length;
+      // Attendance summary - use attendance_status only
+      const fullDay = attendance.filter(a => a.attendance_status === 'full_day').length;
       const halfDay = attendance.filter(a => a.attendance_status === 'half_day').length;
-      const leaveDays = attendance.filter(a => a.attendance_status === 'leave' || a.status === 'leave').length;
-      const absent = attendance.filter(a => a.attendance_status === 'absent' || a.status === 'absent').length;
+      const leaveDays = attendance.filter(a => a.attendance_status === 'leave').length;
+      const absent = attendance.filter(a => a.attendance_status === 'absent').length;
 
       // Filter leaves by month
       const monthStr = `${yearNum}-${String(monthNum).padStart(2, '0')}`;
