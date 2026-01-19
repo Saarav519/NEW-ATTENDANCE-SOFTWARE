@@ -29,6 +29,7 @@ class BillStatus(str, Enum):
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
+    REVALIDATION = "revalidation"
 
 class PayslipStatus(str, Enum):
     PREVIEW = "preview"      # Auto-calculated, viewable but not downloadable
