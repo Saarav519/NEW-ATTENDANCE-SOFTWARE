@@ -523,3 +523,4 @@ async def seed_database():
 
 if __name__ == "__main__":
     asyncio.run(seed_database())
+# Note: month should be month name string (e.g., "January"), year is int
