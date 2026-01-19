@@ -184,10 +184,10 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 - ✅ Cashbook / Company Finance Module
 
 ### P1 (Important)
+- [ ] Real-time Attendance Sync (WebSocket-based live updates)
+- [ ] Push Notifications for events (leave requests, bill submissions, payslip generation)
 - [ ] Swipe gestures for approvals (Admin/Team Lead)
 - [ ] Offline QR scanning with sync
-- [ ] Real-time attendance sync
-- [ ] Push notifications for approvals
 
 ### P2 (Nice to Have)
 - [ ] Admin Dashboard analytics (charts/graphs)
