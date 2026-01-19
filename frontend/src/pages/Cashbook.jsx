@@ -353,14 +353,21 @@ const Cashbook = () => {
   // ===== Loan CRUD Functions =====
   const resetLoanForm = () => {
     setNewLoan({
-      loan_name: '', lender_name: '', total_loan_amount: '', emi_amount: '',
-      emi_day: '10', loan_start_date: '', interest_rate: '', loan_tenure_months: '', notes: ''
+      loan_name: '', lender_name: '', total_loan_amount: '', loan_type: 'emi_based',
+      emi_amount: '', emi_day: '10', loan_start_date: '', due_date: '',
+      interest_rate: '', loan_tenure_months: '', notes: ''
     });
   };
 
   const handleCreateLoan = async () => {
-    if (!newLoan.loan_name || !newLoan.lender_name || !newLoan.total_loan_amount || !newLoan.emi_amount || !newLoan.emi_day || !newLoan.loan_start_date) {
+    // Validate based on loan type
+    if (!newLoan.loan_name || !newLoan.lender_name || !newLoan.total_loan_amount || !newLoan.loan_start_date) {
       toast.error('Please fill all required fields');
+      return;
+    }
+    
+    if (newLoan.loan_type === 'emi_based' && (!newLoan.emi_amount || !newLoan.emi_day)) {
+      toast.error('EMI amount and EMI day are required for EMI-based loans');
       return;
     }
     
@@ -370,13 +377,20 @@ const Cashbook = () => {
         loan_name: newLoan.loan_name,
         lender_name: newLoan.lender_name,
         total_loan_amount: parseFloat(newLoan.total_loan_amount),
-        emi_amount: parseFloat(newLoan.emi_amount),
-        emi_day: parseInt(newLoan.emi_day),
+        loan_type: newLoan.loan_type,
         loan_start_date: newLoan.loan_start_date,
-        interest_rate: newLoan.interest_rate ? parseFloat(newLoan.interest_rate) : null,
-        loan_tenure_months: newLoan.loan_tenure_months ? parseInt(newLoan.loan_tenure_months) : null,
         notes: newLoan.notes || null
       };
+      
+      // Add type-specific fields
+      if (newLoan.loan_type === 'emi_based') {
+        payload.emi_amount = parseFloat(newLoan.emi_amount);
+        payload.emi_day = parseInt(newLoan.emi_day);
+        payload.interest_rate = newLoan.interest_rate ? parseFloat(newLoan.interest_rate) : null;
+        payload.loan_tenure_months = newLoan.loan_tenure_months ? parseInt(newLoan.loan_tenure_months) : null;
+      } else {
+        payload.due_date = newLoan.due_date || null;
+      }
       
       if (loanDialog.mode === 'edit' && loanDialog.data) {
         await loanAPI.update(loanDialog.data.id, payload);
@@ -401,9 +415,11 @@ const Cashbook = () => {
       loan_name: loan.loan_name,
       lender_name: loan.lender_name,
       total_loan_amount: loan.total_loan_amount.toString(),
-      emi_amount: loan.emi_amount.toString(),
-      emi_day: loan.emi_day.toString(),
+      loan_type: loan.loan_type || 'emi_based',
+      emi_amount: loan.emi_amount?.toString() || '',
+      emi_day: loan.emi_day?.toString() || '10',
       loan_start_date: loan.loan_start_date,
+      due_date: loan.due_date || '',
       interest_rate: loan.interest_rate?.toString() || '',
       loan_tenure_months: loan.loan_tenure_months?.toString() || '',
       notes: loan.notes || ''
