@@ -831,10 +831,10 @@ def test_notification_apis():
         response = requests.get(f"{API_URL}/notifications/unread-count?user_id=ADMIN001")
         if response.status_code == 200:
             data = response.json()
-            if "unread_count" in data:
-                log_test("Get Unread Count", True, f"Unread count: {data.get('unread_count')}")
+            if "count" in data:
+                log_test("Get Unread Count", True, f"Unread count: {data.get('count')}")
             else:
-                log_test("Get Unread Count", False, "Missing unread_count field")
+                log_test("Get Unread Count", False, "Missing count field")
         else:
             log_test("Get Unread Count", False, f"Status: {response.status_code}, Response: {response.text}")
     except Exception as e:
