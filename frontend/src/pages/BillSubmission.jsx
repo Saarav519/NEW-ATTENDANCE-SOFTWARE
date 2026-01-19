@@ -195,7 +195,8 @@ const BillSubmission = () => {
     if (!user?.id) return;
     setAdvancesLoading(true);
     try {
-      const data = await advanceAPI.getAll(user.id);
+      // Admin sees all advances, employees/teamleads see their own
+      const data = await advanceAPI.getAll(isAdmin ? null : user.id);
       setAdvances(data || []);
     } catch (error) {
       console.error('Error loading advances:', error);
