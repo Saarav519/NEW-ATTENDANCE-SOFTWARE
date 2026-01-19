@@ -1582,19 +1582,20 @@ async def recalculate_payslip(payslip_id: str):
     }).to_list(100)
     advance_deduction = sum(a.get("amount", 0) for a in advances)
     
-    # Calculate - salary based on approved attendance
-    working_days = 26
-    daily_rate = basic / working_days
-    attendance_adjustment = -((half_days * 0.5 * daily_rate) + (absent_days * daily_rate))
-    attendance_adjustment = round(attendance_adjustment, 2)
+    # CORRECT CALCULATION (User's Logic):
+    # 1. Total Earned = total_duty_earned (from attendance)
+    # 2. Distribute proportionally: Basic=60%, HRA=24%, Special=16%
+    # 3. Gross = Duty Earned + Conveyance + Bills + Audit
+    # 4. Net = Gross - Advance
     
-    # Net Pay = Total Duty Earned + Conveyance + Bills + Audit Expenses - Advance
-    if len(attendance_records) == 0:
-        gross = 0
+    basic = round(total_duty_earned * 0.60, 2)
+    hra = round(total_duty_earned * 0.24, 2)
+    special_allowance = round(total_duty_earned * 0.16, 2)
+    
+    gross = total_duty_earned + attendance_conveyance + extra_conveyance + total_audit_expenses
+    net_pay = round(gross - advance_deduction, 2)
+    if net_pay < 0:
         net_pay = 0
-    else:
-        gross = total_duty_earned + attendance_conveyance + extra_conveyance + total_audit_expenses
-        net_pay = round(gross - advance_deduction, 2)
     
     updated_breakdown = {
         "basic": basic,
@@ -1604,7 +1605,7 @@ async def recalculate_payslip(payslip_id: str):
         "leave_adjustment": 0,
         "extra_conveyance": extra_conveyance,
         "previous_pending_allowances": 0,
-        "attendance_adjustment": attendance_adjustment,
+        "attendance_adjustment": 0,
         "full_days": full_days,
         "half_days": half_days,
         "absent_days": absent_days,
