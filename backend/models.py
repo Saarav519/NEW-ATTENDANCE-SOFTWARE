@@ -31,9 +31,9 @@ class BillStatus(str, Enum):
     REJECTED = "rejected"
 
 class PayslipStatus(str, Enum):
-    PENDING = "pending"
-    PAID = "paid"
-    SETTLED = "settled"
+    PREVIEW = "preview"      # Auto-calculated, viewable but not downloadable
+    GENERATED = "generated"  # Admin generated, downloadable, in reports/cashbook
+    SETTLED = "settled"      # Marked as paid
 
 class ShiftType(str, Enum):
     DAY = "day"
