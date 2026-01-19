@@ -447,23 +447,24 @@ const Cashbook = () => {
       </Card>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={setActiveTab} data-testid="cashbook-tabs">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="cash-in" className="flex items-center gap-2">
+          <TabsTrigger value="cash-in" className="flex items-center gap-2" data-testid="cash-in-tab">
             <TrendingUp size={16} /> Cash In ({cashInEntries.length})
           </TabsTrigger>
-          <TabsTrigger value="cash-out" className="flex items-center gap-2">
+          <TabsTrigger value="cash-out" className="flex items-center gap-2" data-testid="cash-out-tab">
             <TrendingDown size={16} /> Cash Out ({cashOutEntries.length})
           </TabsTrigger>
         </TabsList>
 
         {/* Cash In Tab */}
-        <TabsContent value="cash-in" className="space-y-4">
+        <TabsContent value="cash-in" className="space-y-4" data-testid="cash-in-content">
           {!isMonthLocked() && viewMode === 'monthly' && (
             <div className="flex justify-end">
               <Button 
                 className="bg-green-600 hover:bg-green-700"
                 onClick={() => { resetCashInForm(); setCashInDialog({ open: true, mode: 'add', data: null }); }}
+                data-testid="add-invoice-btn"
               >
                 <Plus size={16} className="mr-2" /> Add Invoice
               </Button>
