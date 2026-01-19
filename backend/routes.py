@@ -2781,8 +2781,11 @@ async def export_attendance(
 
 @router.get("/export/employees")
 async def export_employees():
-    """Export employee list to CSV"""
+    """Export employee list to CSV with bank details"""
     users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
+    
+    # Get team leader names for mapping
+    team_leads = {u["id"]: u["name"] for u in users if u.get("role") == "teamlead"}
     
     output = io.StringIO()
     writer = csv.writer(output)
@@ -2790,11 +2793,14 @@ async def export_employees():
     # Header
     writer.writerow([
         "Employee ID", "Name", "Email", "Phone", "Role", "Department",
-        "Designation", "Joining Date", "Salary", "Status"
+        "Designation", "Joining Date", "Salary", "Status",
+        "Bank Name", "Account Number", "IFSC Code", "Team Leader ID", "Team Leader Name"
     ])
     
     # Data rows
     for user in users:
+        tl_id = user.get("team_lead_id", "")
+        tl_name = team_leads.get(tl_id, "") if tl_id else ""
         writer.writerow([
             user.get("id", ""),
             user.get("name", ""),
@@ -2805,7 +2811,12 @@ async def export_employees():
             user.get("designation", ""),
             user.get("joining_date", ""),
             user.get("salary", 0),
-            user.get("status", "")
+            user.get("status", ""),
+            user.get("bank_name", ""),
+            user.get("bank_account_number", ""),
+            user.get("bank_ifsc", ""),
+            tl_id,
+            tl_name
         ])
     
     output.seek(0)
