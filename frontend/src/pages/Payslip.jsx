@@ -404,18 +404,36 @@ const Payslip = () => {
                     <span className="font-bold text-xl text-[#1E2A5E]">₹{(breakdown.net_pay || 0).toLocaleString()}</span>
                   </div>
                 </div>
+
+                {/* Status Badge */}
+                {(selectedPayslip?.status === 'preview' || selectedPayslip?.status === 'pending') && (
+                  <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-xl text-center">
+                    <p className="text-yellow-700 text-sm font-medium">⏳ Pending Admin Approval</p>
+                    <p className="text-yellow-600 text-xs mt-1">Download will be available after approval</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Download Button */}
-          <Button 
-            className="w-full h-12 bg-[#1E2A5E] hover:bg-[#2D3A8C]"
-            onClick={downloadPayslipPDF}
-            data-testid="download-payslip-btn"
-          >
-            <Download size={18} className="mr-2" /> Download Payslip (PDF)
-          </Button>
+          {/* Download Button - Only show for generated/settled payslips */}
+          {(selectedPayslip?.status === 'generated' || selectedPayslip?.status === 'settled') ? (
+            <Button 
+              className="w-full h-12 bg-[#1E2A5E] hover:bg-[#2D3A8C]"
+              onClick={downloadPayslipPDF}
+              data-testid="download-payslip-btn"
+            >
+              <Download size={18} className="mr-2" /> Download Payslip (PDF)
+            </Button>
+          ) : (
+            <Button 
+              className="w-full h-12 bg-gray-300 cursor-not-allowed"
+              disabled
+              data-testid="download-payslip-btn-disabled"
+            >
+              <Download size={18} className="mr-2" /> Download Not Available
+            </Button>
+          )}
 
           {/* Past Payslips */}
           {payslips.length > 1 && (
