@@ -1442,7 +1442,10 @@ async def seed_database():
             "salary_type": "monthly",
             "status": "active",
             "password": "tl001",
-            "team_members": ["EMP001", "EMP003"]
+            "team_members": ["EMP001", "EMP003"],
+            "bank_name": "HDFC Bank",
+            "bank_account_number": "50100012345678",
+            "bank_ifsc": "HDFC0001234"
         },
         {
             "id": "TL002",
@@ -1457,7 +1460,10 @@ async def seed_database():
             "salary_type": "monthly",
             "status": "active",
             "password": "tl002",
-            "team_members": ["EMP002"]
+            "team_members": ["EMP002"],
+            "bank_name": "ICICI Bank",
+            "bank_account_number": "00110022334455",
+            "bank_ifsc": "ICIC0005678"
         },
         {
             "id": "EMP001",
@@ -1473,7 +1479,10 @@ async def seed_database():
             "status": "active",
             "password": "emp001",
             "team_lead_id": "TL001",
-            "team_members": []
+            "team_members": [],
+            "bank_name": "State Bank of India",
+            "bank_account_number": "32456789012345",
+            "bank_ifsc": "SBIN0001234"
         },
         {
             "id": "EMP002",
@@ -1489,7 +1498,10 @@ async def seed_database():
             "status": "active",
             "password": "emp002",
             "team_lead_id": "TL002",
-            "team_members": []
+            "team_members": [],
+            "bank_name": "Axis Bank",
+            "bank_account_number": "91234567890123",
+            "bank_ifsc": "UTIB0002345"
         },
         {
             "id": "EMP003",
@@ -1505,7 +1517,10 @@ async def seed_database():
             "status": "active",
             "password": "emp003",
             "team_lead_id": "TL001",
-            "team_members": []
+            "team_members": [],
+            "bank_name": "Kotak Mahindra Bank",
+            "bank_account_number": "78123456789012",
+            "bank_ifsc": "KKBK0003456"
         }
     ]
     
