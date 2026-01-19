@@ -252,11 +252,16 @@ const Payroll = () => {
                       <td className="p-3 text-center">
                         <div className="flex justify-center gap-2">
                           <Button size="sm" variant="outline" onClick={() => { setSelectedPayslip(payslip); setIsViewDialogOpen(true); }}>
-                            <Eye size={14} className="mr-1" /> View
+                            <Eye size={14} />
                           </Button>
-                          {payslip.status === 'pending' && user?.role === 'admin' && (
+                          {(payslip.status === 'preview' || payslip.status === 'pending') && user?.role === 'admin' && (
+                            <Button size="sm" onClick={() => handleGeneratePayslip(payslip)} className="bg-blue-600 hover:bg-blue-700">
+                              Generate
+                            </Button>
+                          )}
+                          {payslip.status === 'generated' && user?.role === 'admin' && (
                             <Button size="sm" onClick={() => handleSettle(payslip)} className="bg-green-600 hover:bg-green-700">
-                              <Check size={14} className="mr-1" /> Settle
+                              Mark Paid
                             </Button>
                           )}
                         </div>
