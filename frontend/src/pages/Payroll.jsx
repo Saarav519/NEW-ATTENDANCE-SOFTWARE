@@ -6,8 +6,10 @@ import { Button } from '../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 import { Label } from '../components/ui/label';
-import { Banknote, Download, Eye, IndianRupee, Users, Check, Clock, Loader2, Plus } from 'lucide-react';
+import { Banknote, Download, Eye, IndianRupee, Users, Check, Clock, Loader2, Plus, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const Payroll = () => {
   const { user } = useAuth();
@@ -19,8 +21,10 @@ const Payroll = () => {
   const [selectedPayslip, setSelectedPayslip] = useState(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [generateDialog, setGenerateDialog] = useState(false);
+  const [monthlyDialog, setMonthlyDialog] = useState(false);
   const [selectedEmp, setSelectedEmp] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [creatingMonthly, setCreatingMonthly] = useState(false);
 
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const years = [2024, 2025, 2026, 2027];
