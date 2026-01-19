@@ -58,12 +58,20 @@ class UserBase(BaseModel):
     salary: float = 0
     salary_type: str = "monthly"
     status: UserStatus = UserStatus.ACTIVE
-    team_lead_id: Optional[str] = None
+    team_lead_id: Optional[str] = None  # Assigned Team Leader ID
     team_members: Optional[List[str]] = []
+    # Bank Details (Mandatory)
+    bank_name: Optional[str] = None
+    bank_account_number: Optional[str] = None
+    bank_ifsc: Optional[str] = None
 
 class UserCreate(UserBase):
-    id: Optional[str] = None  # Allow manual employee ID (optional for backwards compatibility)
+    id: Optional[str] = None  # Allow manual employee ID
     password: str
+    # Bank details mandatory for new employees
+    bank_name: str
+    bank_account_number: str
+    bank_ifsc: str
 
 class UserResponse(UserBase):
     model_config = ConfigDict(extra="ignore")
@@ -78,6 +86,17 @@ class LoginResponse(BaseModel):
     user: Optional[UserResponse] = None
     token: Optional[str] = None
     error: Optional[str] = None
+
+# Team Leader Change History
+class TeamLeaderChangeHistory(BaseModel):
+    emp_id: str
+    old_team_leader_id: Optional[str] = None
+    old_team_leader_name: Optional[str] = None
+    new_team_leader_id: str
+    new_team_leader_name: str
+    changed_by: str
+    changed_at: str
+    reason: Optional[str] = None
 
 # QR Code Models
 class QRCodeBase(BaseModel):
