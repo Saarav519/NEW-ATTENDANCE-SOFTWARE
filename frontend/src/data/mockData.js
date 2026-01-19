@@ -246,6 +246,7 @@ export const dashboardStats = {
 export const sidebarNavItems = {
   admin: [
     { id: "dashboard", label: "Dashboard", icon: "LayoutDashboard", path: "/dashboard" },
+    { id: "analytics", label: "Analytics", icon: "BarChart3", path: "/analytics" },
     { id: "employees", label: "Employees", icon: "Users", path: "/employees" },
     { id: "attendance", label: "Attendance", icon: "CalendarCheck", path: "/attendance" },
     { id: "leaves", label: "Leaves", icon: "CalendarOff", path: "/leaves" },
@@ -257,7 +258,7 @@ export const sidebarNavItems = {
     { id: "cashbook", label: "Cashbook", icon: "BookOpen", path: "/cashbook" },
     { id: "vehicles", label: "Vehicles", icon: "Car", path: "/vehicles" },
     { id: "holidays", label: "Holidays", icon: "Gift", path: "/holidays" },
-    { id: "reports", label: "Reports", icon: "BarChart3", path: "/reports" },
+    { id: "reports", label: "Reports", icon: "FileText", path: "/reports" },
   ],
   teamlead: [
     { id: "dashboard", label: "Dashboard", icon: "LayoutDashboard", path: "/dashboard" },
