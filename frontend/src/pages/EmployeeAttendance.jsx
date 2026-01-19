@@ -58,7 +58,8 @@ const EmployeeAttendance = () => {
     const colors = {
       full_day: 'bg-green-100 text-green-800 border-green-200',
       half_day: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      absent: 'bg-red-100 text-red-800 border-red-200'
+      absent: 'bg-red-100 text-red-800 border-red-200',
+      leave: 'bg-orange-100 text-orange-800 border-orange-200'
     };
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
@@ -67,14 +68,17 @@ const EmployeeAttendance = () => {
     if (status === 'full_day') return <CheckCircle size={16} className="text-green-600" />;
     if (status === 'half_day') return <Clock size={16} className="text-yellow-600" />;
     if (status === 'absent') return <XCircle size={16} className="text-red-600" />;
+    if (status === 'leave') return <Calendar size={16} className="text-orange-600" />;
     return null;
   };
 
   // Calculate summary
   const fullDays = attendance.filter(a => a.attendance_status === 'full_day').length;
   const halfDays = attendance.filter(a => a.attendance_status === 'half_day').length;
+  const leaveDays = attendance.filter(a => a.attendance_status === 'leave').length;
   const absentDays = attendance.filter(a => a.attendance_status === 'absent').length;
   const totalConveyance = attendance.reduce((sum, a) => sum + (a.conveyance_amount || 0), 0);
+  const totalDuty = attendance.reduce((sum, a) => sum + (a.daily_duty_amount || 0), 0);
 
   if (loading) {
     return <div className="flex items-center justify-center h-64"><Loader2 className="animate-spin" size={32} /></div>;
