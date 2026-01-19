@@ -1107,9 +1107,9 @@ async def get_payslips(
 
 @router.get("/payslips/{emp_id}/settled", response_model=List[PayslipResponse])
 async def get_settled_payslips(emp_id: str):
-    """Get only settled payslips for an employee"""
+    """Get generated and settled payslips for an employee (viewable by employee)"""
     payslips = await db.payslips.find(
-        {"emp_id": emp_id, "status": PayslipStatus.SETTLED},
+        {"emp_id": emp_id, "status": {"$in": [PayslipStatus.SETTLED, PayslipStatus.GENERATED, "settled", "generated"]}},
         {"_id": 0}
     ).to_list(100)
     return payslips
