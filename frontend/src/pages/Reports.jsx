@@ -458,6 +458,11 @@ const Reports = () => {
                   <td className="p-3 text-right font-semibold">₹{stats.totalBillsApproved.toLocaleString()}</td>
                   <td className="p-3 text-right text-green-600">Approved</td>
                 </tr>
+                <tr>
+                  <td className="p-3">Audit Expenses Approved</td>
+                  <td className="p-3 text-right font-semibold">₹{stats.totalAuditExpenses.toLocaleString()}</td>
+                  <td className="p-3 text-right text-cyan-600">Approved</td>
+                </tr>
               </tbody>
             </table>
           </div>
