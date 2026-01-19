@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { cashbookAPI, exportAPI, loanAPI } from '../services/api';
+import { cashbookAPI, exportAPI, loanAPI, payableAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
