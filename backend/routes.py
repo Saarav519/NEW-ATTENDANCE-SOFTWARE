@@ -861,6 +861,22 @@ async def settle_payslip(payslip_id: str):
             {"$set": {"is_deducted": True, "deducted_on": get_utc_now_str()[:10]}}
         )
     
+    # Auto-create Cash Out entry for salary
+    net_pay = payslip.get("breakdown", {}).get("net_pay", 0)
+    if net_pay > 0:
+        month_num = ["January", "February", "March", "April", "May", "June", 
+                     "July", "August", "September", "October", "November", "December"].index(payslip.get("month", "January").split()[0]) + 1
+        date_str = f"{payslip.get('year', 2026)}-{month_num:02d}-{datetime.now().day:02d}"
+        
+        await create_auto_cash_out(
+            category="salary",
+            description=f"Salary - {payslip.get('emp_name', '')} ({payslip.get('month', '')} {payslip.get('year', '')})",
+            amount=net_pay,
+            date=date_str,
+            reference_id=payslip_id,
+            reference_type="payslip"
+        )
+    
     return {"message": "Payslip settled"}
 
 @router.get("/payslips/{payslip_id}/download")
