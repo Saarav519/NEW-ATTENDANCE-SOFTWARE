@@ -44,7 +44,8 @@ const Payroll = () => {
     }
   };
 
-  const handleGeneratePayslip = async () => {
+  // Create new payslip (preview status)
+  const handleCreatePayslip = async () => {
     if (!selectedEmp) {
       toast.error('Please select an employee');
       return;
@@ -52,30 +53,40 @@ const Payroll = () => {
 
     setSubmitting(true);
     try {
-      await payslipAPI.generate({
-        emp_id: selectedEmp,
-        month: selectedMonth,
-        year: selectedYear
-      });
-      toast.success('Payslip generated successfully');
+      await payslipAPI.create(selectedEmp, selectedMonth, selectedYear);
+      toast.success('Payslip created (Preview)');
       setGenerateDialog(false);
+      setSelectedEmp('');
       loadData();
     } catch (error) {
-      toast.error(error.message || 'Failed to generate payslip');
+      toast.error(error.message || 'Failed to create payslip');
     } finally {
       setSubmitting(false);
     }
   };
 
+  // Admin generate payslip (makes it downloadable, adds to cashbook/reports)
+  const handleGeneratePayslip = async (payslip) => {
+    if (!window.confirm(`Generate payslip for ${payslip.emp_name}? This will:\n• Make it downloadable for employee\n• Add to Cashbook\n• Include in Reports`)) return;
+
+    try {
+      await payslipAPI.generate(payslip.id);
+      toast.success('Payslip generated successfully');
+      loadData();
+    } catch (error) {
+      toast.error(error.message || 'Failed to generate payslip');
+    }
+  };
+
   const handleSettle = async (payslip) => {
-    if (!window.confirm(`Mark payslip for ${payslip.emp_name} as settled?`)) return;
+    if (!window.confirm(`Mark payslip for ${payslip.emp_name} as paid/settled?`)) return;
 
     try {
       await payslipAPI.settle(payslip.id);
-      toast.success('Payslip settled successfully');
+      toast.success('Payslip marked as paid');
       loadData();
     } catch (error) {
-      toast.error('Failed to settle payslip');
+      toast.error(error.message || 'Failed to settle payslip');
     }
   };
 
@@ -87,15 +98,24 @@ const Payroll = () => {
   });
 
   const totalNetSalary = filteredPayslips.reduce((sum, p) => sum + (p.breakdown?.net_pay || 0), 0);
+  const generatedCount = filteredPayslips.filter(p => p.status === 'generated' || p.status === 'settled').length;
+  const previewCount = filteredPayslips.filter(p => p.status === 'preview' || p.status === 'pending').length;
   const settledCount = filteredPayslips.filter(p => p.status === 'settled').length;
-  const pendingCount = filteredPayslips.filter(p => p.status === 'pending').length;
 
   const getStatusBadge = (status) => {
     const styles = {
-      pending: 'bg-yellow-100 text-yellow-800',
+      preview: 'bg-gray-100 text-gray-800',
+      pending: 'bg-gray-100 text-gray-800',
+      generated: 'bg-blue-100 text-blue-800',
       settled: 'bg-green-100 text-green-800'
     };
-    return <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status]}`}>{status}</span>;
+    const labels = {
+      preview: 'Preview',
+      pending: 'Preview',
+      generated: 'Generated',
+      settled: 'Paid'
+    };
+    return <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status] || styles.preview}`}>{labels[status] || status}</span>;
   };
 
   if (loading) {
