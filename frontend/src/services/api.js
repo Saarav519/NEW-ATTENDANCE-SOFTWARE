@@ -385,21 +385,26 @@ export const exportAPI = {
     return `${API_URL}/api/export/attendance?${params}`;
   },
   employees: () => `${API_URL}/api/export/employees`,
-  leaves: (status, empId) => {
+  leaves: (month, year, status, empId) => {
     const params = new URLSearchParams();
+    if (month) params.append('month', month);
+    if (year) params.append('year', year);
     if (status) params.append('status', status);
     if (empId) params.append('emp_id', empId);
     return `${API_URL}/api/export/leaves?${params}`;
   },
-  payslips: (status, empId, year) => {
+  payslips: (monthName, year, status, empId) => {
     const params = new URLSearchParams();
+    if (monthName) params.append('month', monthName);
+    if (year) params.append('year', year);
     if (status) params.append('status', status);
     if (empId) params.append('emp_id', empId);
-    if (year) params.append('year', year);
     return `${API_URL}/api/export/payslips?${params}`;
   },
-  bills: (status, empId) => {
+  bills: (monthName, year, status, empId) => {
     const params = new URLSearchParams();
+    if (monthName) params.append('month', monthName);
+    if (year) params.append('year', year);
     if (status) params.append('status', status);
     if (empId) params.append('emp_id', empId);
     return `${API_URL}/api/export/bills?${params}`;
