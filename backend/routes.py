@@ -2661,13 +2661,18 @@ def get_month_year_from_date(date_str: str):
 
 @router.post("/cashbook/cash-in", response_model=CashInResponse)
 async def create_cash_in(data: CashInCreate):
-    """Create a new cash in entry (client invoice)"""
+    """Create a new cash in entry (client invoice) with GST calculation"""
     month, year = get_month_year_from_date(data.invoice_date)
     
     # Check if month is locked
     lock = await db.month_locks.find_one({"month": month, "year": year, "is_locked": True})
     if lock:
         raise HTTPException(status_code=400, detail=f"{month} {year} is locked. Cannot add entries.")
+    
+    # Auto-calculate GST amount if percentage is provided
+    gst_amount = None
+    if data.gst_percentage is not None and data.gst_percentage > 0:
+        gst_amount = (data.invoice_amount * data.gst_percentage) / 100
     
     pending_balance = data.invoice_amount - data.amount_received
     
@@ -2677,6 +2682,8 @@ async def create_cash_in(data: CashInCreate):
         "invoice_number": data.invoice_number,
         "invoice_date": data.invoice_date,
         "invoice_amount": data.invoice_amount,
+        "gst_percentage": data.gst_percentage,
+        "gst_amount": gst_amount,
         "invoice_pdf_url": data.invoice_pdf_url,
         "payment_status": data.payment_status,
         "amount_received": data.amount_received,
