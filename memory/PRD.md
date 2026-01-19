@@ -97,6 +97,36 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 - Approve/reject leaves and bills for team
 - Access to own payslip ✅
 
+### Phase 10: Bank Details & Team Leader Mapping (Completed ✅) - January 19, 2026
+
+**Bank Details (Mandatory for Employees/Team Leads):**
+- Added mandatory fields: `bank_name`, `bank_account_number`, `bank_ifsc` during employee creation
+- Bank details visible on:
+  - Employee View dialog (Admin view)
+  - Payslip View page (Employee view)
+  - Payslip PDF download
+  - CSV Export (`/api/export/payslips` and `/api/export/employees`)
+- Admin users don't require bank details
+
+**Employee-Team Leader Mapping:**
+- Assign Team Leader dropdown during employee creation (filters active TLs only)
+- Employee cards show "TL: [Team Leader Name]" 
+- View Employee dialog shows assigned Team Leader
+- Team Leaders only see employees assigned to them via `team_lead_id`
+
+**Admin Change TL with History:**
+- Admin can change employee's Team Leader from Edit Employee dialog
+- Optional "Reason for Change" field
+- Change history logged to `team_leader_history` collection:
+  - `emp_id`, `old_team_leader_id`, `new_team_leader_id`
+  - `old_team_leader_name`, `new_team_leader_name`
+  - `changed_by`, `changed_at`, `reason`
+- View TL History button on employee cards
+
+**Auto Payslip Creation:**
+- Preview payslip auto-created when new employee/teamlead is added
+- Initial breakdown with salary components, ready for attendance updates
+
 ---
 
 ## Technical Architecture
