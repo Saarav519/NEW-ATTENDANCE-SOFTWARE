@@ -12,7 +12,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '../components/ui/select';
 import { QRCodeSVG } from 'qrcode.react';
-import { Users, UserCheck, UserX, Phone, Mail, ChevronRight, QrCode, MapPin, IndianRupee, Download, Copy, Check, Sun, Moon, Clock } from 'lucide-react';
+import { Users, UserCheck, UserX, Phone, Mail, ChevronRight, QrCode, MapPin, IndianRupee, Download, Copy, Check, Sun, Moon, Clock, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -225,13 +225,23 @@ const Team = () => {
                       Active
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-gray-500 pl-15">
-                    <a href={`tel:${member.phone}`} className="flex items-center gap-1 hover:text-[#1E2A5E]">
-                      <Phone size={12} /> {member.phone}
-                    </a>
-                    <a href={`mailto:${member.email}`} className="flex items-center gap-1 hover:text-[#1E2A5E]">
-                      <Mail size={12} /> Email
-                    </a>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <a href={`tel:${member.phone}`} className="flex items-center gap-1 hover:text-[#1E2A5E]">
+                        <Phone size={12} /> {member.phone}
+                      </a>
+                      <a href={`mailto:${member.email}`} className="flex items-center gap-1 hover:text-[#1E2A5E]">
+                        <Mail size={12} /> Email
+                      </a>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => navigate(`/attendance/${member.id}`)}
+                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                    >
+                      <Calendar size={14} className="mr-1" /> Attendance
+                    </Button>
                   </div>
                 </div>
               ))}
