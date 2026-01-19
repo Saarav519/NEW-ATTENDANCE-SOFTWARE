@@ -9,7 +9,7 @@ import {
   Calendar, Clock, UserCheck, UserX, CalendarOff, LogIn, LogOut,
   ChevronLeft, ChevronRight, Loader2
 } from 'lucide-react';
-import { userAPI, attendanceAPI } from '../services/api';
+import { usersAPI, attendanceAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
 const Attendance = () => {
@@ -34,7 +34,7 @@ const Attendance = () => {
     setLoading(true);
     try {
       // Fetch all employees
-      const usersData = await userAPI.getAll();
+      const usersData = await usersAPI.getAll();
       const activeEmployees = usersData.filter(u => u.status === 'active' && u.role !== 'admin');
       setEmployees(activeEmployees);
 
