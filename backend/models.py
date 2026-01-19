@@ -631,3 +631,57 @@ class LoanSummary(BaseModel):
     total_paid: float
     total_remaining: float
     upcoming_emis_this_month: float
+
+
+# ==================== PAYABLE / CREDIT MODELS ====================
+
+class PayableStatus(str, Enum):
+    PENDING = "pending"
+    PARTIAL = "partial"
+    PAID = "paid"
+
+class PayableCreate(BaseModel):
+    creditor_name: str
+    total_amount: float
+    due_date: Optional[str] = None  # YYYY-MM-DD
+    description: Optional[str] = None
+    notes: Optional[str] = None
+
+class PayableResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    creditor_name: str
+    total_amount: float
+    due_date: Optional[str] = None
+    description: Optional[str] = None
+    amount_paid: float = 0
+    remaining_balance: float
+    status: PayableStatus = PayableStatus.PENDING
+    notes: Optional[str] = None
+    created_at: str
+
+class PayablePaymentCreate(BaseModel):
+    payable_id: str
+    payment_date: str  # YYYY-MM-DD
+    amount: float
+    notes: Optional[str] = None
+
+class PayablePaymentResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    payable_id: str
+    creditor_name: str
+    payment_date: str
+    amount: float
+    balance_after_payment: float
+    notes: Optional[str] = None
+    created_at: str
+    month: str
+    year: int
+
+class PayableSummary(BaseModel):
+    total_payables: int
+    pending_payables: int
+    total_payable_amount: float
+    total_paid: float
+    total_remaining: float
