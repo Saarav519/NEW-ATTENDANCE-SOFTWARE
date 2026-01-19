@@ -825,6 +825,137 @@ const Cashbook = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Loans Tab */}
+        <TabsContent value="loans" className="space-y-4" data-testid="loans-content">
+          {/* Loan Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card className="border-l-4 border-l-purple-500">
+              <CardContent className="p-4">
+                <p className="text-sm text-gray-500">Total Loans</p>
+                <p className="text-xl font-bold text-purple-600">{loanSummary.total_loans}</p>
+              </CardContent>
+            </Card>
+            <Card className="border-l-4 border-l-green-500">
+              <CardContent className="p-4">
+                <p className="text-sm text-gray-500">Active Loans</p>
+                <p className="text-xl font-bold text-green-600">{loanSummary.active_loans}</p>
+              </CardContent>
+            </Card>
+            <Card className="border-l-4 border-l-blue-500">
+              <CardContent className="p-4">
+                <p className="text-sm text-gray-500">Total Paid</p>
+                <p className="text-xl font-bold text-blue-600">₹{loanSummary.total_paid?.toLocaleString()}</p>
+              </CardContent>
+            </Card>
+            <Card className="border-l-4 border-l-red-500">
+              <CardContent className="p-4">
+                <p className="text-sm text-gray-500">Total Remaining</p>
+                <p className="text-xl font-bold text-red-600">₹{loanSummary.total_remaining?.toLocaleString()}</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Add Loan Button */}
+          <div className="flex justify-end">
+            <Button 
+              className="bg-purple-600 hover:bg-purple-700"
+              onClick={() => { resetLoanForm(); setLoanDialog({ open: true, mode: 'add', data: null }); }}
+              data-testid="add-loan-btn"
+            >
+              <Plus size={16} className="mr-2" /> Add Loan
+            </Button>
+          </div>
+
+          {/* Loans List */}
+          <Card>
+            <CardContent className="p-0">
+              {loans.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <Landmark className="mx-auto h-12 w-12 mb-4 text-gray-300" />
+                  <p>No loans added yet</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="text-left p-3 text-sm font-semibold text-gray-600">Loan Name</th>
+                        <th className="text-left p-3 text-sm font-semibold text-gray-600">Lender</th>
+                        <th className="text-right p-3 text-sm font-semibold text-gray-600">Total Amount</th>
+                        <th className="text-right p-3 text-sm font-semibold text-gray-600">EMI</th>
+                        <th className="text-center p-3 text-sm font-semibold text-gray-600">EMI Day</th>
+                        <th className="text-right p-3 text-sm font-semibold text-gray-600">Paid</th>
+                        <th className="text-right p-3 text-sm font-semibold text-gray-600">Balance</th>
+                        <th className="text-center p-3 text-sm font-semibold text-gray-600">Status</th>
+                        <th className="text-center p-3 text-sm font-semibold text-gray-600">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {loans.map((loan) => (
+                        <tr key={loan.id} className="hover:bg-gray-50" data-testid={`loan-row-${loan.id}`}>
+                          <td className="p-3 font-medium">{loan.loan_name}</td>
+                          <td className="p-3 text-sm text-gray-600">{loan.lender_name}</td>
+                          <td className="p-3 text-right">₹{loan.total_loan_amount?.toLocaleString()}</td>
+                          <td className="p-3 text-right text-purple-600 font-semibold">₹{loan.emi_amount?.toLocaleString()}</td>
+                          <td className="p-3 text-center">{loan.emi_day}<sup>th</sup></td>
+                          <td className="p-3 text-right text-green-600">₹{loan.total_paid?.toLocaleString()}</td>
+                          <td className="p-3 text-right text-red-600 font-semibold">₹{loan.remaining_balance?.toLocaleString()}</td>
+                          <td className="p-3 text-center">{getLoanStatusBadge(loan.status)}</td>
+                          <td className="p-3 text-center">
+                            <div className="flex justify-center gap-1 flex-wrap">
+                              {loan.status === 'active' && (
+                                <>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => openEmiDialog(loan)}
+                                    className="text-green-600 border-green-200 hover:bg-green-50"
+                                    data-testid={`pay-emi-${loan.id}`}
+                                  >
+                                    <CreditCard size={14} className="mr-1" /> Pay EMI
+                                  </Button>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => openPrecloseDialog(loan)}
+                                    className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                                    data-testid={`preclose-${loan.id}`}
+                                  >
+                                    <CheckCircle size={14} className="mr-1" /> Pre-close
+                                  </Button>
+                                </>
+                              )}
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => openPaymentsDialog(loan)}
+                                className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                                data-testid={`view-payments-${loan.id}`}
+                              >
+                                <History size={14} className="mr-1" /> History
+                              </Button>
+                              {loan.emis_paid === 0 && loan.status === 'active' && (
+                                <>
+                                  <button onClick={() => editLoan(loan)} className="text-blue-600 hover:text-blue-800 p-1" data-testid={`edit-loan-${loan.id}`}>
+                                    <Edit2 size={16} />
+                                  </button>
+                                  <button onClick={() => handleDeleteLoan(loan.id)} className="text-red-600 hover:text-red-800 p-1" data-testid={`delete-loan-${loan.id}`}>
+                                    <Trash2 size={16} />
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* Cash In Dialog */}
