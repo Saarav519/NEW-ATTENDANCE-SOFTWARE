@@ -50,6 +50,7 @@ const AttendanceDetails = () => {
   const leaveDays = attendance.filter(a => a.status === 'leave').length;
   const totalHours = attendance.reduce((sum, a) => sum + (a.work_hours || 0), 0);
   const totalConveyance = attendance.reduce((sum, a) => sum + (a.conveyance_amount || 0), 0);
+  const totalDuty = attendance.reduce((sum, a) => sum + (a.daily_duty_amount || 0), 0);
 
   // Helper to get attendance status display
   const getAttendanceStatusDisplay = (record) => {
