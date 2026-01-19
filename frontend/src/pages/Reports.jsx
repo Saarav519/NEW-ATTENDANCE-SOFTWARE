@@ -70,13 +70,14 @@ const Reports = () => {
       const yearNum = parseInt(selectedYear);
       const monthName = getMonthName(selectedMonth);
       
-      const [users, attendance, leaves, payslips, bills, advances] = await Promise.all([
+      const [users, attendance, leaves, payslips, bills, advances, auditExpenses] = await Promise.all([
         usersAPI.getAll(),
         attendanceAPI.getAll(null, null, monthNum, yearNum),
         leaveAPI.getAll(),
         payslipAPI.getAll(),  // Get all payslips
         billAPI.getAll(),
-        advanceAPI.getAll()
+        advanceAPI.getAll(),
+        auditExpenseAPI.getAll()
       ]);
 
       const activeUsers = users.filter(u => u.status === 'active' && u.role !== 'admin');
@@ -94,6 +95,14 @@ const Reports = () => {
       const approvedBills = monthBills.reduce((sum, b) => sum + (b.approved_amount || 0), 0);
       
       const totalAdvances = advances.filter(a => a.status === 'approved').reduce((sum, a) => sum + (a.amount || 0), 0);
+      
+      // Filter audit expenses by selected month/year
+      const startDate = `${yearNum}-${String(monthNum).padStart(2, '0')}-01`;
+      const endDate = monthNum === 12 ? `${yearNum + 1}-01-01` : `${yearNum}-${String(monthNum + 1).padStart(2, '0')}-01`;
+      const monthAuditExpenses = auditExpenses.filter(e => 
+        e.created_at >= startDate && e.created_at < endDate && e.status === 'approved'
+      );
+      const totalAuditExpenses = monthAuditExpenses.reduce((sum, e) => sum + (e.approved_amount || 0), 0);
 
       // Attendance summary - use attendance_status only
       const fullDay = attendance.filter(a => a.attendance_status === 'full_day').length;
@@ -111,6 +120,7 @@ const Reports = () => {
         totalSalaryPaid: totalSalary,
         totalBillsApproved: approvedBills,
         totalAdvances: totalAdvances,
+        totalAuditExpenses: totalAuditExpenses,
         attendanceSummary: { present: fullDay, absent, halfDay, leave: leaveDays },
         pendingLeaves: monthLeaves.filter(l => l.status === 'pending').length,
         approvedLeaves: monthLeaves.filter(l => l.status === 'approved').length
