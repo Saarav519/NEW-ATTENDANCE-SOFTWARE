@@ -302,9 +302,10 @@ const Attendance = () => {
                       <th className="text-left p-4 font-medium text-gray-600">Employee</th>
                       <th className="text-left p-4 font-medium text-gray-600">Punch In</th>
                       <th className="text-left p-4 font-medium text-gray-600">Punch Out</th>
-                      <th className="text-left p-4 font-medium text-gray-600">Working Hours</th>
+                      <th className="text-left p-4 font-medium text-gray-600">Hours</th>
                       <th className="text-left p-4 font-medium text-gray-600">Status</th>
-                      <th className="text-left p-4 font-medium text-gray-600">Location</th>
+                      <th className="text-right p-4 font-medium text-gray-600">Daily Duty</th>
+                      <th className="text-right p-4 font-medium text-gray-600">Conveyance</th>
                       <th className="text-left p-4 font-medium text-gray-600">Actions</th>
                     </tr>
                   </thead>
@@ -324,7 +325,7 @@ const Attendance = () => {
                         </td>
                         <td className="p-4 text-gray-700 font-medium">{emp.attendance.punchIn || '-'}</td>
                         <td className="p-4 text-gray-700 font-medium">{emp.attendance.punchOut || '-'}</td>
-                        <td className="p-4 text-gray-700 font-medium">{emp.attendance.workHours ? `${emp.attendance.workHours} hrs` : '-'}</td>
+                        <td className="p-4 text-gray-700 font-medium">{emp.attendance.workHours ? `${emp.attendance.workHours}h` : '-'}</td>
                         <td className="p-4">
                           <span className={`text-xs px-3 py-1 rounded-full font-medium ${
                             emp.attendance.status === 'present' ? 'bg-green-100 text-green-700' :
