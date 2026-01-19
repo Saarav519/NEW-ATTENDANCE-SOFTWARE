@@ -293,7 +293,7 @@ const Reports = () => {
       {/* Attendance Summary Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>Attendance Overview</CardTitle>
+          <CardTitle>Attendance Overview - {getMonthName(selectedMonth)} {selectedYear}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-8">
@@ -301,13 +301,18 @@ const Reports = () => {
               <div className="flex items-end gap-2 h-40">
                 <div className="flex-1 flex flex-col items-center">
                   <div className="w-full bg-green-500 rounded-t" style={{ height: `${(stats.attendanceSummary.present / total) * 100}%`, minHeight: '20px' }}></div>
-                  <p className="text-xs mt-2 text-gray-600">Present</p>
+                  <p className="text-xs mt-2 text-gray-600">Full Day</p>
                   <p className="text-lg font-bold text-green-600">{stats.attendanceSummary.present}</p>
                 </div>
                 <div className="flex-1 flex flex-col items-center">
                   <div className="w-full bg-yellow-500 rounded-t" style={{ height: `${(stats.attendanceSummary.halfDay / total) * 100}%`, minHeight: '20px' }}></div>
                   <p className="text-xs mt-2 text-gray-600">Half Day</p>
                   <p className="text-lg font-bold text-yellow-600">{stats.attendanceSummary.halfDay}</p>
+                </div>
+                <div className="flex-1 flex flex-col items-center">
+                  <div className="w-full bg-orange-500 rounded-t" style={{ height: `${(stats.attendanceSummary.leave / total) * 100}%`, minHeight: '20px' }}></div>
+                  <p className="text-xs mt-2 text-gray-600">Leave</p>
+                  <p className="text-lg font-bold text-orange-600">{stats.attendanceSummary.leave}</p>
                 </div>
                 <div className="flex-1 flex flex-col items-center">
                   <div className="w-full bg-red-500 rounded-t" style={{ height: `${(stats.attendanceSummary.absent / total) * 100}%`, minHeight: '20px' }}></div>
@@ -319,16 +324,24 @@ const Reports = () => {
             <div className="w-48">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-sm"><span className="w-3 h-3 bg-green-500 rounded"></span>Present</span>
-                  <span className="font-semibold">{((stats.attendanceSummary.present / total) * 100).toFixed(1)}%</span>
+                  <span className="flex items-center gap-2 text-sm"><span className="w-3 h-3 bg-green-500 rounded"></span>Full Day</span>
+                  <span className="font-semibold">{stats.attendanceSummary.present}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-sm"><span className="w-3 h-3 bg-yellow-500 rounded"></span>Half Day</span>
-                  <span className="font-semibold">{((stats.attendanceSummary.halfDay / total) * 100).toFixed(1)}%</span>
+                  <span className="font-semibold">{stats.attendanceSummary.halfDay}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-2 text-sm"><span className="w-3 h-3 bg-orange-500 rounded"></span>Leave</span>
+                  <span className="font-semibold">{stats.attendanceSummary.leave}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-sm"><span className="w-3 h-3 bg-red-500 rounded"></span>Absent</span>
-                  <span className="font-semibold">{((stats.attendanceSummary.absent / total) * 100).toFixed(1)}%</span>
+                  <span className="font-semibold">{stats.attendanceSummary.absent}</span>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t">
+                  <span className="text-sm font-medium">Total Days</span>
+                  <span className="font-bold">{total}</span>
                 </div>
               </div>
             </div>
