@@ -373,3 +373,81 @@ class AuditExpenseResponse(BaseModel):
     rejection_reason: Optional[str] = None
     revalidation_reason: Optional[str] = None  # Why Admin requested revalidation
     payment_history: Optional[List[dict]] = []  # Track multiple partial payments
+
+
+# ==================== NOTIFICATION MODELS ====================
+
+class NotificationType(str, Enum):
+    ATTENDANCE = "attendance"
+    LEAVE = "leave"
+    BILL = "bill"
+    PAYSLIP = "payslip"
+    SYSTEM = "system"
+
+class NotificationCreate(BaseModel):
+    recipient_id: str  # User ID who should receive this
+    recipient_role: Optional[str] = None  # Or send to all users with this role
+    title: str
+    message: str
+    type: NotificationType
+    related_id: Optional[str] = None  # ID of related entity (leave_id, bill_id, etc.)
+    data: Optional[dict] = None  # Additional data
+
+class NotificationResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    recipient_id: str
+    recipient_role: Optional[str] = None
+    title: str
+    message: str
+    type: NotificationType
+    related_id: Optional[str] = None
+    data: Optional[dict] = None
+    is_read: bool = False
+    created_at: str
+
+
+# ==================== ANALYTICS MODELS ====================
+
+class AnalyticsTimeFilter(str, Enum):
+    THIS_WEEK = "this_week"
+    THIS_MONTH = "this_month"
+    THIS_QUARTER = "this_quarter"
+    THIS_YEAR = "this_year"
+
+class AttendanceTrendData(BaseModel):
+    date: str
+    present: int
+    absent: int
+    half_day: int
+    total: int
+
+class LeaveDistributionData(BaseModel):
+    type: str
+    count: int
+    percentage: float
+
+class DepartmentAttendanceData(BaseModel):
+    department: str
+    present: int
+    absent: int
+    attendance_rate: float
+
+class SalaryOverviewData(BaseModel):
+    month: str
+    total_salary: float
+    total_deductions: float
+    net_paid: float
+
+class EmployeeCountData(BaseModel):
+    role: str
+    count: int
+    active: int
+    inactive: int
+
+class AnalyticsResponse(BaseModel):
+    attendance_trends: List[AttendanceTrendData] = []
+    leave_distribution: List[LeaveDistributionData] = []
+    department_attendance: List[DepartmentAttendanceData] = []
+    salary_overview: List[SalaryOverviewData] = []
+    employee_counts: List[EmployeeCountData] = []
