@@ -564,20 +564,28 @@ class CashbookSummary(BaseModel):
 
 # ==================== LOAN / EMI MODELS ====================
 
+class LoanType(str, Enum):
+    EMI_BASED = "emi_based"
+    LUMP_SUM = "lump_sum"
+
 class LoanStatus(str, Enum):
     ACTIVE = "active"
     CLOSED = "closed"
     PRECLOSED = "preclosed"
 
 class LoanCreate(BaseModel):
-    loan_name: str  # e.g., "Home Loan - HDFC", "Vehicle Loan - SBI"
-    lender_name: str  # Bank/NBFC name
+    loan_name: str  # e.g., "Home Loan - HDFC", "Personal Loan - Friend"
+    lender_name: str  # Bank/NBFC name or person's name
     total_loan_amount: float
-    emi_amount: float
-    emi_day: int  # Day of month (1-28)
-    loan_start_date: str  # YYYY-MM-DD
+    loan_type: LoanType = LoanType.EMI_BASED  # emi_based or lump_sum
+    # EMI-based loan fields (required only for EMI loans)
+    emi_amount: Optional[float] = None
+    emi_day: Optional[int] = None  # Day of month (1-28)
     interest_rate: Optional[float] = None  # Annual interest rate (%)
     loan_tenure_months: Optional[int] = None  # Total tenure in months
+    # Common fields
+    loan_start_date: str  # YYYY-MM-DD (or loan taken date for lump sum)
+    due_date: Optional[str] = None  # For lump sum loans
     notes: Optional[str] = None
 
 class LoanResponse(BaseModel):
@@ -586,9 +594,11 @@ class LoanResponse(BaseModel):
     loan_name: str
     lender_name: str
     total_loan_amount: float
-    emi_amount: float
-    emi_day: int
+    loan_type: LoanType = LoanType.EMI_BASED
+    emi_amount: Optional[float] = None
+    emi_day: Optional[int] = None
     loan_start_date: str
+    due_date: Optional[str] = None
     interest_rate: Optional[float] = None
     loan_tenure_months: Optional[int] = None
     total_paid: float = 0
