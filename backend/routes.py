@@ -640,6 +640,21 @@ async def approve_bill(bill_id: str, approved_by: str, approved_amount: float):
         data={"action": "approved", "approved_amount": approved_amount}
     )
     
+    # Auto-create Cash Out entry for approved bill
+    if approved_amount > 0:
+        month_num = ["January", "February", "March", "April", "May", "June", 
+                     "July", "August", "September", "October", "November", "December"].index(bill.get("month", "January")) + 1
+        date_str = f"{bill.get('year', 2026)}-{month_num:02d}-{datetime.now().day:02d}"
+        
+        await create_auto_cash_out(
+            category="bills",
+            description=f"Bill Reimbursement - {bill.get('emp_name', '')} ({bill.get('month', '')} {bill.get('year', '')})",
+            amount=approved_amount,
+            date=date_str,
+            reference_id=bill_id,
+            reference_type="bill"
+        )
+    
     return {"message": "Bill approved"}
 
 @router.put("/bills/{bill_id}/reject")
