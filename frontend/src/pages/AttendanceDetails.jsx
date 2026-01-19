@@ -174,12 +174,25 @@ const AttendanceDetails = () => {
             </div>
           </CardContent>
         </Card>
+        <Card className="bg-blue-50">
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-blue-700">Total Duty</p>
+                <p className="text-xl font-bold text-blue-700">₹{totalDuty.toLocaleString('en-IN')}</p>
+              </div>
+              <div className="w-10 h-10 bg-blue-200 rounded-lg flex items-center justify-center">
+                <IndianRupee size={18} className="text-blue-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
         <Card className="bg-green-50">
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-green-700">Conveyance</p>
-                <p className="text-xl font-bold text-green-700">₹{totalConveyance.toLocaleString()}</p>
+                <p className="text-xl font-bold text-green-700">₹{totalConveyance.toLocaleString('en-IN')}</p>
               </div>
               <div className="w-10 h-10 bg-green-200 rounded-lg flex items-center justify-center">
                 <IndianRupee size={18} className="text-green-700" />
