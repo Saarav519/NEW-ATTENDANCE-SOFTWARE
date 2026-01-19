@@ -409,6 +409,14 @@ export const exportAPI = {
     if (empId) params.append('emp_id', empId);
     return `${API_URL}/api/export/bills?${params}`;
   },
+  advances: (monthName, year, status, empId) => {
+    const params = new URLSearchParams();
+    if (monthName) params.append('month', monthName);
+    if (year) params.append('year', year);
+    if (status) params.append('status', status);
+    if (empId) params.append('emp_id', empId);
+    return `${API_URL}/api/export/advances?${params}`;
+  },
 };
 
 // WebSocket URL for real-time updates
