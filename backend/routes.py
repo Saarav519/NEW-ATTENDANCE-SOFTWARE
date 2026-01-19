@@ -3216,3 +3216,382 @@ async def create_auto_cash_out(
     
     await db.cash_out.insert_one(cash_out_doc)
 
+
+
+# ==================== LOAN / EMI ROUTES ====================
+
+def calculate_emi_split(principal_remaining: float, annual_rate: float, emi_amount: float):
+    """Calculate principal and interest split for an EMI payment"""
+    if not annual_rate or annual_rate <= 0:
+        return emi_amount, 0  # No interest, full principal
+    
+    monthly_rate = annual_rate / 12 / 100
+    interest_amount = round(principal_remaining * monthly_rate, 2)
+    principal_amount = round(emi_amount - interest_amount, 2)
+    
+    # Ensure principal doesn't go negative
+    if principal_amount < 0:
+        principal_amount = 0
+        interest_amount = emi_amount
+    
+    return principal_amount, interest_amount
+
+
+@router.post("/loans", response_model=LoanResponse)
+async def create_loan(data: LoanCreate):
+    """Create a new loan entry"""
+    loan_doc = {
+        "id": f"LOAN{generate_id()}",
+        "loan_name": data.loan_name,
+        "lender_name": data.lender_name,
+        "total_loan_amount": data.total_loan_amount,
+        "emi_amount": data.emi_amount,
+        "emi_day": min(max(data.emi_day, 1), 28),  # Ensure 1-28
+        "loan_start_date": data.loan_start_date,
+        "interest_rate": data.interest_rate,
+        "loan_tenure_months": data.loan_tenure_months,
+        "total_paid": 0,
+        "remaining_balance": data.total_loan_amount,
+        "emis_paid": 0,
+        "status": LoanStatus.ACTIVE,
+        "notes": data.notes,
+        "created_at": get_utc_now_str()
+    }
+    
+    await db.loans.insert_one(loan_doc)
+    loan_doc.pop("_id", None)
+    return LoanResponse(**loan_doc)
+
+
+@router.get("/loans", response_model=List[LoanResponse])
+async def get_loans(status: Optional[str] = None):
+    """Get all loans, optionally filtered by status"""
+    query = {}
+    if status:
+        query["status"] = status
+    
+    loans = await db.loans.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return loans
+
+
+@router.get("/loans/{loan_id}", response_model=LoanResponse)
+async def get_loan(loan_id: str):
+    """Get a single loan by ID"""
+    loan = await db.loans.find_one({"id": loan_id}, {"_id": 0})
+    if not loan:
+        raise HTTPException(status_code=404, detail="Loan not found")
+    return loan
+
+
+@router.put("/loans/{loan_id}", response_model=LoanResponse)
+async def update_loan(loan_id: str, data: LoanCreate):
+    """Update loan details (only if no EMIs paid yet)"""
+    loan = await db.loans.find_one({"id": loan_id}, {"_id": 0})
+    if not loan:
+        raise HTTPException(status_code=404, detail="Loan not found")
+    
+    if loan.get("emis_paid", 0) > 0:
+        raise HTTPException(status_code=400, detail="Cannot edit loan after EMI payments have been made")
+    
+    update_data = {
+        "loan_name": data.loan_name,
+        "lender_name": data.lender_name,
+        "total_loan_amount": data.total_loan_amount,
+        "emi_amount": data.emi_amount,
+        "emi_day": min(max(data.emi_day, 1), 28),
+        "loan_start_date": data.loan_start_date,
+        "interest_rate": data.interest_rate,
+        "loan_tenure_months": data.loan_tenure_months,
+        "remaining_balance": data.total_loan_amount,
+        "notes": data.notes
+    }
+    
+    await db.loans.update_one({"id": loan_id}, {"$set": update_data})
+    updated = await db.loans.find_one({"id": loan_id}, {"_id": 0})
+    return LoanResponse(**updated)
+
+
+@router.delete("/loans/{loan_id}")
+async def delete_loan(loan_id: str):
+    """Delete a loan (only if no EMIs paid)"""
+    loan = await db.loans.find_one({"id": loan_id}, {"_id": 0})
+    if not loan:
+        raise HTTPException(status_code=404, detail="Loan not found")
+    
+    if loan.get("emis_paid", 0) > 0:
+        raise HTTPException(status_code=400, detail="Cannot delete loan with EMI payments")
+    
+    await db.loans.delete_one({"id": loan_id})
+    return {"message": "Loan deleted"}
+
+
+@router.post("/loans/{loan_id}/pay-emi", response_model=EMIPaymentResponse)
+async def record_emi_payment(loan_id: str, data: EMIPaymentCreate):
+    """Record an EMI payment (regular or extra payment)"""
+    loan = await db.loans.find_one({"id": loan_id}, {"_id": 0})
+    if not loan:
+        raise HTTPException(status_code=404, detail="Loan not found")
+    
+    if loan.get("status") != LoanStatus.ACTIVE:
+        raise HTTPException(status_code=400, detail="Loan is already closed")
+    
+    # Calculate principal/interest split if not provided
+    principal_amount = data.principal_amount
+    interest_amount = data.interest_amount
+    
+    if principal_amount is None or interest_amount is None:
+        principal_amount, interest_amount = calculate_emi_split(
+            loan["remaining_balance"],
+            loan.get("interest_rate"),
+            data.amount
+        )
+    
+    # Calculate new balance
+    new_balance = max(0, loan["remaining_balance"] - principal_amount)
+    new_total_paid = loan.get("total_paid", 0) + data.amount
+    new_emis_paid = loan.get("emis_paid", 0) + (0 if data.is_extra_payment else 1)
+    
+    # Check if loan is now closed
+    new_status = LoanStatus.ACTIVE
+    if new_balance <= 0:
+        new_status = LoanStatus.PRECLOSED if data.is_extra_payment else LoanStatus.CLOSED
+    
+    # Get month/year from payment date
+    month, year = get_month_year_from_date(data.payment_date)
+    
+    # Create EMI payment record
+    emi_doc = {
+        "id": f"EMI{generate_id()}",
+        "loan_id": loan_id,
+        "loan_name": loan["loan_name"],
+        "payment_date": data.payment_date,
+        "amount": data.amount,
+        "principal_amount": principal_amount,
+        "interest_amount": interest_amount,
+        "is_extra_payment": data.is_extra_payment,
+        "is_auto_generated": False,
+        "balance_after_payment": new_balance,
+        "notes": data.notes,
+        "created_at": get_utc_now_str(),
+        "month": month,
+        "year": year
+    }
+    
+    await db.emi_payments.insert_one(emi_doc)
+    
+    # Update loan balance
+    await db.loans.update_one(
+        {"id": loan_id},
+        {"$set": {
+            "remaining_balance": new_balance,
+            "total_paid": new_total_paid,
+            "emis_paid": new_emis_paid,
+            "status": new_status
+        }}
+    )
+    
+    # Create auto Cash Out entry for EMI
+    payment_type = "Extra Payment" if data.is_extra_payment else "EMI"
+    await create_auto_cash_out(
+        category="loan_emi",
+        description=f"Loan {payment_type} - {loan['loan_name']} ({loan['lender_name']})",
+        amount=data.amount,
+        date=data.payment_date,
+        reference_id=emi_doc["id"],
+        reference_type="emi_payment"
+    )
+    
+    emi_doc.pop("_id", None)
+    return EMIPaymentResponse(**emi_doc)
+
+
+@router.get("/loans/{loan_id}/payments", response_model=List[EMIPaymentResponse])
+async def get_loan_payments(loan_id: str):
+    """Get all EMI payments for a loan"""
+    payments = await db.emi_payments.find(
+        {"loan_id": loan_id}, {"_id": 0}
+    ).sort("payment_date", -1).to_list(500)
+    return payments
+
+
+@router.get("/emi-payments", response_model=List[EMIPaymentResponse])
+async def get_all_emi_payments(month: Optional[str] = None, year: Optional[int] = None):
+    """Get all EMI payments, optionally filtered by month/year"""
+    query = {}
+    if month:
+        query["month"] = month
+    if year:
+        query["year"] = year
+    
+    payments = await db.emi_payments.find(query, {"_id": 0}).sort("payment_date", -1).to_list(1000)
+    return payments
+
+
+@router.post("/loans/{loan_id}/preclose")
+async def preclose_loan(loan_id: str, payment_date: str, final_amount: float, notes: Optional[str] = None):
+    """Pre-close a loan with final payment"""
+    loan = await db.loans.find_one({"id": loan_id}, {"_id": 0})
+    if not loan:
+        raise HTTPException(status_code=404, detail="Loan not found")
+    
+    if loan.get("status") != LoanStatus.ACTIVE:
+        raise HTTPException(status_code=400, detail="Loan is already closed")
+    
+    # Record final payment
+    month, year = get_month_year_from_date(payment_date)
+    
+    emi_doc = {
+        "id": f"EMI{generate_id()}",
+        "loan_id": loan_id,
+        "loan_name": loan["loan_name"],
+        "payment_date": payment_date,
+        "amount": final_amount,
+        "principal_amount": final_amount,
+        "interest_amount": 0,
+        "is_extra_payment": True,
+        "is_auto_generated": False,
+        "balance_after_payment": 0,
+        "notes": notes or "Pre-closure payment",
+        "created_at": get_utc_now_str(),
+        "month": month,
+        "year": year
+    }
+    
+    await db.emi_payments.insert_one(emi_doc)
+    
+    # Update loan status
+    await db.loans.update_one(
+        {"id": loan_id},
+        {"$set": {
+            "remaining_balance": 0,
+            "total_paid": loan.get("total_paid", 0) + final_amount,
+            "status": LoanStatus.PRECLOSED
+        }}
+    )
+    
+    # Create Cash Out entry
+    await create_auto_cash_out(
+        category="loan_emi",
+        description=f"Loan Pre-closure - {loan['loan_name']} ({loan['lender_name']})",
+        amount=final_amount,
+        date=payment_date,
+        reference_id=emi_doc["id"],
+        reference_type="emi_payment"
+    )
+    
+    return {"message": "Loan pre-closed successfully", "final_payment": final_amount}
+
+
+@router.get("/loans/summary", response_model=LoanSummary)
+async def get_loan_summary():
+    """Get overall loan summary"""
+    loans = await db.loans.find({}, {"_id": 0}).to_list(100)
+    
+    active_loans = [l for l in loans if l.get("status") == LoanStatus.ACTIVE]
+    
+    # Calculate upcoming EMIs for current month
+    current_day = datetime.now().day
+    upcoming_emis = sum(
+        l["emi_amount"] for l in active_loans 
+        if l.get("emi_day", 0) >= current_day
+    )
+    
+    return LoanSummary(
+        total_loans=len(loans),
+        active_loans=len(active_loans),
+        total_loan_amount=sum(l.get("total_loan_amount", 0) for l in loans),
+        total_paid=sum(l.get("total_paid", 0) for l in loans),
+        total_remaining=sum(l.get("remaining_balance", 0) for l in active_loans),
+        upcoming_emis_this_month=upcoming_emis
+    )
+
+
+@router.get("/export/loans")
+async def export_loans():
+    """Export loan details to CSV"""
+    loans = await db.loans.find({}, {"_id": 0}).to_list(100)
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Headers
+    writer.writerow([
+        "Loan ID", "Loan Name", "Lender", "Total Amount", "EMI Amount", "EMI Day",
+        "Interest Rate (%)", "Tenure (Months)", "Total Paid", "Remaining Balance",
+        "EMIs Paid", "Status", "Start Date", "Created At"
+    ])
+    
+    for loan in loans:
+        writer.writerow([
+            loan.get("id", ""),
+            loan.get("loan_name", ""),
+            loan.get("lender_name", ""),
+            loan.get("total_loan_amount", 0),
+            loan.get("emi_amount", 0),
+            loan.get("emi_day", ""),
+            loan.get("interest_rate", "N/A"),
+            loan.get("loan_tenure_months", "N/A"),
+            loan.get("total_paid", 0),
+            loan.get("remaining_balance", 0),
+            loan.get("emis_paid", 0),
+            loan.get("status", ""),
+            loan.get("loan_start_date", ""),
+            loan.get("created_at", "")[:10]
+        ])
+    
+    output.seek(0)
+    filename = f"loans_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+@router.get("/export/emi-payments")
+async def export_emi_payments(month: Optional[str] = None, year: Optional[int] = None):
+    """Export EMI payments to CSV"""
+    query = {}
+    if month:
+        query["month"] = month
+    if year:
+        query["year"] = year
+    
+    payments = await db.emi_payments.find(query, {"_id": 0}).sort("payment_date", -1).to_list(1000)
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Headers
+    writer.writerow([
+        "Payment ID", "Loan Name", "Payment Date", "Amount", "Principal", "Interest",
+        "Balance After", "Payment Type", "Month", "Year", "Notes"
+    ])
+    
+    for payment in payments:
+        payment_type = "Extra Payment" if payment.get("is_extra_payment") else "Regular EMI"
+        writer.writerow([
+            payment.get("id", ""),
+            payment.get("loan_name", ""),
+            payment.get("payment_date", ""),
+            payment.get("amount", 0),
+            payment.get("principal_amount", "N/A"),
+            payment.get("interest_amount", "N/A"),
+            payment.get("balance_after_payment", 0),
+            payment_type,
+            payment.get("month", ""),
+            payment.get("year", ""),
+            payment.get("notes", "")
+        ])
+    
+    period = f"{month}_{year}" if month and year else "all"
+    output.seek(0)
+    filename = f"emi_payments_{period}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
