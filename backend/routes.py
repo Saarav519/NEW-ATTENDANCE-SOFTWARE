@@ -3328,26 +3328,46 @@ async def get_loan(loan_id: str):
 
 @router.put("/loans/{loan_id}", response_model=LoanResponse)
 async def update_loan(loan_id: str, data: LoanCreate):
-    """Update loan details (only if no EMIs paid yet)"""
+    """Update loan details (only if no payments made yet)"""
     loan = await db.loans.find_one({"id": loan_id}, {"_id": 0})
     if not loan:
         raise HTTPException(status_code=404, detail="Loan not found")
     
-    if loan.get("emis_paid", 0) > 0:
-        raise HTTPException(status_code=400, detail="Cannot edit loan after EMI payments have been made")
+    if loan.get("total_paid", 0) > 0:
+        raise HTTPException(status_code=400, detail="Cannot edit loan after payments have been made")
+    
+    # Validate EMI fields for EMI-based loans
+    if data.loan_type == LoanType.EMI_BASED:
+        if not data.emi_amount or not data.emi_day:
+            raise HTTPException(status_code=400, detail="EMI amount and EMI day are required for EMI-based loans")
     
     update_data = {
         "loan_name": data.loan_name,
         "lender_name": data.lender_name,
         "total_loan_amount": data.total_loan_amount,
-        "emi_amount": data.emi_amount,
-        "emi_day": min(max(data.emi_day, 1), 28),
+        "loan_type": data.loan_type,
         "loan_start_date": data.loan_start_date,
-        "interest_rate": data.interest_rate,
-        "loan_tenure_months": data.loan_tenure_months,
         "remaining_balance": data.total_loan_amount,
         "notes": data.notes
     }
+    
+    # Add type-specific fields
+    if data.loan_type == LoanType.EMI_BASED:
+        update_data.update({
+            "emi_amount": data.emi_amount,
+            "emi_day": min(max(data.emi_day, 1), 28),
+            "interest_rate": data.interest_rate,
+            "loan_tenure_months": data.loan_tenure_months,
+            "due_date": None
+        })
+    else:
+        update_data.update({
+            "due_date": data.due_date,
+            "emi_amount": None,
+            "emi_day": None,
+            "interest_rate": None,
+            "loan_tenure_months": None
+        })
     
     await db.loans.update_one({"id": loan_id}, {"$set": update_data})
     updated = await db.loans.find_one({"id": loan_id}, {"_id": 0})
