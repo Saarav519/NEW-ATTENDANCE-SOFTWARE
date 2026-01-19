@@ -83,9 +83,8 @@ async def add_attendance(emp_id, month, year):
     # Insert all records
     if attendance_records:
         await db.attendance.insert_many(attendance_records)
-        print(f"✅ Added {len(attendance_records)} attendance records")
-        print(f"   Full working days: {len(attendance_records)}")
-        print(f"   Sundays/holidays skipped: {days_in_month - len(attendance_records)}")
+        print(f"✅ Added {len(attendance_records)} attendance records (ALL days including Sundays)")
+        print(f"   Total working days: {len(attendance_records)}")
         print(f"\n🎯 Now you can generate payslip for {emp_id} - {month} {year}")
     else:
         print("❌ No records to add")
