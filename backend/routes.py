@@ -163,7 +163,17 @@ async def get_user(user_id: str):
 @router.post("/users", response_model=UserResponse)
 async def create_user(user: UserCreate):
     user_dict = user.model_dump()
-    user_dict["id"] = generate_id()
+    
+    # Use provided ID or generate one
+    if user.id:
+        # Validate uniqueness of provided ID
+        existing_id = await db.users.find_one({"id": user.id.upper()})
+        if existing_id:
+            raise HTTPException(status_code=400, detail=f"Employee ID '{user.id}' already exists")
+        user_dict["id"] = user.id.upper()  # Store in uppercase for consistency
+    else:
+        # Auto-generate ID if not provided
+        user_dict["id"] = generate_id()
     
     # Check for duplicate email
     existing = await db.users.find_one({"email": user.email})
