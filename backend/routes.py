@@ -1764,6 +1764,62 @@ async def get_dashboard_stats():
 
 # ==================== SEED DATA ====================
 
+@router.post("/clear-all-data")
+async def clear_all_data():
+    """
+    Clear ALL test data from the database.
+    Keeps only a single admin user for login.
+    All calculation logic remains intact - only data is deleted.
+    """
+    
+    # Delete all collections
+    await db.users.delete_many({})
+    await db.attendance.delete_many({})
+    await db.payslips.delete_many({})
+    await db.leaves.delete_many({})
+    await db.bills.delete_many({})
+    await db.advances.delete_many({})
+    await db.audit_expenses.delete_many({})
+    await db.notifications.delete_many({})
+    await db.cash_in.delete_many({})
+    await db.cash_out.delete_many({})
+    await db.holidays.delete_many({})
+    await db.qr_codes.delete_many({})
+    await db.invoices.delete_many({})
+    await db.loans.delete_many({})
+    await db.loan_payments.delete_many({})
+    await db.payables.delete_many({})
+    await db.team_leader_history.delete_many({})
+    
+    # Create a single admin user for login
+    admin_user = {
+        "id": "ADMIN001",
+        "name": "Administrator",
+        "email": "admin@company.com",
+        "phone": "",
+        "role": "admin",
+        "department": "Management",
+        "designation": "System Administrator",
+        "joining_date": "2025-12-01",
+        "salary": 0,
+        "salary_type": "monthly",
+        "status": "active",
+        "password": "admin123",
+        "team_members": []
+    }
+    
+    await db.users.insert_one(admin_user)
+    
+    return {
+        "message": "All data cleared successfully",
+        "admin_login": {
+            "id": "ADMIN001",
+            "password": "admin123"
+        },
+        "note": "You can now add new employees and test the system from scratch. All calculation logic is intact."
+    }
+
+
 @router.post("/seed")
 async def seed_database():
     """Seed the database with initial data"""
