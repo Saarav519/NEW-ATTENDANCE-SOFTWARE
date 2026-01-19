@@ -259,6 +259,7 @@ export const sidebarNavItems = {
   teamlead: [
     { id: "dashboard", label: "Dashboard", icon: "LayoutDashboard", path: "/dashboard" },
     { id: "team", label: "My Team", icon: "Users", path: "/team" },
+    { id: "my-attendance", label: "My Attendance", icon: "CalendarCheck", path: "/attendance-details" },
     { id: "leaves", label: "Leaves", icon: "CalendarOff", path: "/leaves" },
     { id: "bills", label: "Bills & Advances", icon: "Receipt", path: "/bills" },
     { id: "audit-expenses", label: "Audit Expenses", icon: "Plane", path: "/audit-expenses" },
