@@ -159,9 +159,14 @@ const Payroll = () => {
           <p className="text-gray-500">Generate and manage employee payslips</p>
         </div>
         {user?.role === 'admin' && (
-          <Button onClick={() => setGenerateDialog(true)} className="bg-[#1E2A5E] hover:bg-[#2D3A8C]">
-            <Plus size={18} className="mr-2" /> Generate Payslip
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setMonthlyDialog(true)} variant="outline" className="border-[#1E2A5E] text-[#1E2A5E]">
+              <Calendar size={18} className="mr-2" /> Create Monthly
+            </Button>
+            <Button onClick={() => setGenerateDialog(true)} className="bg-[#1E2A5E] hover:bg-[#2D3A8C]">
+              <Plus size={18} className="mr-2" /> Generate Payslip
+            </Button>
+          </div>
         )}
       </div>
 
