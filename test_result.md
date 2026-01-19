@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "SuperManage - Staff Attendance & Payroll Management App for Audix Solutions & Co. User requested bug fixes and improvements."
+user_problem_statement: "SuperManage - Staff Attendance & Payroll Management App for Audix Solutions & Co. User requested bug fixes and improvements. NEW FEATURE: Support for both EMI-based loans and Lump Sum loans (personal loans without EMI)."
 
 backend:
   - task: "Authentication API (POST /api/auth/login)"
