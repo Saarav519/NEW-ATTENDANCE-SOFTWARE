@@ -482,6 +482,8 @@ class CashInCreate(BaseModel):
     invoice_number: str
     invoice_date: str  # YYYY-MM-DD
     invoice_amount: float
+    gst_percentage: Optional[float] = None  # GST percentage (e.g., 18)
+    gst_amount: Optional[float] = None  # Calculated GST amount
     invoice_pdf_url: Optional[str] = None
     payment_status: PaymentStatus = PaymentStatus.PENDING
     amount_received: float = 0
@@ -494,6 +496,8 @@ class CashInResponse(BaseModel):
     invoice_number: str
     invoice_date: str
     invoice_amount: float
+    gst_percentage: Optional[float] = None
+    gst_amount: Optional[float] = None
     invoice_pdf_url: Optional[str] = None
     payment_status: PaymentStatus
     amount_received: float
@@ -508,6 +512,8 @@ class CashOutCreate(BaseModel):
     description: str
     amount: float
     date: str  # YYYY-MM-DD
+    tds_percentage: Optional[float] = None  # TDS percentage (e.g., 10)
+    tds_amount: Optional[float] = None  # Calculated TDS amount
     reference_id: Optional[str] = None  # Link to payslip/bill/expense ID
     reference_type: Optional[str] = None  # "payslip", "bill", "audit_expense", "manual"
     notes: Optional[str] = None
@@ -519,6 +525,8 @@ class CashOutResponse(BaseModel):
     description: str
     amount: float
     date: str
+    tds_percentage: Optional[float] = None
+    tds_amount: Optional[float] = None
     reference_id: Optional[str] = None
     reference_type: Optional[str] = None
     notes: Optional[str] = None
