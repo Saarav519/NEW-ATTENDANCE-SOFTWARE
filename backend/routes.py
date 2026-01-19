@@ -781,9 +781,19 @@ async def generate_payslip(data: PayslipCreate):
     leave_days = sum(l.get("days", 0) for l in leaves)
     leave_adjustment = -(leave_days * daily_rate) if leave_days > 0 else 0
     
+    # Get approved advances for this month that need to be deducted
+    advances = await db.advances.find({
+        "emp_id": data.emp_id,
+        "status": AdvanceStatus.APPROVED,
+        "deduct_from_month": data.month,
+        "deduct_from_year": data.year,
+        "is_deducted": {"$ne": True}  # Not yet deducted
+    }).to_list(100)
+    advance_deduction = sum(a.get("amount", 0) for a in advances)
+    
     gross = basic + hra + special_allowance + conveyance + extra_conveyance + attendance_conveyance
     deductions = round(gross * 0.1, 2)  # 10% deductions (PF, Tax, etc.)
-    net_pay = round(gross + leave_adjustment + attendance_adjustment - deductions, 2)
+    net_pay = round(gross + leave_adjustment + attendance_adjustment - deductions - advance_deduction, 2)
     
     breakdown = SalaryBreakdown(
         basic=basic,
@@ -797,6 +807,7 @@ async def generate_payslip(data: PayslipCreate):
         full_days=full_days,
         half_days=half_days,
         absent_days=absent_days,
+        advance_deduction=advance_deduction,
         gross_pay=round(gross, 2),
         deductions=deductions,
         net_pay=net_pay
@@ -812,7 +823,8 @@ async def generate_payslip(data: PayslipCreate):
         "status": PayslipStatus.PENDING,
         "created_on": get_utc_now_str()[:10],
         "paid_on": None,
-        "settled_on": None
+        "settled_on": None,
+        "advance_ids": [a["id"] for a in advances]  # Track which advances were included
     }
     
     await db.payslips.insert_one(payslip_doc)
