@@ -313,44 +313,50 @@ const Employees = () => {
               <div className="space-y-2">
                 <Label>Employee ID * (Manual)</Label>
                 <Input placeholder="e.g., EMP001, AUD-05" value={newEmployee.id}
-                  onChange={(e) => setNewEmployee({...newEmployee, id: e.target.value})} />
+                  onChange={(e) => setNewEmployee({...newEmployee, id: e.target.value})} 
+                  data-testid="add-employee-id" />
                 <p className="text-xs text-gray-500">Use any format. Must be unique.</p>
               </div>
               <div className="space-y-2">
                 <Label>Full Name *</Label>
                 <Input value={newEmployee.name}
-                  onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})} />
+                  onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})}
+                  data-testid="add-employee-name" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Email *</Label>
                 <Input type="email" value={newEmployee.email}
-                  onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})} />
+                  onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})}
+                  data-testid="add-employee-email" />
               </div>
               <div className="space-y-2">
                 <Label>Phone</Label>
                 <Input value={newEmployee.phone}
-                  onChange={(e) => setNewEmployee({...newEmployee, phone: e.target.value})} />
+                  onChange={(e) => setNewEmployee({...newEmployee, phone: e.target.value})}
+                  data-testid="add-employee-phone" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Department</Label>
                 <Input value={newEmployee.department}
-                  onChange={(e) => setNewEmployee({...newEmployee, department: e.target.value})} />
+                  onChange={(e) => setNewEmployee({...newEmployee, department: e.target.value})}
+                  data-testid="add-employee-department" />
               </div>
               <div className="space-y-2">
                 <Label>Designation</Label>
                 <Input value={newEmployee.designation}
-                  onChange={(e) => setNewEmployee({...newEmployee, designation: e.target.value})} />
+                  onChange={(e) => setNewEmployee({...newEmployee, designation: e.target.value})}
+                  data-testid="add-employee-designation" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Role</Label>
                 <Select value={newEmployee.role} onValueChange={(v) => setNewEmployee({...newEmployee, role: v})}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger data-testid="add-employee-role"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="employee">Employee</SelectItem>
                     <SelectItem value="teamlead">Team Lead</SelectItem>
@@ -361,19 +367,21 @@ const Employees = () => {
               <div className="space-y-2">
                 <Label>Password *</Label>
                 <Input type="password" value={newEmployee.password}
-                  onChange={(e) => setNewEmployee({...newEmployee, password: e.target.value})} />
+                  onChange={(e) => setNewEmployee({...newEmployee, password: e.target.value})}
+                  data-testid="add-employee-password" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Salary</Label>
                 <Input type="number" value={newEmployee.salary}
-                  onChange={(e) => setNewEmployee({...newEmployee, salary: e.target.value})} />
+                  onChange={(e) => setNewEmployee({...newEmployee, salary: e.target.value})}
+                  data-testid="add-employee-salary" />
               </div>
               <div className="space-y-2">
                 <Label>Salary Type</Label>
                 <Select value={newEmployee.salary_type} onValueChange={(v) => setNewEmployee({...newEmployee, salary_type: v})}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger data-testid="add-employee-salary-type"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="monthly">Monthly</SelectItem>
                     <SelectItem value="daily">Daily</SelectItem>
@@ -381,10 +389,57 @@ const Employees = () => {
                 </Select>
               </div>
             </div>
+            
+            {/* Team Leader Assignment */}
+            {newEmployee.role === 'employee' && (
+              <div className="space-y-2">
+                <Label>Assign Team Leader</Label>
+                <Select value={newEmployee.team_lead_id} onValueChange={(v) => setNewEmployee({...newEmployee, team_lead_id: v})}>
+                  <SelectTrigger data-testid="add-employee-team-leader"><SelectValue placeholder="Select Team Leader" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No Team Leader</SelectItem>
+                    {teamLeaders.map(tl => (
+                      <SelectItem key={tl.id} value={tl.id}>{tl.name} ({tl.id})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            
+            {/* Bank Details Section */}
+            {newEmployee.role !== 'admin' && (
+              <div className="border-t pt-4 mt-4">
+                <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                  <Landmark size={16} /> Bank Details (Mandatory)
+                </h4>
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-2">
+                    <Label>Bank Name *</Label>
+                    <Input placeholder="e.g., HDFC Bank, SBI" value={newEmployee.bank_name}
+                      onChange={(e) => setNewEmployee({...newEmployee, bank_name: e.target.value})}
+                      data-testid="add-employee-bank-name" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Account Number *</Label>
+                      <Input placeholder="Enter account number" value={newEmployee.bank_account_number}
+                        onChange={(e) => setNewEmployee({...newEmployee, bank_account_number: e.target.value})}
+                        data-testid="add-employee-bank-account" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>IFSC Code *</Label>
+                      <Input placeholder="e.g., HDFC0001234" value={newEmployee.bank_ifsc}
+                        onChange={(e) => setNewEmployee({...newEmployee, bank_ifsc: e.target.value.toUpperCase()})}
+                        data-testid="add-employee-bank-ifsc" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddDialog(false)}>Cancel</Button>
-            <Button onClick={handleAddEmployee} disabled={submitting} className="bg-[#1E2A5E]">
+            <Button onClick={handleAddEmployee} disabled={submitting} className="bg-[#1E2A5E]" data-testid="add-employee-submit">
               {submitting ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
               Add Employee
             </Button>
