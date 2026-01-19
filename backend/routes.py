@@ -654,6 +654,23 @@ async def punch_out(data: AttendancePunchOut):
     attendance["punch_out"] = punch_out_time
     attendance["work_hours"] = work_hours
     
+    # Get user name for notification
+    user = await db.users.find_one({"id": data.emp_id}, {"_id": 0})
+    emp_name = user.get("name", data.emp_id) if user else data.emp_id
+    
+    # Broadcast real-time attendance update
+    await manager.broadcast_to_admins_and_teamleads({
+        "type": "attendance_update",
+        "action": "punch_out",
+        "data": {
+            "emp_id": data.emp_id,
+            "emp_name": emp_name,
+            "punch_out": punch_out_time,
+            "work_hours": work_hours,
+            "date": data.date
+        }
+    })
+    
     return AttendanceResponse(**attendance)
 
 @router.get("/attendance", response_model=List[AttendanceResponse])
