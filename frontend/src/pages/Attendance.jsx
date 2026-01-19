@@ -2,27 +2,47 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '../components/ui/select';
 import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
+} from '../components/ui/dialog';
+import {
   Calendar, Clock, UserCheck, UserX, CalendarOff, LogIn, LogOut,
-  ChevronLeft, ChevronRight, Loader2
+  ChevronLeft, ChevronRight, Loader2, MapPin, IndianRupee, Edit
 } from 'lucide-react';
 import { usersAPI, attendanceAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
+const API_URL = process.env.REACT_APP_BACKEND_URL;
+
 const Attendance = () => {
   const { user, isAdmin } = useAuth();
-  // Default to December 2025 for testing (where we have data)
-  const [selectedMonth, setSelectedMonth] = useState(12);
-  const [selectedYear, setSelectedYear] = useState(2025);
-  const [selectedDate, setSelectedDate] = useState('2025-12-01');
+  const isTeamLead = user?.role === 'teamlead';
+  const canMarkAttendance = isAdmin || isTeamLead;
+  
+  // Default to current month
+  const currentDate = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+  const [selectedDate, setSelectedDate] = useState(currentDate.toISOString().split('T')[0]);
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isPunchedIn, setIsPunchedIn] = useState(false);
   const [punchTime, setPunchTime] = useState(null);
+  
+  // Mark Attendance Dialog
+  const [markDialog, setMarkDialog] = useState({ open: false, employee: null });
+  const [markData, setMarkData] = useState({
+    status: 'present',
+    conveyance: 0,
+    location: 'Office'
+  });
+  const [submitting, setSubmitting] = useState(false);
 
   const todayStr = new Date().toISOString().split('T')[0];
 
