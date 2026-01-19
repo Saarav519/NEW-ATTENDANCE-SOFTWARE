@@ -100,7 +100,14 @@ const Attendance = () => {
   };
 
   const markAttendance = async (empId, status) => {
-    toast.success(`Marked ${status} for employee`);
+    try {
+      const result = await attendanceAPI.markAttendance(empId, selectedDate, status, user?.id || 'ADMIN001');
+      toast.success(`Marked ${status} for employee - Daily Duty: ₹${result.daily_duty_amount || 0}`);
+      // Reload attendance data
+      loadData();
+    } catch (error) {
+      toast.error(error.message || 'Failed to mark attendance');
+    }
   };
 
   // Get days in selected month for calendar
