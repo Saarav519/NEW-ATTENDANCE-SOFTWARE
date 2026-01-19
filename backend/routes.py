@@ -3242,17 +3242,19 @@ def calculate_emi_split(principal_remaining: float, annual_rate: float, emi_amou
 
 @router.post("/loans", response_model=LoanResponse)
 async def create_loan(data: LoanCreate):
-    """Create a new loan entry"""
+    """Create a new loan entry (EMI-based or Lump Sum)"""
+    # Validate EMI fields are provided for EMI-based loans
+    if data.loan_type == LoanType.EMI_BASED:
+        if not data.emi_amount or not data.emi_day:
+            raise HTTPException(status_code=400, detail="EMI amount and EMI day are required for EMI-based loans")
+    
     loan_doc = {
         "id": f"LOAN{generate_id()}",
         "loan_name": data.loan_name,
         "lender_name": data.lender_name,
         "total_loan_amount": data.total_loan_amount,
-        "emi_amount": data.emi_amount,
-        "emi_day": min(max(data.emi_day, 1), 28),  # Ensure 1-28
+        "loan_type": data.loan_type,
         "loan_start_date": data.loan_start_date,
-        "interest_rate": data.interest_rate,
-        "loan_tenure_months": data.loan_tenure_months,
         "total_paid": 0,
         "remaining_balance": data.total_loan_amount,
         "emis_paid": 0,
@@ -3260,6 +3262,20 @@ async def create_loan(data: LoanCreate):
         "notes": data.notes,
         "created_at": get_utc_now_str()
     }
+    
+    # Add EMI-specific fields only for EMI-based loans
+    if data.loan_type == LoanType.EMI_BASED:
+        loan_doc["emi_amount"] = data.emi_amount
+        loan_doc["emi_day"] = min(max(data.emi_day, 1), 28)  # Ensure 1-28
+        loan_doc["interest_rate"] = data.interest_rate
+        loan_doc["loan_tenure_months"] = data.loan_tenure_months
+    else:
+        # Lump sum loan specific fields
+        loan_doc["due_date"] = data.due_date
+        loan_doc["emi_amount"] = None
+        loan_doc["emi_day"] = None
+        loan_doc["interest_rate"] = None
+        loan_doc["loan_tenure_months"] = None
     
     await db.loans.insert_one(loan_doc)
     loan_doc.pop("_id", None)
