@@ -78,8 +78,9 @@ const Cashbook = () => {
   });
   const [newCategory, setNewCategory] = useState({ name: '', description: '' });
   const [newLoan, setNewLoan] = useState({
-    loan_name: '', lender_name: '', total_loan_amount: '', emi_amount: '',
-    emi_day: '10', loan_start_date: '', interest_rate: '', loan_tenure_months: '', notes: ''
+    loan_name: '', lender_name: '', total_loan_amount: '', loan_type: 'emi_based',
+    emi_amount: '', emi_day: '10', loan_start_date: '', due_date: '',
+    interest_rate: '', loan_tenure_months: '', notes: ''
   });
   const [newEmi, setNewEmi] = useState({
     payment_date: '', amount: '', is_extra_payment: false, notes: ''
