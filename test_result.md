@@ -351,6 +351,19 @@ backend:
         agent: "testing"
         comment: "✅ TESTED: Real-time notification creation verified. When leave/bill is submitted, notifications are automatically created for admins. Notification APIs fully functional for reading, marking as read, and bulk operations. WebSocket functionality for real-time updates implemented in backend routes."
 
+  - task: "Dual Loan Type Support (EMI-based & Lump Sum)"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/models.py, /app/backend/routes.py, /app/frontend/src/pages/Cashbook.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "NEW FEATURE: Added support for two loan types - EMI-based loans (with monthly EMI payments for banks/institutions) and Lump Sum loans (personal loans from friends/family without EMI). Backend: Added LoanType enum, made EMI fields optional, added /loans/{loan_id}/pay-lumpsum endpoint. Frontend: Added loan type selector, conditional form fields, type badges in table, dynamic payment interface."
+
+
 frontend:
   - task: "Login Page"
     implemented: true
