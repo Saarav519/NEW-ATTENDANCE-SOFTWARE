@@ -1,36 +1,124 @@
-import React from 'react';
-import { employees, attendanceRecords, payrollRecords, leaveRequests, overtimeRecords, cashbookEntries } from '../data/mockData';
+import React, { useState, useEffect } from 'react';
+import { usersAPI, attendanceAPI, leaveAPI, payslipAPI, billAPI } from '../services/api';
+import { exportAPI } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '../components/ui/select';
-import { BarChart3, Download, Users, Calendar, IndianRupee, Clock, TrendingUp, TrendingDown } from 'lucide-react';
+import { BarChart3, Download, Users, Calendar, IndianRupee, TrendingUp, TrendingDown, FileText, Receipt, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const Reports = () => {
+  const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(null);
+  const [stats, setStats] = useState({
+    totalEmployees: 0,
+    activeEmployees: 0,
+    totalSalaryPaid: 0,
+    totalBillsApproved: 0,
+    attendanceSummary: { present: 0, absent: 0, halfDay: 0 },
+    pendingLeaves: 0,
+    approvedLeaves: 0
+  });
+
   const reportTypes = [
     { id: 'attendance', name: 'Attendance Report', icon: Calendar, description: 'Daily/monthly attendance summary' },
     { id: 'payroll', name: 'Payroll Report', icon: IndianRupee, description: 'Salary disbursement details' },
     { id: 'leave', name: 'Leave Report', icon: Calendar, description: 'Leave balance and history' },
-    { id: 'overtime', name: 'Overtime Report', icon: Clock, description: 'Overtime hours and payments' },
-    { id: 'cashbook', name: 'Cashbook Report', icon: TrendingUp, description: 'Cash flow summary' },
+    { id: 'bills', name: 'Bills Report', icon: Receipt, description: 'Bill submissions and approvals' },
     { id: 'employee', name: 'Employee Report', icon: Users, description: 'Employee details and status' },
   ];
 
-  // Calculate summary stats
-  const totalEmployees = employees.length;
-  const activeEmployees = employees.filter(e => e.status === 'active').length;
-  const totalSalaryPaid = payrollRecords.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.netSalary, 0);
-  const totalOvertimePaid = overtimeRecords.filter(o => o.status === 'approved').reduce((sum, o) => sum + o.amount, 0);
-  const totalCashIn = cashbookEntries.filter(e => e.type === 'in').reduce((sum, e) => sum + e.amount, 0);
-  const totalCashOut = cashbookEntries.filter(e => e.type === 'out').reduce((sum, e) => sum + e.amount, 0);
+  useEffect(() => {
+    loadStats();
+  }, []);
 
-  // Attendance summary
-  const attendanceSummary = {
-    present: attendanceRecords.filter(a => a.status === 'present').length,
-    absent: attendanceRecords.filter(a => a.status === 'absent').length,
-    leave: attendanceRecords.filter(a => a.status === 'leave').length,
+  const loadStats = async () => {
+    setLoading(true);
+    try {
+      const [users, attendance, leaves, payslips, bills] = await Promise.all([
+        usersAPI.getAll(),
+        attendanceAPI.getAll(),
+        leaveAPI.getAll(),
+        payslipAPI.getAll(null, 'settled'),
+        billAPI.getAll()
+      ]);
+
+      const activeUsers = users.filter(u => u.status === 'active' && u.role !== 'admin');
+      const totalSalary = payslips.reduce((sum, p) => sum + (p.breakdown?.net_pay || 0), 0);
+      const approvedBills = bills.filter(b => b.status === 'approved').reduce((sum, b) => sum + (b.approved_amount || 0), 0);
+
+      // Attendance summary
+      const present = attendance.filter(a => a.attendance_status === 'full_day' || a.status === 'present').length;
+      const halfDay = attendance.filter(a => a.attendance_status === 'half_day').length;
+      const absent = attendance.filter(a => a.attendance_status === 'absent' || a.status === 'absent').length;
+
+      setStats({
+        totalEmployees: users.filter(u => u.role !== 'admin').length,
+        activeEmployees: activeUsers.length,
+        totalSalaryPaid: totalSalary,
+        totalBillsApproved: approvedBills,
+        attendanceSummary: { present, absent, halfDay },
+        pendingLeaves: leaves.filter(l => l.status === 'pending').length,
+        approvedLeaves: leaves.filter(l => l.status === 'approved').length
+      });
+    } catch (error) {
+      console.error('Error loading stats:', error);
+      toast.error('Failed to load report data');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleExport = async (reportId) => {
+    setExporting(reportId);
+    try {
+      let url;
+      switch (reportId) {
+        case 'employee':
+          url = exportAPI.employees();
+          break;
+        case 'attendance':
+          url = exportAPI.attendance();
+          break;
+        case 'leave':
+          url = exportAPI.leaves();
+          break;
+        case 'payroll':
+          url = exportAPI.payslips('settled');
+          break;
+        case 'bills':
+          url = exportAPI.bills();
+          break;
+        default:
+          toast.error('Unknown report type');
+          return;
+      }
+      
+      // Download the file
+      window.open(url, '_blank');
+      toast.success(`${reportId.charAt(0).toUpperCase() + reportId.slice(1)} report downloaded!`);
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Failed to export report');
+    } finally {
+      setExporting(null);
+    }
+  };
+
+  const total = stats.attendanceSummary.present + stats.attendanceSummary.absent + stats.attendanceSummary.halfDay || 1;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="animate-spin h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading reports...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -47,43 +135,43 @@ const Reports = () => {
         <Card>
           <CardContent className="p-4 text-center">
             <Users size={24} className="mx-auto text-blue-600 mb-2" />
-            <p className="text-2xl font-bold text-gray-800">{totalEmployees}</p>
+            <p className="text-2xl font-bold text-gray-800">{stats.totalEmployees}</p>
             <p className="text-xs text-gray-500">Total Employees</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <Users size={24} className="mx-auto text-green-600 mb-2" />
-            <p className="text-2xl font-bold text-gray-800">{activeEmployees}</p>
+            <p className="text-2xl font-bold text-gray-800">{stats.activeEmployees}</p>
             <p className="text-xs text-gray-500">Active</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <IndianRupee size={24} className="mx-auto text-purple-600 mb-2" />
-            <p className="text-2xl font-bold text-gray-800">₹{(totalSalaryPaid/1000).toFixed(0)}K</p>
+            <p className="text-2xl font-bold text-gray-800">₹{(stats.totalSalaryPaid/1000).toFixed(0)}K</p>
             <p className="text-xs text-gray-500">Salary Paid</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <Clock size={24} className="mx-auto text-orange-600 mb-2" />
-            <p className="text-2xl font-bold text-gray-800">₹{totalOvertimePaid.toLocaleString()}</p>
-            <p className="text-xs text-gray-500">Overtime</p>
+            <Receipt size={24} className="mx-auto text-orange-600 mb-2" />
+            <p className="text-2xl font-bold text-gray-800">₹{stats.totalBillsApproved.toLocaleString()}</p>
+            <p className="text-xs text-gray-500">Bills Approved</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <TrendingUp size={24} className="mx-auto text-green-600 mb-2" />
-            <p className="text-2xl font-bold text-gray-800">₹{(totalCashIn/1000).toFixed(0)}K</p>
-            <p className="text-xs text-gray-500">Cash In</p>
+            <p className="text-2xl font-bold text-gray-800">{stats.approvedLeaves}</p>
+            <p className="text-xs text-gray-500">Approved Leaves</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <TrendingDown size={24} className="mx-auto text-red-600 mb-2" />
-            <p className="text-2xl font-bold text-gray-800">₹{(totalCashOut/1000).toFixed(0)}K</p>
-            <p className="text-xs text-gray-500">Cash Out</p>
+            <TrendingDown size={24} className="mx-auto text-yellow-600 mb-2" />
+            <p className="text-2xl font-bold text-gray-800">{stats.pendingLeaves}</p>
+            <p className="text-xs text-gray-500">Pending Leaves</p>
           </CardContent>
         </Card>
       </div>
@@ -98,19 +186,19 @@ const Reports = () => {
             <div className="flex-1">
               <div className="flex items-end gap-2 h-40">
                 <div className="flex-1 flex flex-col items-center">
-                  <div className="w-full bg-green-500 rounded-t" style={{ height: `${(attendanceSummary.present / (attendanceSummary.present + attendanceSummary.absent + attendanceSummary.leave)) * 100}%`, minHeight: '20px' }}></div>
+                  <div className="w-full bg-green-500 rounded-t" style={{ height: `${(stats.attendanceSummary.present / total) * 100}%`, minHeight: '20px' }}></div>
                   <p className="text-xs mt-2 text-gray-600">Present</p>
-                  <p className="text-lg font-bold text-green-600">{attendanceSummary.present}</p>
+                  <p className="text-lg font-bold text-green-600">{stats.attendanceSummary.present}</p>
                 </div>
                 <div className="flex-1 flex flex-col items-center">
-                  <div className="w-full bg-red-500 rounded-t" style={{ height: `${(attendanceSummary.absent / (attendanceSummary.present + attendanceSummary.absent + attendanceSummary.leave)) * 100}%`, minHeight: '20px' }}></div>
+                  <div className="w-full bg-yellow-500 rounded-t" style={{ height: `${(stats.attendanceSummary.halfDay / total) * 100}%`, minHeight: '20px' }}></div>
+                  <p className="text-xs mt-2 text-gray-600">Half Day</p>
+                  <p className="text-lg font-bold text-yellow-600">{stats.attendanceSummary.halfDay}</p>
+                </div>
+                <div className="flex-1 flex flex-col items-center">
+                  <div className="w-full bg-red-500 rounded-t" style={{ height: `${(stats.attendanceSummary.absent / total) * 100}%`, minHeight: '20px' }}></div>
                   <p className="text-xs mt-2 text-gray-600">Absent</p>
-                  <p className="text-lg font-bold text-red-600">{attendanceSummary.absent}</p>
-                </div>
-                <div className="flex-1 flex flex-col items-center">
-                  <div className="w-full bg-yellow-500 rounded-t" style={{ height: `${(attendanceSummary.leave / (attendanceSummary.present + attendanceSummary.absent + attendanceSummary.leave)) * 100}%`, minHeight: '20px' }}></div>
-                  <p className="text-xs mt-2 text-gray-600">Leave</p>
-                  <p className="text-lg font-bold text-yellow-600">{attendanceSummary.leave}</p>
+                  <p className="text-lg font-bold text-red-600">{stats.attendanceSummary.absent}</p>
                 </div>
               </div>
             </div>
@@ -118,15 +206,15 @@ const Reports = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-sm"><span className="w-3 h-3 bg-green-500 rounded"></span>Present</span>
-                  <span className="font-semibold">{((attendanceSummary.present / (attendanceSummary.present + attendanceSummary.absent + attendanceSummary.leave)) * 100).toFixed(1)}%</span>
+                  <span className="font-semibold">{((stats.attendanceSummary.present / total) * 100).toFixed(1)}%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-2 text-sm"><span className="w-3 h-3 bg-yellow-500 rounded"></span>Half Day</span>
+                  <span className="font-semibold">{((stats.attendanceSummary.halfDay / total) * 100).toFixed(1)}%</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-2 text-sm"><span className="w-3 h-3 bg-red-500 rounded"></span>Absent</span>
-                  <span className="font-semibold">{((attendanceSummary.absent / (attendanceSummary.present + attendanceSummary.absent + attendanceSummary.leave)) * 100).toFixed(1)}%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-sm"><span className="w-3 h-3 bg-yellow-500 rounded"></span>Leave</span>
-                  <span className="font-semibold">{((attendanceSummary.leave / (attendanceSummary.present + attendanceSummary.absent + attendanceSummary.leave)) * 100).toFixed(1)}%</span>
+                  <span className="font-semibold">{((stats.attendanceSummary.absent / total) * 100).toFixed(1)}%</span>
                 </div>
               </div>
             </div>
@@ -150,8 +238,22 @@ const Reports = () => {
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-800">{report.name}</h3>
                     <p className="text-sm text-gray-500 mb-3">{report.description}</p>
-                    <Button size="sm" variant="outline" className="w-full">
-                      <Download size={14} className="mr-2" /> Download
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => handleExport(report.id)}
+                      disabled={exporting === report.id}
+                    >
+                      {exporting === report.id ? (
+                        <>
+                          <Loader2 size={14} className="mr-2 animate-spin" /> Exporting...
+                        </>
+                      ) : (
+                        <>
+                          <Download size={14} className="mr-2" /> Download CSV
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -161,10 +263,10 @@ const Reports = () => {
         </CardContent>
       </Card>
 
-      {/* Recent Activity */}
+      {/* Summary Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Monthly Summary</CardTitle>
+          <CardTitle>Summary</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -173,29 +275,34 @@ const Reports = () => {
                 <tr>
                   <th className="text-left p-3 font-semibold text-gray-600 text-sm">Category</th>
                   <th className="text-right p-3 font-semibold text-gray-600 text-sm">Count/Amount</th>
-                  <th className="text-right p-3 font-semibold text-gray-600 text-sm">Change</th>
+                  <th className="text-right p-3 font-semibold text-gray-600 text-sm">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 <tr>
+                  <td className="p-3">Total Employees</td>
+                  <td className="p-3 text-right font-semibold">{stats.totalEmployees}</td>
+                  <td className="p-3 text-right text-green-600">{stats.activeEmployees} active</td>
+                </tr>
+                <tr>
                   <td className="p-3">Total Attendance Records</td>
-                  <td className="p-3 text-right font-semibold">{attendanceRecords.length}</td>
-                  <td className="p-3 text-right text-green-600">+12%</td>
+                  <td className="p-3 text-right font-semibold">{stats.attendanceSummary.present + stats.attendanceSummary.halfDay + stats.attendanceSummary.absent}</td>
+                  <td className="p-3 text-right text-green-600">{stats.attendanceSummary.present} present</td>
                 </tr>
                 <tr>
                   <td className="p-3">Leave Requests</td>
-                  <td className="p-3 text-right font-semibold">{leaveRequests.length}</td>
-                  <td className="p-3 text-right text-red-500">-5%</td>
-                </tr>
-                <tr>
-                  <td className="p-3">Overtime Hours</td>
-                  <td className="p-3 text-right font-semibold">{overtimeRecords.reduce((sum, o) => sum + o.hours, 0)} hrs</td>
-                  <td className="p-3 text-right text-green-600">+8%</td>
+                  <td className="p-3 text-right font-semibold">{stats.pendingLeaves + stats.approvedLeaves}</td>
+                  <td className="p-3 text-right text-yellow-600">{stats.pendingLeaves} pending</td>
                 </tr>
                 <tr>
                   <td className="p-3">Payroll Processed</td>
-                  <td className="p-3 text-right font-semibold">₹{totalSalaryPaid.toLocaleString()}</td>
-                  <td className="p-3 text-right text-green-600">+3%</td>
+                  <td className="p-3 text-right font-semibold">₹{stats.totalSalaryPaid.toLocaleString()}</td>
+                  <td className="p-3 text-right text-green-600">Settled</td>
+                </tr>
+                <tr>
+                  <td className="p-3">Bills Approved</td>
+                  <td className="p-3 text-right font-semibold">₹{stats.totalBillsApproved.toLocaleString()}</td>
+                  <td className="p-3 text-right text-green-600">Approved</td>
                 </tr>
               </tbody>
             </table>
