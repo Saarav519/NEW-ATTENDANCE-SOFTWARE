@@ -47,7 +47,7 @@ const AttendanceDetails = () => {
   const fullDays = attendance.filter(a => a.attendance_status === 'full_day' || (a.status === 'present' && !a.attendance_status)).length;
   const halfDays = attendance.filter(a => a.attendance_status === 'half_day').length;
   const absentDays = attendance.filter(a => a.attendance_status === 'absent' || a.status === 'absent').length;
-  const leaveDays = attendance.filter(a => a.status === 'leave').length;
+  const leaveDays = attendance.filter(a => a.attendance_status === 'leave' || a.status === 'leave').length;
   const totalHours = attendance.reduce((sum, a) => sum + (a.work_hours || 0), 0);
   const totalConveyance = attendance.reduce((sum, a) => sum + (a.conveyance_amount || 0), 0);
   const totalDuty = attendance.reduce((sum, a) => sum + (a.daily_duty_amount || 0), 0);
