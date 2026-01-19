@@ -707,10 +707,12 @@ async def get_monthly_attendance(emp_id: str, month: int, year: int):
 async def mark_attendance(
     emp_id: str,
     date: str,
-    status: str,  # 'present' or 'absent'
-    marked_by: str = "ADMIN001"
+    status: str,  # 'present', 'half_day', or 'absent'
+    marked_by: str = "ADMIN001",
+    conveyance: float = 0,  # Admin can manually enter conveyance
+    location: str = "Office"  # Admin can select location
 ):
-    """Admin marks attendance for employee/team leader - updates all related calculations"""
+    """Admin/Team Leader marks attendance for employee - with manual conveyance and location"""
     
     # Get employee details for salary calculation
     user = await db.users.find_one({"id": emp_id}, {"_id": 0})
@@ -720,17 +722,22 @@ async def mark_attendance(
     emp_salary = user.get("salary", 0)
     daily_rate = round(emp_salary / 26, 2)  # 26 working days per month
     
-    # Determine attendance status, conveyance, and daily duty based on status
-    if status == 'present':
+    # Determine attendance status and daily duty based on status
+    if status == 'present' or status == 'full_day':
         attendance_status = "full_day"
-        conveyance = 200
         daily_duty = daily_rate
         punch_in = "10:00"
         punch_out = "19:00"
         work_hours = 9.0
+    elif status == 'half_day':
+        attendance_status = "half_day"
+        daily_duty = round(daily_rate * 0.5, 2)
+        punch_in = "10:00"
+        punch_out = "14:00"
+        work_hours = 4.0
     else:  # absent
         attendance_status = "absent"
-        conveyance = 0
+        conveyance = 0  # No conveyance for absent
         daily_duty = 0
         punch_in = None
         punch_out = None
@@ -751,6 +758,7 @@ async def mark_attendance(
                 "work_hours": work_hours,
                 "conveyance_amount": conveyance,
                 "daily_duty_amount": daily_duty,
+                "location": location,
                 "marked_by": marked_by,
                 "updated_at": get_utc_now_str()
             }}
@@ -768,7 +776,7 @@ async def mark_attendance(
             "attendance_status": attendance_status,
             "work_hours": work_hours,
             "qr_code_id": None,
-            "location": "Marked by Admin",
+            "location": location,
             "conveyance_amount": conveyance,
             "daily_duty_amount": daily_duty,
             "shift_type": "day",
@@ -788,6 +796,7 @@ async def mark_attendance(
         "attendance_status": attendance_status,
         "conveyance_amount": conveyance,
         "daily_duty_amount": daily_duty,
+        "location": location,
         "work_hours": work_hours
     }
 
