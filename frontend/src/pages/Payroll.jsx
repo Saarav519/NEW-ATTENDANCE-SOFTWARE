@@ -95,6 +95,29 @@ const Payroll = () => {
     }
   };
 
+  // Create monthly payslips for all employees
+  const handleCreateMonthlyPayslips = async () => {
+    setCreatingMonthly(true);
+    try {
+      const response = await fetch(`${API_URL}/api/payslips/create-monthly?month=${selectedMonth}&year=${selectedYear}`, {
+        method: 'POST'
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        toast.success(`Created ${data.created} payslips for ${selectedMonth} ${selectedYear}. Skipped ${data.skipped} (already exist).`);
+        setMonthlyDialog(false);
+        loadData();
+      } else {
+        toast.error(data.detail || 'Failed to create monthly payslips');
+      }
+    } catch (error) {
+      toast.error('Failed to create monthly payslips');
+    } finally {
+      setCreatingMonthly(false);
+    }
+  };
+
   const filteredPayslips = payslips.filter(p => {
     if (selectedMonth && selectedYear) {
       return p.month === selectedMonth && p.year === selectedYear;
