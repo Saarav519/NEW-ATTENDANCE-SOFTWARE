@@ -305,6 +305,19 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
   - GET /api/users/{id}/team-leader-history returns audit trail
   - TL History dialog shows all changes with dates and admin who made change
 
+- **NEW FEATURE:** Audit Expenses Report in Reports Page ✅
+  - Added "Audit Expenses Report" to Generate Reports section
+  - Shows Team Leader travel/audit expense claims
+  - CSV export includes: Trip Name, Client, Dates, Ticket/Travel/Food/Hotel amounts, Status, Payments
+  - New stat card showing "Audit Expenses" approved amount for selected month/year
+  - Added row in Summary table for "Audit Expenses Approved"
+
+- **UPDATED:** Bills & Advances Report (Merged) ✅
+  - Combined Bills Report and Advance Report into single "Bills & Advances Report"
+  - CSV includes both types with "Type" column (Bill/Advance)
+  - Unified export: /api/export/bills-advances
+  - Description: "Bill submissions and salary advances combined"
+
 - **UPDATED:** Payslips CSV Export ✅
   - Added Bank Name, Account Number, IFSC Code columns to /api/export/payslips
   - Lookup employee bank details during export generation
