@@ -2654,7 +2654,7 @@ async def export_payslips(
     # Header
     writer.writerow([
         "Payslip ID", "Employee ID", "Employee Name", "Month", "Year",
-        "Basic", "HRA", "Special Allowance", "Conveyance", "Extra Conveyance",
+        "Basic", "HRA", "Special Allowance", "Conveyance", "Bills/Previous Pending Approved",
         "Leave Adjustment", "Attendance Adjustment", "Full Days", "Half Days",
         "Leave Days", "Absent Days", "Total Duty Earned", "Advance Deduction",
         "Gross Pay", "Deductions", "Net Pay", "Status", "Paid On"
