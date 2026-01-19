@@ -78,10 +78,15 @@ const Payslip = () => {
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.text(`Full Days: ${breakdown.full_days || 0}  |  Half Days: ${breakdown.half_days || 0}  |  Absent: ${breakdown.absent_days || 0}`, 20, 85);
+      
+      // Total Duty Earned
+      if (breakdown.total_duty_earned && breakdown.total_duty_earned > 0) {
+        doc.text(`Total Duty Earned: Rs. ${breakdown.total_duty_earned.toLocaleString()}`, 20, 92);
+      }
     }
     
     // Earnings Section
-    let y = breakdown.full_days ? 100 : 75;
+    let y = breakdown.full_days ? (breakdown.total_duty_earned ? 107 : 100) : 75;
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text('EARNINGS', 20, y);
