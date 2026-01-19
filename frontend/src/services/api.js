@@ -148,8 +148,19 @@ export const billAPI = {
     if (year) params.append('year', year);
     return apiCall(`/bills?${params}`);
   },
-  approve: (billId, approvedBy, approvedAmount) => 
-    apiCall(`/bills/${billId}/approve?approved_by=${approvedBy}&approved_amount=${approvedAmount}`, { method: 'PUT' }),
+  approve: (billId, approvedBy, approvedAmount, sendToRevalidation = false) => {
+    const params = new URLSearchParams();
+    params.append('approved_by', approvedBy);
+    params.append('approved_amount', approvedAmount);
+    if (sendToRevalidation) params.append('send_to_revalidation', 'true');
+    return apiCall(`/bills/${billId}/approve?${params}`, { method: 'PUT' });
+  },
+  revalidate: (billId, revalidatedBy, additionalAmount = 0) => {
+    const params = new URLSearchParams();
+    params.append('revalidated_by', revalidatedBy);
+    params.append('additional_amount', additionalAmount);
+    return apiCall(`/bills/${billId}/revalidate?${params}`, { method: 'PUT' });
+  },
   reject: (billId, rejectedBy) => 
     apiCall(`/bills/${billId}/reject?rejected_by=${rejectedBy}`, { method: 'PUT' }),
   uploadAttachment: async (file) => {
