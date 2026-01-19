@@ -2656,8 +2656,8 @@ async def export_payslips(
         "Payslip ID", "Employee ID", "Employee Name", "Month", "Year",
         "Basic", "HRA", "Special Allowance", "Conveyance", "Extra Conveyance",
         "Leave Adjustment", "Attendance Adjustment", "Full Days", "Half Days",
-        "Leave Days", "Absent Days", "Total Duty Earned", "Gross Pay", "Deductions",
-        "Net Pay", "Status", "Paid On"
+        "Leave Days", "Absent Days", "Total Duty Earned", "Advance Deduction",
+        "Gross Pay", "Deductions", "Net Pay", "Status", "Paid On"
     ])
     
     # Data rows
@@ -2681,6 +2681,7 @@ async def export_payslips(
             breakdown.get("leave_days", 0),
             breakdown.get("absent_days", 0),
             breakdown.get("total_duty_earned", 0),
+            breakdown.get("advance_deduction", 0),
             breakdown.get("gross_pay", 0),
             breakdown.get("deductions", 0),
             breakdown.get("net_pay", 0),
