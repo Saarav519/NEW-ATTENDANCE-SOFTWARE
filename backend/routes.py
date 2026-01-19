@@ -1496,6 +1496,139 @@ async def generate_payslip_final(payslip_id: str):
         "breakdown": updated_breakdown
     }
 
+
+@router.put("/payslips/{payslip_id}/recalculate")
+async def recalculate_payslip(payslip_id: str):
+    """Recalculate payslip from attendance data - only for preview payslips"""
+    payslip = await db.payslips.find_one({"id": payslip_id}, {"_id": 0})
+    if not payslip:
+        raise HTTPException(status_code=404, detail="Payslip not found")
+    
+    if payslip.get("status") not in [PayslipStatus.PREVIEW, "preview", "pending"]:
+        raise HTTPException(status_code=400, detail="Only preview payslips can be recalculated")
+    
+    emp_id = payslip.get("emp_id")
+    month = payslip.get("month")
+    year = payslip.get("year")
+    
+    # Get user details
+    user = await db.users.find_one({"id": emp_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    
+    total_salary = user.get("salary", 0)
+    basic = round(total_salary * 0.60, 2)
+    hra = round(total_salary * 0.24, 2)
+    special_allowance = round(total_salary * 0.16, 2)
+    
+    # Get attendance records for the month
+    month_num = ["January", "February", "March", "April", "May", "June", 
+                 "July", "August", "September", "October", "November", "December"].index(month.split()[0]) + 1
+    month_str = f"{year}-{month_num:02d}"
+    attendance_records = await db.attendance.find({
+        "emp_id": emp_id,
+        "date": {"$regex": f"^{month_str}"}
+    }).to_list(100)
+    
+    # Calculate attendance-based metrics
+    full_days = 0
+    half_days = 0
+    absent_days = 0
+    leave_days = 0
+    attendance_conveyance = 0
+    total_duty_earned = 0
+    
+    for record in attendance_records:
+        att_status = record.get("attendance_status", record.get("status", "present"))
+        if att_status == "full_day" or att_status == "present":
+            full_days += 1
+        elif att_status == "half_day":
+            half_days += 1
+        elif att_status == "absent":
+            absent_days += 1
+        elif att_status == "leave":
+            leave_days += 1
+        attendance_conveyance += record.get("conveyance_amount", 0)
+        total_duty_earned += record.get("daily_duty_amount", 0)
+    
+    # Get approved bills
+    approved_bills = await db.bills.find({
+        "emp_id": emp_id,
+        "month": month,
+        "year": year,
+        "status": BillStatus.APPROVED
+    }).to_list(100)
+    extra_conveyance = sum(b.get("approved_amount", 0) for b in approved_bills)
+    
+    # Get approved audit expenses
+    start_date = f"{year}-{month_num:02d}-01"
+    end_date = f"{year}-{month_num+1:02d}-01" if month_num < 12 else f"{year+1}-01-01"
+    audit_expenses = await db.audit_expenses.find({
+        "emp_id": emp_id,
+        "status": "approved",
+        "created_at": {"$gte": start_date, "$lt": end_date}
+    }).to_list(100)
+    total_audit_expenses = sum(e.get("approved_amount", 0) for e in audit_expenses)
+    
+    # Get approved advances
+    month_variants = [month, month.split()[0]]
+    advances = await db.advances.find({
+        "emp_id": emp_id,
+        "status": AdvanceStatus.APPROVED,
+        "deduct_from_month": {"$in": month_variants},
+        "deduct_from_year": year,
+        "is_deducted": {"$ne": True}
+    }).to_list(100)
+    advance_deduction = sum(a.get("amount", 0) for a in advances)
+    
+    # Calculate - salary based on approved attendance
+    working_days = 26
+    daily_rate = basic / working_days
+    attendance_adjustment = -((half_days * 0.5 * daily_rate) + (absent_days * daily_rate))
+    attendance_adjustment = round(attendance_adjustment, 2)
+    
+    # Net Pay = Total Duty Earned + Conveyance + Bills + Audit Expenses - Advance
+    if len(attendance_records) == 0:
+        gross = 0
+        net_pay = 0
+    else:
+        gross = total_duty_earned + attendance_conveyance + extra_conveyance + total_audit_expenses
+        net_pay = round(gross - advance_deduction, 2)
+    
+    updated_breakdown = {
+        "basic": basic,
+        "hra": hra,
+        "special_allowance": special_allowance,
+        "conveyance": attendance_conveyance,
+        "leave_adjustment": 0,
+        "extra_conveyance": extra_conveyance,
+        "previous_pending_allowances": 0,
+        "attendance_adjustment": attendance_adjustment,
+        "full_days": full_days,
+        "half_days": half_days,
+        "absent_days": absent_days,
+        "leave_days": leave_days,
+        "total_duty_earned": round(total_duty_earned, 2),
+        "audit_expenses": total_audit_expenses,
+        "advance_deduction": advance_deduction,
+        "gross_pay": round(gross, 2),
+        "deductions": 0,
+        "net_pay": net_pay
+    }
+    
+    # Update payslip
+    await db.payslips.update_one(
+        {"id": payslip_id},
+        {"$set": {"breakdown": updated_breakdown}}
+    )
+    
+    return {
+        "message": "Payslip recalculated successfully",
+        "attendance_days": len(attendance_records),
+        "breakdown": updated_breakdown
+    }
+
+
 @router.put("/payslips/{payslip_id}/settle")
 async def settle_payslip(payslip_id: str):
     """Mark payslip as settled/paid - only for generated payslips"""
