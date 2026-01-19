@@ -1423,16 +1423,31 @@ async def create_advance_request(data: SalaryAdvanceCreate):
         "emp_name": data.emp_name,
         "amount": data.amount,
         "reason": data.reason,
+        "deduct_from_month": data.deduct_from_month,
+        "deduct_from_year": data.deduct_from_year,
         "repayment_months": data.repayment_months,
         "monthly_deduction": round(data.amount / data.repayment_months, 2),
         "status": AdvanceStatus.PENDING,
         "requested_on": get_utc_now_str(),
         "approved_by": None,
-        "approved_on": None
+        "approved_on": None,
+        "is_deducted": False,
+        "deducted_on": None
     }
     
     await db.advances.insert_one(advance_doc)
     advance_doc.pop("_id", None)
+    
+    # Create notification for admin
+    await create_notification(
+        recipient_id="",
+        recipient_role="admin",
+        title="New Advance Request",
+        message=f"{data.emp_name} requested an advance of ₹{data.amount} to be deducted from {data.deduct_from_month} {data.deduct_from_year}",
+        notification_type="bill",
+        related_id=advance_doc["id"],
+        data={"emp_id": data.emp_id, "action": "advance_request"}
+    )
     
     return SalaryAdvanceResponse(**advance_doc)
 
