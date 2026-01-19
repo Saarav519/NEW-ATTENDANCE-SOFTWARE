@@ -33,12 +33,12 @@ class TestBankDetailsAndTLFeatures:
             pass
     
     def test_01_health_check(self):
-        """Test API root endpoint"""
-        response = requests.get(f"{BASE_URL}/api/")
+        """Test API users endpoint as health check"""
+        response = requests.get(f"{BASE_URL}/api/users")
         assert response.status_code == 200
         data = response.json()
-        assert "message" in data or "status" in data
-        print("PASS: API root endpoint working")
+        assert isinstance(data, list)
+        print("PASS: API is healthy - users endpoint working")
     
     def test_02_admin_login(self):
         """Test admin login"""
