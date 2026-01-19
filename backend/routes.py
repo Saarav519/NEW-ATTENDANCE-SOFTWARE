@@ -2892,6 +2892,7 @@ async def get_categories():
         {"id": "bills", "name": "Bills & Reimbursements", "is_predefined": True},
         {"id": "audit_expenses", "name": "Audit Expenses", "is_predefined": True},
         {"id": "advances", "name": "Salary Advances", "is_predefined": True},
+        {"id": "loan_emi", "name": "Loan EMI", "is_predefined": True},
         {"id": "rent", "name": "Rent", "is_predefined": True},
         {"id": "utilities", "name": "Utilities", "is_predefined": True},
         {"id": "office_supplies", "name": "Office Supplies", "is_predefined": True},
