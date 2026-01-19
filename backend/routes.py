@@ -598,6 +598,68 @@ async def approve_leave(leave_id: str, approved_by: str):
         {"$set": {"status": LeaveStatus.APPROVED, "approved_by": approved_by}}
     )
     
+    # Update attendance records for leave dates to "leave" status
+    # This converts absent days to approved leave with full day credit
+    emp_id = leave["emp_id"]
+    from_date = leave.get("from_date")
+    to_date = leave.get("to_date", from_date)
+    
+    # Get employee salary for daily duty calculation
+    user = await db.users.find_one({"id": emp_id}, {"_id": 0})
+    emp_salary = user.get("salary", 0) if user else 0
+    daily_rate = emp_salary / 26  # 26 working days per month
+    full_day_duty = round(daily_rate, 2)
+    full_conveyance = 200  # Default full day conveyance
+    
+    # Update all attendance records within the leave date range
+    from datetime import datetime, timedelta
+    start_date = datetime.strptime(from_date, "%Y-%m-%d")
+    end_date = datetime.strptime(to_date, "%Y-%m-%d")
+    
+    current_date = start_date
+    while current_date <= end_date:
+        date_str = current_date.strftime("%Y-%m-%d")
+        
+        # Check if attendance record exists for this date
+        existing_attendance = await db.attendance.find_one({
+            "emp_id": emp_id,
+            "date": date_str
+        })
+        
+        if existing_attendance:
+            # Update existing attendance to "leave" status with full day credits
+            await db.attendance.update_one(
+                {"emp_id": emp_id, "date": date_str},
+                {"$set": {
+                    "status": "leave",
+                    "attendance_status": "leave",
+                    "conveyance_amount": full_conveyance,
+                    "daily_duty_amount": full_day_duty
+                }}
+            )
+        else:
+            # Create new attendance record for leave
+            attendance_doc = {
+                "id": generate_id(),
+                "emp_id": emp_id,
+                "date": date_str,
+                "punch_in": None,
+                "punch_out": None,
+                "status": "leave",
+                "attendance_status": "leave",
+                "work_hours": 0,
+                "qr_code_id": None,
+                "location": None,
+                "conveyance_amount": full_conveyance,
+                "daily_duty_amount": full_day_duty,
+                "shift_type": "day",
+                "shift_start": "10:00",
+                "shift_end": "19:00"
+            }
+            await db.attendance.insert_one(attendance_doc)
+        
+        current_date += timedelta(days=1)
+    
     # Notify employee
     await create_notification(
         recipient_id=leave["emp_id"],
@@ -608,7 +670,7 @@ async def approve_leave(leave_id: str, approved_by: str):
         data={"action": "approved"}
     )
     
-    return {"message": "Leave approved"}
+    return {"message": "Leave approved", "attendance_updated": True}
 
 @router.put("/leaves/{leave_id}/reject")
 async def reject_leave(leave_id: str, rejected_by: str):
