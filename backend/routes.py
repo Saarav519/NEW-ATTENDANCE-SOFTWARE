@@ -30,7 +30,8 @@ from models import (
     AnalyticsTimeFilter, AnalyticsResponse,
     CashInCreate, CashInResponse, CashOutCreate, CashOutResponse,
     CustomCategoryCreate, CustomCategoryResponse, MonthLockCreate, MonthLockResponse,
-    CashbookSummary, PaymentStatus, CashOutCategory
+    CashbookSummary, PaymentStatus, CashOutCategory,
+    LoanCreate, LoanResponse, LoanStatus, EMIPaymentCreate, EMIPaymentResponse, LoanSummary
 )
 
 router = APIRouter()
