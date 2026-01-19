@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { usersAPI, attendanceAPI, leaveAPI, payslipAPI, billAPI, advanceAPI } from '../services/api';
+import { usersAPI, attendanceAPI, leaveAPI, payslipAPI, billAPI, advanceAPI, auditExpenseAPI } from '../services/api';
 import { exportAPI } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '../components/ui/select';
-import { Download, Users, Calendar, IndianRupee, TrendingUp, TrendingDown, Receipt, Loader2, Wallet, BookOpen, FileText as FileTextIcon, Landmark } from 'lucide-react';
+import { Download, Users, Calendar, IndianRupee, TrendingUp, TrendingDown, Receipt, Loader2, Wallet, BookOpen, FileText as FileTextIcon, Landmark, Plane } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const MONTHS = [
