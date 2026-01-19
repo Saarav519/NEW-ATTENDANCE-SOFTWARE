@@ -212,36 +212,48 @@ const Team = () => {
               {teamMembers.map((member) => (
                 <div key={member.id} className="p-3 bg-gray-50 rounded-xl">
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                         {member.name?.split(' ').map(n => n[0]).join('')}
                       </div>
-                      <div>
-                        <p className="font-semibold text-gray-800">{member.name}</p>
-                        <p className="text-xs text-gray-500">{member.designation}</p>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-gray-800 text-sm sm:text-base truncate">{member.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{member.designation}</p>
                       </div>
                     </div>
-                    <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+                    <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium flex-shrink-0">
                       Active
                     </span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                  {/* Contact Info - Stack on mobile */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-gray-500">
                       <a href={`tel:${member.phone}`} className="flex items-center gap-1 hover:text-[#1E2A5E]">
-                        <Phone size={12} /> {member.phone}
+                        <Phone size={12} /> <span className="hidden sm:inline">{member.phone}</span><span className="sm:hidden">Call</span>
                       </a>
                       <a href={`mailto:${member.email}`} className="flex items-center gap-1 hover:text-[#1E2A5E]">
                         <Mail size={12} /> Email
                       </a>
                     </div>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => navigate(`/attendance/${member.id}`)}
-                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                    >
-                      <Calendar size={14} className="mr-1" /> Attendance
-                    </Button>
+                    {/* Action Buttons - Horizontal Scroll on Mobile */}
+                    <div className="flex gap-1 overflow-x-auto pb-1 -mx-1 px-1">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => navigate(`/attendance/${member.id}`)}
+                        className="text-blue-600 border-blue-200 hover:bg-blue-50 flex-shrink-0 text-xs"
+                      >
+                        <Calendar size={14} className="mr-1" /> View
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => navigate(`/payslip/${member.id}`)}
+                        className="text-green-600 border-green-200 hover:bg-green-50 flex-shrink-0 text-xs"
+                      >
+                        <IndianRupee size={14} className="mr-1" /> Payslip
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
