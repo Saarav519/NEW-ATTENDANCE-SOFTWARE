@@ -1449,55 +1449,52 @@ async def generate_payslip_final(payslip_id: str):
     }
     
     # Update status to generated
-    
-    # Update status to generated
     await db.payslips.update_one(
         {"id": payslip_id},
         {"$set": {
             "status": PayslipStatus.GENERATED,
+            "breakdown": updated_breakdown,
             "generated_on": get_utc_now_str()[:10]
         }}
     )
     
-    # Create Cash Out entry for salary
-    net_pay = payslip.get("breakdown", {}).get("net_pay", 0)
+    # Create Cash Out entry for salary (use recalculated net_pay)
     if net_pay > 0:
-        payslip_month = payslip.get("month", "January")
-        payslip_year = payslip.get("year", 2026)
-        month_num = ["January", "February", "March", "April", "May", "June", 
-                     "July", "August", "September", "October", "November", "December"].index(payslip_month.split()[0]) + 1
-        date_str = f"{payslip_year}-{month_num:02d}-28"
-        
         # Delete any existing auto cash-out entry to avoid duplicates
         await db.cash_out.delete_many({
             "reference_type": "payslip",
-            "month": payslip_month,
-            "year": payslip_year,
+            "month": month,
+            "year": year,
             "description": {"$regex": f".*{payslip.get('emp_name', '')}.*"}
         })
         
+        date_str = f"{year}-{month_num:02d}-28"
         await create_auto_cash_out(
             category="salary",
-            description=f"Salary - {payslip.get('emp_name', '')} ({payslip_month} {payslip_year})",
+            description=f"Salary - {payslip.get('emp_name', '')} ({month} {year})",
             amount=net_pay,
             date=date_str,
             reference_id=payslip_id,
             reference_type="payslip",
-            month=payslip_month,
-            year=payslip_year
+            month=month,
+            year=year
         )
     
     # Create notification for employee
     await create_notification(
-        recipient_id=payslip.get("emp_id"),
+        recipient_id=emp_id,
         title="Payslip Generated",
-        message=f"Your payslip for {payslip.get('month')} {payslip.get('year')} is now available for download",
+        message=f"Your payslip for {month} {year} is now available for download. Net Pay: ₹{net_pay:,.2f}",
         notification_type="payslip",
         related_id=payslip_id,
-        data={"action": "generated"}
+        data={"action": "generated", "net_pay": net_pay}
     )
     
-    return {"message": "Payslip generated successfully", "status": "generated"}
+    return {
+        "message": "Payslip generated successfully", 
+        "status": "generated",
+        "breakdown": updated_breakdown
+    }
 
 @router.put("/payslips/{payslip_id}/settle")
 async def settle_payslip(payslip_id: str):
