@@ -293,21 +293,27 @@ const AttendanceDetails = () => {
                         </div>
                       </div>
 
-                      {/* QR Details (Location & Conveyance) */}
-                      {record.location && (
-                        <div className="text-right">
-                          <div className="flex items-center gap-1 text-sm text-gray-600 justify-end">
+                      {/* Daily Duty & Conveyance */}
+                      <div className="text-right">
+                        {record.location && (
+                          <div className="flex items-center gap-1 text-sm text-gray-600 justify-end mb-2">
                             <MapPin size={14} className="text-gray-400" />
                             <span>{record.location}</span>
                           </div>
-                          {record.conveyance_amount > 0 && (
-                            <div className="flex items-center gap-1 mt-1 text-green-600 font-semibold justify-end">
-                              <IndianRupee size={14} />
-                              <span>₹{record.conveyance_amount}</span>
-                            </div>
-                          )}
+                        )}
+                        {/* Daily Duty Amount */}
+                        <div className="flex items-center gap-1 text-blue-600 font-semibold justify-end">
+                          <span className="text-xs text-gray-500 mr-1">Duty:</span>
+                          <IndianRupee size={14} />
+                          <span>₹{(record.daily_duty_amount || 0).toLocaleString('en-IN')}</span>
                         </div>
-                      )}
+                        {/* Conveyance Amount */}
+                        <div className="flex items-center gap-1 mt-1 text-green-600 font-semibold justify-end">
+                          <span className="text-xs text-gray-500 mr-1">Conv:</span>
+                          <IndianRupee size={14} />
+                          <span>₹{(record.conveyance_amount || 0)}</span>
+                        </div>
+                      </div>
                     </div>
 
                     {/* QR Code Info */}
