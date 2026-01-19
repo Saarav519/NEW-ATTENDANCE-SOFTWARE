@@ -1096,6 +1096,198 @@ const Cashbook = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Loan Dialog */}
+      <Dialog open={loanDialog.open} onOpenChange={(open) => setLoanDialog({ open, mode: 'add', data: null })}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{loanDialog.mode === 'add' ? 'Add New Loan' : 'Edit Loan'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Loan Name *</Label>
+                <Input placeholder="e.g., Home Loan - HDFC" value={newLoan.loan_name} onChange={(e) => setNewLoan({...newLoan, loan_name: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <Label>Lender Name *</Label>
+                <Input placeholder="e.g., HDFC Bank" value={newLoan.lender_name} onChange={(e) => setNewLoan({...newLoan, lender_name: e.target.value})} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Total Loan Amount (₹) *</Label>
+                <Input type="number" placeholder="600000" value={newLoan.total_loan_amount} onChange={(e) => setNewLoan({...newLoan, total_loan_amount: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <Label>EMI Amount (₹) *</Label>
+                <Input type="number" placeholder="16232" value={newLoan.emi_amount} onChange={(e) => setNewLoan({...newLoan, emi_amount: e.target.value})} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>EMI Day (1-28) *</Label>
+                <Input type="number" min="1" max="28" placeholder="10" value={newLoan.emi_day} onChange={(e) => setNewLoan({...newLoan, emi_day: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <Label>Loan Start Date *</Label>
+                <Input type="date" value={newLoan.loan_start_date} onChange={(e) => setNewLoan({...newLoan, loan_start_date: e.target.value})} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Interest Rate (% p.a.)</Label>
+                <Input type="number" step="0.01" placeholder="8.5" value={newLoan.interest_rate} onChange={(e) => setNewLoan({...newLoan, interest_rate: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <Label>Tenure (Months)</Label>
+                <Input type="number" placeholder="60" value={newLoan.loan_tenure_months} onChange={(e) => setNewLoan({...newLoan, loan_tenure_months: e.target.value})} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Notes</Label>
+              <Textarea placeholder="Additional details about the loan..." value={newLoan.notes} onChange={(e) => setNewLoan({...newLoan, notes: e.target.value})} rows={2} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLoanDialog({ open: false, mode: 'add', data: null })}>Cancel</Button>
+            <Button onClick={handleCreateLoan} disabled={submitting} className="bg-purple-600 hover:bg-purple-700">
+              {submitting ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
+              {loanDialog.mode === 'add' ? 'Add Loan' : 'Update Loan'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Pay EMI Dialog */}
+      <Dialog open={emiDialog.open} onOpenChange={(open) => setEmiDialog({ open, loan: null })}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Record EMI Payment</DialogTitle>
+            {emiDialog.loan && (
+              <p className="text-sm text-gray-500">{emiDialog.loan.loan_name} - Balance: ₹{emiDialog.loan.remaining_balance?.toLocaleString()}</p>
+            )}
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Payment Date *</Label>
+                <Input type="date" value={newEmi.payment_date} onChange={(e) => setNewEmi({...newEmi, payment_date: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <Label>Amount (₹) *</Label>
+                <Input type="number" value={newEmi.amount} onChange={(e) => setNewEmi({...newEmi, amount: e.target.value})} />
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input 
+                type="checkbox" 
+                id="extra-payment" 
+                checked={newEmi.is_extra_payment}
+                onChange={(e) => setNewEmi({...newEmi, is_extra_payment: e.target.checked})}
+                className="w-4 h-4"
+              />
+              <Label htmlFor="extra-payment" className="cursor-pointer">This is an extra payment (not regular EMI)</Label>
+            </div>
+            <div className="space-y-2">
+              <Label>Notes</Label>
+              <Textarea placeholder="Payment details..." value={newEmi.notes} onChange={(e) => setNewEmi({...newEmi, notes: e.target.value})} rows={2} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEmiDialog({ open: false, loan: null })}>Cancel</Button>
+            <Button onClick={handlePayEmi} disabled={submitting} className="bg-green-600 hover:bg-green-700">
+              {submitting ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
+              Record Payment
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Pre-close Dialog */}
+      <Dialog open={precloseDialog.open} onOpenChange={(open) => setPrecloseDialog({ open, loan: null })}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Pre-close Loan</DialogTitle>
+            {precloseDialog.loan && (
+              <p className="text-sm text-gray-500">{precloseDialog.loan.loan_name} - Outstanding: ₹{precloseDialog.loan.remaining_balance?.toLocaleString()}</p>
+            )}
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              <p className="text-sm text-yellow-800">
+                <AlertCircle className="inline mr-2" size={16} />
+                This will close the loan permanently. The payment will be recorded as an extra payment.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>Final Payment Amount (₹) *</Label>
+              <Input type="number" value={precloseAmount} onChange={(e) => setPrecloseAmount(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPrecloseDialog({ open: false, loan: null })}>Cancel</Button>
+            <Button onClick={handlePreclose} disabled={submitting} className="bg-purple-600 hover:bg-purple-700">
+              {submitting ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
+              Pre-close Loan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment History Dialog */}
+      <Dialog open={paymentsDialog.open} onOpenChange={(open) => setPaymentsDialog({ open, loan: null })}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Payment History</DialogTitle>
+            {paymentsDialog.loan && (
+              <p className="text-sm text-gray-500">{paymentsDialog.loan.loan_name} - {paymentsDialog.loan.emis_paid} EMIs paid</p>
+            )}
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            {loanPayments.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <History className="mx-auto h-10 w-10 mb-3 text-gray-300" />
+                <p>No payments recorded yet</p>
+              </div>
+            ) : (
+              <table className="w-full">
+                <thead className="bg-gray-50 sticky top-0">
+                  <tr>
+                    <th className="text-left p-2 text-sm font-semibold text-gray-600">Date</th>
+                    <th className="text-right p-2 text-sm font-semibold text-gray-600">Amount</th>
+                    <th className="text-right p-2 text-sm font-semibold text-gray-600">Principal</th>
+                    <th className="text-right p-2 text-sm font-semibold text-gray-600">Interest</th>
+                    <th className="text-right p-2 text-sm font-semibold text-gray-600">Balance After</th>
+                    <th className="text-center p-2 text-sm font-semibold text-gray-600">Type</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {loanPayments.map((payment) => (
+                    <tr key={payment.id} className="hover:bg-gray-50">
+                      <td className="p-2 text-sm">{payment.payment_date}</td>
+                      <td className="p-2 text-right font-semibold">₹{payment.amount?.toLocaleString()}</td>
+                      <td className="p-2 text-right text-green-600">₹{payment.principal_amount?.toLocaleString() || '-'}</td>
+                      <td className="p-2 text-right text-orange-600">₹{payment.interest_amount?.toLocaleString() || '-'}</td>
+                      <td className="p-2 text-right text-gray-600">₹{payment.balance_after_payment?.toLocaleString()}</td>
+                      <td className="p-2 text-center">
+                        {payment.is_extra_payment ? (
+                          <span className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-full">Extra</span>
+                        ) : (
+                          <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full">EMI</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPaymentsDialog({ open: false, loan: null })}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
