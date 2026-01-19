@@ -863,7 +863,7 @@ async def generate_payslip(data: PayslipCreate):
     advance_deduction = sum(a.get("amount", 0) for a in advances)
     
     gross = basic + hra + special_allowance + conveyance + extra_conveyance + attendance_conveyance
-    deductions = round(gross * 0.1, 2)  # 10% deductions (PF, Tax, etc.)
+    deductions = 0  # No PF/Tax deductions  # 10% deductions (PF, Tax, etc.)
     net_pay = round(gross + leave_adjustment + attendance_adjustment - deductions - advance_deduction, 2)
     
     breakdown = SalaryBreakdown(
