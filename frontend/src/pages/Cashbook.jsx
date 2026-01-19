@@ -317,12 +317,192 @@ const Cashbook = () => {
       case 'invoices-zip':
         url = exportAPI.invoicesZip(month, selectedYear);
         break;
+      case 'loans':
+        url = exportAPI.loans();
+        break;
+      case 'emi-payments':
+        url = exportAPI.emiPayments(month, selectedYear);
+        break;
       default:
         return;
     }
     
     window.open(url, '_blank');
     toast.success(`Exporting ${type}...`);
+  };
+
+  // ===== Loan CRUD Functions =====
+  const resetLoanForm = () => {
+    setNewLoan({
+      loan_name: '', lender_name: '', total_loan_amount: '', emi_amount: '',
+      emi_day: '10', loan_start_date: '', interest_rate: '', loan_tenure_months: '', notes: ''
+    });
+  };
+
+  const handleCreateLoan = async () => {
+    if (!newLoan.loan_name || !newLoan.lender_name || !newLoan.total_loan_amount || !newLoan.emi_amount || !newLoan.emi_day || !newLoan.loan_start_date) {
+      toast.error('Please fill all required fields');
+      return;
+    }
+    
+    setSubmitting(true);
+    try {
+      const payload = {
+        loan_name: newLoan.loan_name,
+        lender_name: newLoan.lender_name,
+        total_loan_amount: parseFloat(newLoan.total_loan_amount),
+        emi_amount: parseFloat(newLoan.emi_amount),
+        emi_day: parseInt(newLoan.emi_day),
+        loan_start_date: newLoan.loan_start_date,
+        interest_rate: newLoan.interest_rate ? parseFloat(newLoan.interest_rate) : null,
+        loan_tenure_months: newLoan.loan_tenure_months ? parseInt(newLoan.loan_tenure_months) : null,
+        notes: newLoan.notes || null
+      };
+      
+      if (loanDialog.mode === 'edit' && loanDialog.data) {
+        await loanAPI.update(loanDialog.data.id, payload);
+        toast.success('Loan updated successfully');
+      } else {
+        await loanAPI.create(payload);
+        toast.success('Loan added successfully');
+      }
+      
+      setLoanDialog({ open: false, mode: 'add', data: null });
+      resetLoanForm();
+      loadData();
+    } catch (error) {
+      toast.error(error.message || 'Failed to save loan');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const editLoan = (loan) => {
+    setNewLoan({
+      loan_name: loan.loan_name,
+      lender_name: loan.lender_name,
+      total_loan_amount: loan.total_loan_amount.toString(),
+      emi_amount: loan.emi_amount.toString(),
+      emi_day: loan.emi_day.toString(),
+      loan_start_date: loan.loan_start_date,
+      interest_rate: loan.interest_rate?.toString() || '',
+      loan_tenure_months: loan.loan_tenure_months?.toString() || '',
+      notes: loan.notes || ''
+    });
+    setLoanDialog({ open: true, mode: 'edit', data: loan });
+  };
+
+  const handleDeleteLoan = async (loanId) => {
+    if (!window.confirm('Are you sure you want to delete this loan?')) return;
+    
+    try {
+      await loanAPI.delete(loanId);
+      toast.success('Loan deleted');
+      loadData();
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete loan');
+    }
+  };
+
+  // ===== EMI Payment Functions =====
+  const resetEmiForm = () => {
+    setNewEmi({
+      payment_date: new Date().toISOString().split('T')[0],
+      amount: '',
+      is_extra_payment: false,
+      notes: ''
+    });
+  };
+
+  const openEmiDialog = (loan) => {
+    resetEmiForm();
+    setNewEmi(prev => ({ ...prev, amount: loan.emi_amount.toString() }));
+    setEmiDialog({ open: true, loan });
+  };
+
+  const handlePayEmi = async () => {
+    if (!newEmi.payment_date || !newEmi.amount) {
+      toast.error('Please fill all required fields');
+      return;
+    }
+    
+    setSubmitting(true);
+    try {
+      await loanAPI.payEmi(emiDialog.loan.id, {
+        loan_id: emiDialog.loan.id,
+        payment_date: newEmi.payment_date,
+        amount: parseFloat(newEmi.amount),
+        is_extra_payment: newEmi.is_extra_payment,
+        notes: newEmi.notes || null
+      });
+      
+      toast.success(newEmi.is_extra_payment ? 'Extra payment recorded' : 'EMI payment recorded');
+      setEmiDialog({ open: false, loan: null });
+      resetEmiForm();
+      loadData();
+    } catch (error) {
+      toast.error(error.message || 'Failed to record payment');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ===== Pre-closure Function =====
+  const openPrecloseDialog = (loan) => {
+    setPrecloseAmount(loan.remaining_balance.toString());
+    setPrecloseDialog({ open: true, loan });
+  };
+
+  const handlePreclose = async () => {
+    if (!precloseAmount) {
+      toast.error('Please enter the final payment amount');
+      return;
+    }
+    
+    if (!window.confirm(`Are you sure you want to pre-close this loan with a payment of ₹${parseFloat(precloseAmount).toLocaleString()}?`)) return;
+    
+    setSubmitting(true);
+    try {
+      await loanAPI.preclose(
+        precloseDialog.loan.id,
+        new Date().toISOString().split('T')[0],
+        parseFloat(precloseAmount),
+        'Pre-closure by Admin'
+      );
+      
+      toast.success('Loan pre-closed successfully');
+      setPrecloseDialog({ open: false, loan: null });
+      setPrecloseAmount('');
+      loadData();
+    } catch (error) {
+      toast.error(error.message || 'Failed to pre-close loan');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ===== Payment History =====
+  const openPaymentsDialog = async (loan) => {
+    try {
+      const payments = await loanAPI.getPayments(loan.id);
+      setLoanPayments(payments || []);
+      setPaymentsDialog({ open: true, loan });
+    } catch (error) {
+      toast.error('Failed to load payment history');
+    }
+  };
+
+  const getLoanStatusBadge = (status) => {
+    switch (status) {
+      case 'active':
+        return <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">Active</span>;
+      case 'closed':
+        return <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">Closed</span>;
+      case 'preclosed':
+        return <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-700">Pre-closed</span>;
+      default:
+        return <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700">{status}</span>;
+    }
   };
 
   const getPaymentStatusBadge = (status) => {
