@@ -435,6 +435,13 @@ export const exportAPI = {
     if (year) params.append('year', year);
     return `${API_URL}/api/export/invoices-zip?${params}`;
   },
+  loans: () => `${API_URL}/api/export/loans`,
+  emiPayments: (monthName, year) => {
+    const params = new URLSearchParams();
+    if (monthName) params.append('month', monthName);
+    if (year) params.append('year', year);
+    return `${API_URL}/api/export/emi-payments?${params}`;
+  },
 };
 
 // Cashbook API
