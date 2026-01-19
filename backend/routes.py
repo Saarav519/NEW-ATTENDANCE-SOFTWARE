@@ -793,9 +793,10 @@ async def generate_payslip(data: PayslipCreate):
         raise HTTPException(status_code=404, detail="Employee not found")
     
     # Calculate salary breakdown
-    basic = user.get("salary", 0)
-    hra = round(basic * 0.4, 2)  # 40% of basic
-    special_allowance = round(basic * 0.15, 2)  # 15%
+    total_salary = user.get("salary", 0)
+    basic = round(total_salary * 0.60, 2)  # 60% of salary
+    hra = round(total_salary * 0.24, 2)  # 24% of salary  # 40% of basic
+    special_allowance = round(total_salary * 0.16, 2)  # 16% of salary  # 15%
     conveyance = 1600  # Fixed base conveyance
     
     # Get approved bills for this month (Extra Conveyance)
