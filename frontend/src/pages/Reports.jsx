@@ -6,12 +6,35 @@ import { Button } from '../components/ui/button';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '../components/ui/select';
-import { BarChart3, Download, Users, Calendar, IndianRupee, TrendingUp, TrendingDown, FileText, Receipt, Loader2 } from 'lucide-react';
+import { Download, Users, Calendar, IndianRupee, TrendingUp, TrendingDown, Receipt, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const MONTHS = [
+  { value: '1', label: 'January', name: 'January' },
+  { value: '2', label: 'February', name: 'February' },
+  { value: '3', label: 'March', name: 'March' },
+  { value: '4', label: 'April', name: 'April' },
+  { value: '5', label: 'May', name: 'May' },
+  { value: '6', label: 'June', name: 'June' },
+  { value: '7', label: 'July', name: 'July' },
+  { value: '8', label: 'August', name: 'August' },
+  { value: '9', label: 'September', name: 'September' },
+  { value: '10', label: 'October', name: 'October' },
+  { value: '11', label: 'November', name: 'November' },
+  { value: '12', label: 'December', name: 'December' },
+];
+
+const currentYear = new Date().getFullYear();
+const YEARS = Array.from({ length: 5 }, (_, i) => ({
+  value: String(currentYear - i),
+  label: String(currentYear - i)
+}));
 
 const Reports = () => {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(null);
+  const [selectedMonth, setSelectedMonth] = useState(String(new Date().getMonth() + 1));
+  const [selectedYear, setSelectedYear] = useState(String(currentYear));
   const [stats, setStats] = useState({
     totalEmployees: 0,
     activeEmployees: 0,
@@ -71,25 +94,35 @@ const Reports = () => {
     }
   };
 
+  const getMonthName = (monthNum) => {
+    const month = MONTHS.find(m => m.value === monthNum);
+    return month ? month.name : '';
+  };
+
   const handleExport = async (reportId) => {
     setExporting(reportId);
     try {
       let url;
+      const monthNum = parseInt(selectedMonth);
+      const yearNum = parseInt(selectedYear);
+      const monthName = getMonthName(selectedMonth);
+
       switch (reportId) {
         case 'employee':
+          // Employee report doesn't need month/year filter
           url = exportAPI.employees();
           break;
         case 'attendance':
-          url = exportAPI.attendance();
+          url = exportAPI.attendance(monthNum, yearNum);
           break;
         case 'leave':
-          url = exportAPI.leaves();
+          url = exportAPI.leaves(monthNum, yearNum);
           break;
         case 'payroll':
-          url = exportAPI.payslips('settled');
+          url = exportAPI.payslips(monthName, yearNum, 'settled');
           break;
         case 'bills':
-          url = exportAPI.bills();
+          url = exportAPI.bills(monthName, yearNum);
           break;
         default:
           toast.error('Unknown report type');
@@ -98,7 +131,12 @@ const Reports = () => {
       
       // Download the file
       window.open(url, '_blank');
-      toast.success(`${reportId.charAt(0).toUpperCase() + reportId.slice(1)} report downloaded!`);
+      
+      if (reportId === 'employee') {
+        toast.success('Employee report downloaded!');
+      } else {
+        toast.success(`${reportId.charAt(0).toUpperCase() + reportId.slice(1)} report for ${monthName} ${yearNum} downloaded!`);
+      }
     } catch (error) {
       console.error('Export error:', error);
       toast.error('Failed to export report');
@@ -128,6 +166,46 @@ const Reports = () => {
           <h1 className="text-2xl font-bold text-gray-800">Reports</h1>
           <p className="text-gray-500">Generate and download reports</p>
         </div>
+        
+        {/* Month and Year Selectors */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600 font-medium">Period:</span>
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-[130px]">
+                <SelectValue placeholder="Month" />
+              </SelectTrigger>
+              <SelectContent>
+                {MONTHS.map((month) => (
+                  <SelectItem key={month.value} value={month.value}>
+                    {month.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="w-[100px]">
+                <SelectValue placeholder="Year" />
+              </SelectTrigger>
+              <SelectContent>
+                {YEARS.map((year) => (
+                  <SelectItem key={year.value} value={year.value}>
+                    {year.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      {/* Selected Period Indicator */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 flex items-center gap-2">
+        <Calendar className="h-4 w-4 text-blue-600" />
+        <span className="text-sm text-blue-700">
+          Exporting data for: <strong>{getMonthName(selectedMonth)} {selectedYear}</strong>
+        </span>
+        <span className="text-xs text-blue-500 ml-2">(Employee report exports all data)</span>
       </div>
 
       {/* Quick Stats */}
@@ -237,7 +315,12 @@ const Reports = () => {
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-800">{report.name}</h3>
-                    <p className="text-sm text-gray-500 mb-3">{report.description}</p>
+                    <p className="text-sm text-gray-500 mb-1">{report.description}</p>
+                    {report.id !== 'employee' && (
+                      <p className="text-xs text-blue-600 mb-2">
+                        {getMonthName(selectedMonth)} {selectedYear}
+                      </p>
+                    )}
                     <Button 
                       size="sm" 
                       variant="outline" 
