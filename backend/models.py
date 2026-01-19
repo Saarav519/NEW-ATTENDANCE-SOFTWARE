@@ -560,3 +560,74 @@ class CashbookSummary(BaseModel):
     total_cash_out: float
     net_profit_loss: float
     is_locked: bool = False
+
+
+# ==================== LOAN / EMI MODELS ====================
+
+class LoanStatus(str, Enum):
+    ACTIVE = "active"
+    CLOSED = "closed"
+    PRECLOSED = "preclosed"
+
+class LoanCreate(BaseModel):
+    loan_name: str  # e.g., "Home Loan - HDFC", "Vehicle Loan - SBI"
+    lender_name: str  # Bank/NBFC name
+    total_loan_amount: float
+    emi_amount: float
+    emi_day: int  # Day of month (1-28)
+    loan_start_date: str  # YYYY-MM-DD
+    interest_rate: Optional[float] = None  # Annual interest rate (%)
+    loan_tenure_months: Optional[int] = None  # Total tenure in months
+    notes: Optional[str] = None
+
+class LoanResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    loan_name: str
+    lender_name: str
+    total_loan_amount: float
+    emi_amount: float
+    emi_day: int
+    loan_start_date: str
+    interest_rate: Optional[float] = None
+    loan_tenure_months: Optional[int] = None
+    total_paid: float = 0
+    remaining_balance: float
+    emis_paid: int = 0
+    status: LoanStatus = LoanStatus.ACTIVE
+    notes: Optional[str] = None
+    created_at: str
+
+class EMIPaymentCreate(BaseModel):
+    loan_id: str
+    payment_date: str  # YYYY-MM-DD
+    amount: float
+    principal_amount: Optional[float] = None
+    interest_amount: Optional[float] = None
+    is_extra_payment: bool = False  # For pre-closure or extra payments
+    notes: Optional[str] = None
+
+class EMIPaymentResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    loan_id: str
+    loan_name: str
+    payment_date: str
+    amount: float
+    principal_amount: Optional[float] = None
+    interest_amount: Optional[float] = None
+    is_extra_payment: bool = False
+    is_auto_generated: bool = False
+    balance_after_payment: float
+    notes: Optional[str] = None
+    created_at: str
+    month: str
+    year: int
+
+class LoanSummary(BaseModel):
+    total_loans: int
+    active_loans: int
+    total_loan_amount: float
+    total_paid: float
+    total_remaining: float
+    upcoming_emis_this_month: float
