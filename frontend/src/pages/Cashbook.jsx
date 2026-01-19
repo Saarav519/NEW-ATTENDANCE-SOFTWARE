@@ -1044,9 +1044,9 @@ const Cashbook = () => {
                       <tr>
                         <th className="text-left p-3 text-sm font-semibold text-gray-600">Loan Name</th>
                         <th className="text-left p-3 text-sm font-semibold text-gray-600">Lender</th>
+                        <th className="text-center p-3 text-sm font-semibold text-gray-600">Type</th>
                         <th className="text-right p-3 text-sm font-semibold text-gray-600">Total Amount</th>
-                        <th className="text-right p-3 text-sm font-semibold text-gray-600">EMI</th>
-                        <th className="text-center p-3 text-sm font-semibold text-gray-600">EMI Day</th>
+                        <th className="text-right p-3 text-sm font-semibold text-gray-600">EMI/Payment</th>
                         <th className="text-right p-3 text-sm font-semibold text-gray-600">Paid</th>
                         <th className="text-right p-3 text-sm font-semibold text-gray-600">Balance</th>
                         <th className="text-center p-3 text-sm font-semibold text-gray-600">Status</th>
@@ -1056,11 +1056,33 @@ const Cashbook = () => {
                     <tbody className="divide-y">
                       {loans.map((loan) => (
                         <tr key={loan.id} className="hover:bg-gray-50" data-testid={`loan-row-${loan.id}`}>
-                          <td className="p-3 font-medium">{loan.loan_name}</td>
+                          <td className="p-3">
+                            <div className="font-medium">{loan.loan_name}</div>
+                            {loan.loan_type === 'emi_based' && loan.emi_day && (
+                              <div className="text-xs text-gray-500">EMI Day: {loan.emi_day}<sup>th</sup></div>
+                            )}
+                            {loan.loan_type === 'lump_sum' && loan.due_date && (
+                              <div className="text-xs text-gray-500">Due: {new Date(loan.due_date).toLocaleDateString()}</div>
+                            )}
+                          </td>
                           <td className="p-3 text-sm text-gray-600">{loan.lender_name}</td>
+                          <td className="p-3 text-center">
+                            {loan.loan_type === 'lump_sum' ? (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                Lump Sum
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                EMI
+                              </span>
+                            )}
+                          </td>
                           <td className="p-3 text-right">₹{loan.total_loan_amount?.toLocaleString()}</td>
-                          <td className="p-3 text-right text-purple-600 font-semibold">₹{loan.emi_amount?.toLocaleString()}</td>
-                          <td className="p-3 text-center">{loan.emi_day}<sup>th</sup></td>
+                          <td className="p-3 text-right text-purple-600 font-semibold">
+                            {loan.loan_type === 'emi_based' && loan.emi_amount 
+                              ? `₹${loan.emi_amount.toLocaleString()}/mo` 
+                              : '-'}
+                          </td>
                           <td className="p-3 text-right text-green-600">₹{loan.total_paid?.toLocaleString()}</td>
                           <td className="p-3 text-right text-red-600 font-semibold">₹{loan.remaining_balance?.toLocaleString()}</td>
                           <td className="p-3 text-center">{getLoanStatusBadge(loan.status)}</td>
@@ -1075,7 +1097,7 @@ const Cashbook = () => {
                                     className="text-green-600 border-green-200 hover:bg-green-50"
                                     data-testid={`pay-emi-${loan.id}`}
                                   >
-                                    <CreditCard size={14} className="mr-1" /> Pay EMI
+                                    <CreditCard size={14} className="mr-1" /> {loan.loan_type === 'lump_sum' ? 'Pay' : 'Pay EMI'}
                                   </Button>
                                   <Button 
                                     variant="outline" 
