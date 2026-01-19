@@ -1,62 +1,137 @@
-import React, { useState } from 'react';
-import { employees } from '../data/mockData';
+import React, { useState, useEffect } from 'react';
+import { usersAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter
 } from '../components/ui/dialog';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '../components/ui/select';
 import {
-  Users, Plus, Search, MoreVertical, Edit, Trash2, Eye,
-  Mail, Phone, Building, Calendar, IndianRupee, UserCheck, UserX
+  Users, Plus, Search, Edit, Trash2, Eye, Mail, Phone, Building,
+  Calendar, IndianRupee, UserCheck, UserX, Key, Loader2
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const Employees = () => {
-  const [employeeList, setEmployeeList] = useState(employees);
+  const { user } = useAuth();
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('active');
+  const [addDialog, setAddDialog] = useState(false);
+  const [viewDialog, setViewDialog] = useState({ open: false, employee: null });
+  const [passwordDialog, setPasswordDialog] = useState({ open: false, employee: null });
+  const [submitting, setSubmitting] = useState(false);
+  
   const [newEmployee, setNewEmployee] = useState({
-    name: '', email: '', phone: '', department: '', designation: '', salary: '', salaryType: 'monthly'
+    id: '', name: '', email: '', phone: '', department: '', designation: '',
+    salary: '', salary_type: 'monthly', role: 'employee', password: '', team_lead_id: ''
   });
+  
+  const [newPassword, setNewPassword] = useState('');
 
-  const filteredEmployees = employeeList.filter(emp => {
-    const matchesSearch = emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         emp.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         emp.department.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || emp.status === filterStatus;
+  useEffect(() => {
+    loadEmployees();
+  }, []);
+
+  const loadEmployees = async () => {
+    try {
+      const data = await usersAPI.getAll();
+      setEmployees(data);
+    } catch (error) {
+      toast.error('Failed to load employees');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddEmployee = async () => {
+    if (!newEmployee.id || !newEmployee.name || !newEmployee.email || !newEmployee.password) {
+      toast.error('Please fill Employee ID, Name, Email, and Password');
+      return;
+    }
+    
+    setSubmitting(true);
+    try {
+      await usersAPI.create({
+        ...newEmployee,
+        salary: parseFloat(newEmployee.salary) || 0,
+        joining_date: new Date().toISOString().split('T')[0],
+        status: 'active'
+      });
+      toast.success('Employee added successfully');
+      setAddDialog(false);
+      resetForm();
+      loadEmployees();
+    } catch (error) {
+      toast.error(error.message || 'Failed to add employee');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!newPassword) {
+      toast.error('Please enter new password');
+      return;
+    }
+    
+    setSubmitting(true);
+    try {
+      await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/users/${passwordDialog.employee.id}/reset-password?new_password=${newPassword}&reset_by=${user.id}`, {
+        method: 'PUT'
+      });
+      toast.success('Password reset successfully');
+      setPasswordDialog({ open: false, employee: null });
+      setNewPassword('');
+    } catch (error) {
+      toast.error('Failed to reset password');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const toggleStatus = async (emp) => {
+    try {
+      const newStatus = emp.status === 'active' ? 'inactive' : 'active';
+      await usersAPI.update(emp.id, { status: newStatus });
+      toast.success(`Employee marked as ${newStatus}`);
+      loadEmployees();
+    } catch (error) {
+      toast.error('Failed to update status');
+    }
+  };
+
+  const resetForm = () => {
+    setNewEmployee({
+      id: '', name: '', email: '', phone: '', department: '', designation: '',
+      salary: '', salary_type: 'monthly', role: 'employee', password: '', team_lead_id: ''
+    });
+  };
+
+  const filteredEmployees = employees.filter(emp => {
+    const matchesSearch = emp.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         emp.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         emp.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = emp.status === activeTab;
     return matchesSearch && matchesStatus;
   });
 
-  const activeCount = employeeList.filter(e => e.status === 'active').length;
-  const inactiveCount = employeeList.filter(e => e.status === 'inactive').length;
+  const activeCount = employees.filter(e => e.status === 'active').length;
+  const inactiveCount = employees.filter(e => e.status === 'inactive').length;
 
-  const handleAddEmployee = () => {
-    const emp = {
-      id: `EMP${String(employeeList.length + 1).padStart(3, '0')}`,
-      ...newEmployee,
-      salary: parseInt(newEmployee.salary),
-      role: 'employee',
-      joiningDate: new Date().toISOString().split('T')[0],
-      status: 'active',
-      avatar: null
-    };
-    setEmployeeList([...employeeList, emp]);
-    setNewEmployee({ name: '', email: '', phone: '', department: '', designation: '', salary: '', salaryType: 'monthly' });
-    setIsAddDialogOpen(false);
-  };
+  const canManageEmployees = user?.role === 'admin';
+  const canResetPassword = user?.role === 'admin' || user?.role === 'teamlead';
 
-  const toggleStatus = (empId) => {
-    setEmployeeList(employeeList.map(emp =>
-      emp.id === empId ? { ...emp, status: emp.status === 'active' ? 'inactive' : 'active' } : emp
-    ));
-  };
+  if (loading) {
+    return <div className="flex items-center justify-center h-64"><Loader2 className="animate-spin" size={32} /></div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -66,278 +141,283 @@ const Employees = () => {
           <h1 className="text-2xl font-bold text-gray-800">Employees</h1>
           <p className="text-gray-500">Manage your workforce</p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-[#1E2A5E] hover:bg-[#2D3A8C]">
-              <Plus size={18} className="mr-2" /> Add Employee
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Add New Employee</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Full Name</Label>
-                <Input
-                  placeholder="Enter full name"
-                  value={newEmployee.name}
-                  onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Email</Label>
-                  <Input
-                    type="email"
-                    placeholder="Email address"
-                    value={newEmployee.email}
-                    onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Phone</Label>
-                  <Input
-                    placeholder="Phone number"
-                    value={newEmployee.phone}
-                    onChange={(e) => setNewEmployee({...newEmployee, phone: e.target.value})}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Department</Label>
-                  <Input
-                    placeholder="Department"
-                    value={newEmployee.department}
-                    onChange={(e) => setNewEmployee({...newEmployee, department: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Designation</Label>
-                  <Input
-                    placeholder="Designation"
-                    value={newEmployee.designation}
-                    onChange={(e) => setNewEmployee({...newEmployee, designation: e.target.value})}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Salary (₹)</Label>
-                  <Input
-                    type="number"
-                    placeholder="Monthly salary"
-                    value={newEmployee.salary}
-                    onChange={(e) => setNewEmployee({...newEmployee, salary: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Salary Type</Label>
-                  <Select value={newEmployee.salaryType} onValueChange={(v) => setNewEmployee({...newEmployee, salaryType: v})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="hourly">Hourly</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-              </DialogClose>
-              <Button onClick={handleAddEmployee} className="bg-[#1E2A5E] hover:bg-[#2D3A8C]">
-                Add Employee
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        {canManageEmployees && (
+          <Button onClick={() => setAddDialog(true)} className="bg-[#1E2A5E] hover:bg-[#2D3A8C]">
+            <Plus size={18} className="mr-2" /> Add Employee
+          </Button>
+        )}
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-              <Users size={24} className="text-blue-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-800">{employeeList.length}</p>
-              <p className="text-sm text-gray-500">Total Employees</p>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Total Employees</p>
+                <p className="text-2xl font-bold">{employees.length}</p>
+              </div>
+              <Users className="text-blue-500" size={32} />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-              <UserCheck size={24} className="text-green-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-800">{activeCount}</p>
-              <p className="text-sm text-gray-500">Active</p>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Active</p>
+                <p className="text-2xl font-bold text-green-600">{activeCount}</p>
+              </div>
+              <UserCheck className="text-green-500" size={32} />
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-              <UserX size={24} className="text-red-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-800">{inactiveCount}</p>
-              <p className="text-sm text-gray-500">Inactive</p>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Inactive</p>
+                <p className="text-2xl font-bold text-red-600">{inactiveCount}</p>
+              </div>
+              <UserX className="text-red-500" size={32} />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <Input
-                placeholder="Search by name, ID, or department..."
-                className="pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-full sm:w-40">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+        <Input
+          placeholder="Search by name, ID, or email..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
 
-      {/* Employee List */}
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="text-left p-4 font-semibold text-gray-600 text-sm">Employee</th>
-                  <th className="text-left p-4 font-semibold text-gray-600 text-sm">Department</th>
-                  <th className="text-left p-4 font-semibold text-gray-600 text-sm">Contact</th>
-                  <th className="text-left p-4 font-semibold text-gray-600 text-sm">Salary</th>
-                  <th className="text-left p-4 font-semibold text-gray-600 text-sm">Status</th>
-                  <th className="text-left p-4 font-semibold text-gray-600 text-sm">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {filteredEmployees.map((emp) => (
-                  <tr key={emp.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
-                          {emp.name.split(' ').map(n => n[0]).join('')}
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-800">{emp.name}</p>
-                          <p className="text-xs text-gray-500">{emp.id}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <p className="text-gray-800">{emp.department}</p>
-                      <p className="text-xs text-gray-500">{emp.designation}</p>
-                    </td>
-                    <td className="p-4">
-                      <p className="text-gray-800 text-sm">{emp.email}</p>
-                      <p className="text-xs text-gray-500">{emp.phone}</p>
-                    </td>
-                    <td className="p-4">
-                      <p className="font-semibold text-gray-800">₹{emp.salary.toLocaleString()}</p>
-                      <p className="text-xs text-gray-500 capitalize">{emp.salaryType}</p>
-                    </td>
-                    <td className="p-4">
-                      <span className={`text-xs px-3 py-1 rounded-full font-medium ${
-                        emp.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                      }`}>
-                        {emp.status}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => { setSelectedEmployee(emp); setIsViewDialogOpen(true); }}
-                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                        >
-                          <Eye size={16} className="text-gray-600" />
-                        </button>
-                        <button
-                          onClick={() => toggleStatus(emp.id)}
-                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                        >
-                          {emp.status === 'active' ? <UserX size={16} className="text-red-500" /> : <UserCheck size={16} className="text-green-500" />}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* Active/Inactive Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="active">Active ({activeCount})</TabsTrigger>
+          <TabsTrigger value="inactive">Inactive ({inactiveCount})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="active" className="mt-4">
+          <EmployeeList employees={filteredEmployees} onView={(e) => setViewDialog({ open: true, employee: e })}
+            onToggle={toggleStatus} canResetPassword={canResetPassword}
+            onResetPassword={(e) => setPasswordDialog({ open: true, employee: e })} />
+        </TabsContent>
+
+        <TabsContent value="inactive" className="mt-4">
+          <EmployeeList employees={filteredEmployees} onView={(e) => setViewDialog({ open: true, employee: e })}
+            onToggle={toggleStatus} canResetPassword={canResetPassword}
+            onResetPassword={(e) => setPasswordDialog({ open: true, employee: e })} />
+        </TabsContent>
+      </Tabs>
+
+      {/* Add Employee Dialog */}
+      <Dialog open={addDialog} onOpenChange={setAddDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Employee</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Employee ID * (Manual)</Label>
+                <Input placeholder="e.g., EMP001, AUD-05" value={newEmployee.id}
+                  onChange={(e) => setNewEmployee({...newEmployee, id: e.target.value})} />
+                <p className="text-xs text-gray-500">Use any format. Must be unique.</p>
+              </div>
+              <div className="space-y-2">
+                <Label>Full Name *</Label>
+                <Input value={newEmployee.name}
+                  onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Email *</Label>
+                <Input type="email" value={newEmployee.email}
+                  onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <Label>Phone</Label>
+                <Input value={newEmployee.phone}
+                  onChange={(e) => setNewEmployee({...newEmployee, phone: e.target.value})} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Department</Label>
+                <Input value={newEmployee.department}
+                  onChange={(e) => setNewEmployee({...newEmployee, department: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <Label>Designation</Label>
+                <Input value={newEmployee.designation}
+                  onChange={(e) => setNewEmployee({...newEmployee, designation: e.target.value})} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Role</Label>
+                <Select value={newEmployee.role} onValueChange={(v) => setNewEmployee({...newEmployee, role: v})}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="employee">Employee</SelectItem>
+                    <SelectItem value="teamlead">Team Lead</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Password *</Label>
+                <Input type="password" value={newEmployee.password}
+                  onChange={(e) => setNewEmployee({...newEmployee, password: e.target.value})} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Salary</Label>
+                <Input type="number" value={newEmployee.salary}
+                  onChange={(e) => setNewEmployee({...newEmployee, salary: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <Label>Salary Type</Label>
+                <Select value={newEmployee.salary_type} onValueChange={(v) => setNewEmployee({...newEmployee, salary_type: v})}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="daily">Daily</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddDialog(false)}>Cancel</Button>
+            <Button onClick={handleAddEmployee} disabled={submitting} className="bg-[#1E2A5E]">
+              {submitting ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
+              Add Employee
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* View Employee Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+      <Dialog open={viewDialog.open} onOpenChange={(open) => setViewDialog({ open, employee: null })}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Employee Details</DialogTitle>
           </DialogHeader>
-          {selectedEmployee && (
-            <div className="space-y-4 py-4">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-xl">
-                  {selectedEmployee.name.split(' ').map(n => n[0]).join('')}
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-800">{selectedEmployee.name}</h3>
-                  <p className="text-gray-500">{selectedEmployee.id}</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                <div className="flex items-center gap-2 text-sm">
-                  <Mail size={16} className="text-gray-400" />
-                  <span>{selectedEmployee.email}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Phone size={16} className="text-gray-400" />
-                  <span>{selectedEmployee.phone}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Building size={16} className="text-gray-400" />
-                  <span>{selectedEmployee.department}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Calendar size={16} className="text-gray-400" />
-                  <span>{selectedEmployee.joiningDate}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm col-span-2">
-                  <IndianRupee size={16} className="text-gray-400" />
-                  <span>₹{selectedEmployee.salary.toLocaleString()} / {selectedEmployee.salaryType}</span>
-                </div>
+          {viewDialog.employee && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2"><strong>ID:</strong> {viewDialog.employee.id}</div>
+              <div className="flex items-center gap-2"><strong>Name:</strong> {viewDialog.employee.name}</div>
+              <div className="flex items-center gap-2"><Mail size={16} /> {viewDialog.employee.email}</div>
+              <div className="flex items-center gap-2"><Phone size={16} /> {viewDialog.employee.phone || 'N/A'}</div>
+              <div className="flex items-center gap-2"><Building size={16} /> {viewDialog.employee.department || 'N/A'}</div>
+              <div className="flex items-center gap-2"><strong>Role:</strong> {viewDialog.employee.role}</div>
+              <div className="flex items-center gap-2"><IndianRupee size={16} /> ₹{viewDialog.employee.salary?.toLocaleString()} / {viewDialog.employee.salary_type}</div>
+              <div className="flex items-center gap-2"><Calendar size={16} /> Joined: {viewDialog.employee.joining_date || 'N/A'}</div>
+              <div className="flex items-center gap-2">
+                <strong>Status:</strong>
+                <span className={`px-2 py-1 rounded text-xs ${viewDialog.employee.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  {viewDialog.employee.status}
+                </span>
               </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Password Reset Dialog */}
+      <Dialog open={passwordDialog.open} onOpenChange={(open) => setPasswordDialog({ open, employee: null })}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+          </DialogHeader>
+          {passwordDialog.employee && (
+            <div className="space-y-4 py-4">
+              <p className="text-sm text-gray-600">Reset password for <strong>{passwordDialog.employee.name}</strong> ({passwordDialog.employee.id})</p>
+              <div className="space-y-2">
+                <Label>New Password *</Label>
+                <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password" />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPasswordDialog({ open: false, employee: null })}>Cancel</Button>
+            <Button onClick={handleResetPassword} disabled={submitting} className="bg-orange-600 hover:bg-orange-700">
+              {submitting ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
+              Reset Password
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+const EmployeeList = ({ employees, onView, onToggle, canResetPassword, onResetPassword }) => {
+  if (employees.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center text-gray-500">
+          <Users className="mx-auto h-12 w-12 mb-4 text-gray-300" />
+          <p>No employees found</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {employees.map((emp) => (
+        <Card key={emp.id} className="hover:shadow-lg transition-shadow">
+          <CardContent className="p-4">
+            <div className="space-y-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-semibold text-lg">{emp.name}</h3>
+                  <p className="text-sm text-gray-500">{emp.id}</p>
+                </div>
+                <span className={`px-2 py-1 rounded text-xs ${emp.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  {emp.status}
+                </span>
+              </div>
+              <div className="space-y-1 text-sm">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Mail size={14} /> {emp.email}
+                </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Building size={14} /> {emp.department || 'N/A'}
+                </div>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <IndianRupee size={14} /> ₹{emp.salary?.toLocaleString()}
+                </div>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button size="sm" variant="outline" onClick={() => onView(emp)} className="flex-1">
+                  <Eye size={14} className="mr-1" /> View
+                </Button>
+                {canResetPassword && (
+                  <Button size="sm" variant="outline" onClick={() => onResetPassword(emp)} className="text-orange-600 border-orange-200">
+                    <Key size={14} />
+                  </Button>
+                )}
+                <Button size="sm" variant="outline" onClick={() => onToggle(emp)}
+                  className={emp.status === 'active' ? 'text-red-600 border-red-200' : 'text-green-600 border-green-200'}>
+                  {emp.status === 'active' ? <UserX size={14} /> : <UserCheck size={14} />}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };
