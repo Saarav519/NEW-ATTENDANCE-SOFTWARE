@@ -246,7 +246,6 @@ export const dashboardStats = {
 export const sidebarNavItems = {
   admin: [
     { id: "dashboard", label: "Dashboard", icon: "LayoutDashboard", path: "/dashboard" },
-    { id: "analytics", label: "Analytics", icon: "BarChart3", path: "/analytics" },
     { id: "employees", label: "Employees", icon: "Users", path: "/employees" },
     { id: "attendance", label: "Attendance", icon: "CalendarCheck", path: "/attendance" },
     { id: "leaves", label: "Leaves", icon: "CalendarOff", path: "/leaves" },
