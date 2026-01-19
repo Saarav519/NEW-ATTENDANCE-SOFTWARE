@@ -346,6 +346,72 @@ export const auditExpenseAPI = {
   getSummary: (empId) => apiCall(`/audit-expenses/summary/${empId}`),
 };
 
+// Notification API
+export const notificationAPI = {
+  getAll: (userId, unreadOnly = false, limit = 50) => {
+    const params = new URLSearchParams();
+    params.append('user_id', userId);
+    if (unreadOnly) params.append('unread_only', 'true');
+    params.append('limit', limit.toString());
+    return apiCall(`/notifications?${params}`);
+  },
+  getUnreadCount: (userId) => apiCall(`/notifications/unread-count?user_id=${userId}`),
+  markAsRead: (notificationId) => apiCall(`/notifications/${notificationId}/read`, { method: 'PUT' }),
+  markAllAsRead: (userId) => apiCall(`/notifications/mark-all-read?user_id=${userId}`, { method: 'PUT' }),
+};
+
+// Analytics API
+export const analyticsAPI = {
+  getAttendanceTrends: (timeFilter = 'this_month') => 
+    apiCall(`/analytics/attendance-trends?time_filter=${timeFilter}`),
+  getLeaveDistribution: (timeFilter = 'this_month') => 
+    apiCall(`/analytics/leave-distribution?time_filter=${timeFilter}`),
+  getDepartmentAttendance: (timeFilter = 'this_month') => 
+    apiCall(`/analytics/department-attendance?time_filter=${timeFilter}`),
+  getSalaryOverview: (timeFilter = 'this_year') => 
+    apiCall(`/analytics/salary-overview?time_filter=${timeFilter}`),
+  getEmployeeCounts: () => apiCall('/analytics/employee-counts'),
+  getSummary: (timeFilter = 'this_month') => 
+    apiCall(`/analytics/summary?time_filter=${timeFilter}`),
+};
+
+// Export API
+export const exportAPI = {
+  attendance: (month, year, empId) => {
+    const params = new URLSearchParams();
+    if (month) params.append('month', month);
+    if (year) params.append('year', year);
+    if (empId) params.append('emp_id', empId);
+    return `${API_URL}/api/export/attendance?${params}`;
+  },
+  employees: () => `${API_URL}/api/export/employees`,
+  leaves: (status, empId) => {
+    const params = new URLSearchParams();
+    if (status) params.append('status', status);
+    if (empId) params.append('emp_id', empId);
+    return `${API_URL}/api/export/leaves?${params}`;
+  },
+  payslips: (status, empId, year) => {
+    const params = new URLSearchParams();
+    if (status) params.append('status', status);
+    if (empId) params.append('emp_id', empId);
+    if (year) params.append('year', year);
+    return `${API_URL}/api/export/payslips?${params}`;
+  },
+  bills: (status, empId) => {
+    const params = new URLSearchParams();
+    if (status) params.append('status', status);
+    if (empId) params.append('emp_id', empId);
+    return `${API_URL}/api/export/bills?${params}`;
+  },
+};
+
+// WebSocket URL for real-time updates
+export const getWebSocketURL = (userId, role) => {
+  const wsBase = API_URL.replace('http', 'ws');
+  return `${wsBase}/api/ws/${userId}?role=${role}`;
+};
+
 export default {
   auth: authAPI,
   users: usersAPI,
@@ -363,4 +429,8 @@ export default {
   shiftTemplate: shiftTemplateAPI,
   bulk: bulkAPI,
   auditExpense: auditExpenseAPI,
+  notification: notificationAPI,
+  analytics: analyticsAPI,
+  export: exportAPI,
+  getWebSocketURL,
 };
