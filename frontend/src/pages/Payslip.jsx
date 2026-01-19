@@ -102,7 +102,7 @@ const Payslip = () => {
       ['HRA', breakdown.hra || 0],
       ['Special Allowance', breakdown.special_allowance || 0],
       ['Conveyance', breakdown.conveyance || 0],
-      ['Extra Conveyance (Approved)', breakdown.extra_conveyance || 0],
+      ['Bills / Previous Pending Approved', breakdown.extra_conveyance || 0],
       ['Previous Pending Allowances', breakdown.previous_pending_allowances || 0],
     ];
     
