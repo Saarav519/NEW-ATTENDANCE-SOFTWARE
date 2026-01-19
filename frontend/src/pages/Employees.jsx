@@ -404,6 +404,9 @@ const EmployeeList = ({ employees, onView, onToggle, canResetPassword, onResetPa
                 <Button size="sm" variant="outline" onClick={() => onView(emp)} className="flex-1">
                   <Eye size={14} className="mr-1" /> View
                 </Button>
+                <Button size="sm" variant="outline" onClick={() => window.location.href = `/attendance/${emp.id}`} className="flex-1 text-blue-600 border-blue-200">
+                  <Calendar size={14} className="mr-1" /> Attendance
+                </Button>
                 {canResetPassword && (
                   <Button size="sm" variant="outline" onClick={() => onResetPassword(emp)} className="text-orange-600 border-orange-200">
                     <Key size={14} />
