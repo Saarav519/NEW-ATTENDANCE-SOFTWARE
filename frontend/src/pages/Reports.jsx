@@ -160,11 +160,11 @@ const Reports = () => {
         case 'payroll':
           url = exportAPI.payslips(monthName, yearNum, 'settled');
           break;
-        case 'bills':
-          url = exportAPI.bills(monthName, yearNum);
+        case 'bills-advances':
+          url = exportAPI.billsAdvances(monthName, yearNum);
           break;
-        case 'advances':
-          url = exportAPI.advances(monthName, yearNum);
+        case 'audit-expenses':
+          url = exportAPI.auditExpenses(monthNum, yearNum);
           break;
         case 'cashbook':
           url = exportAPI.cashbook(monthName, yearNum);
@@ -183,10 +183,10 @@ const Reports = () => {
       // Download the file
       window.open(url, '_blank');
       
-      if (reportId === 'employee') {
-        toast.success('Employee report downloaded!');
+      if (reportId === 'employee' || reportId === 'loans') {
+        toast.success(`${reportId.charAt(0).toUpperCase() + reportId.slice(1)} report downloaded!`);
       } else {
-        toast.success(`${reportId.charAt(0).toUpperCase() + reportId.slice(1)} report for ${monthName} ${yearNum} downloaded!`);
+        toast.success(`Report for ${monthName} ${yearNum} downloaded!`);
       }
     } catch (error) {
       console.error('Export error:', error);
