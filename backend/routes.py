@@ -344,16 +344,26 @@ async def reset_password(user_id: str, new_password: str, reset_by: str):
 
 @router.get("/users/team/{team_lead_id}", response_model=List[UserResponse])
 async def get_team_members(team_lead_id: str):
-    # Get team lead to find team members
+    """Get all employees assigned to a specific team leader"""
+    # Verify team lead exists
     team_lead = await db.users.find_one({"id": team_lead_id}, {"_id": 0})
     if not team_lead:
         raise HTTPException(status_code=404, detail="Team lead not found")
     
-    team_member_ids = team_lead.get("team_members", [])
+    # Get employees who have this team_lead_id assigned
     members = await db.users.find(
-        {"id": {"$in": team_member_ids}},
+        {"team_lead_id": team_lead_id, "role": "employee"},
         {"_id": 0, "password": 0}
     ).to_list(100)
+    
+    # Also get from legacy team_members list for backward compatibility
+    team_member_ids = team_lead.get("team_members", [])
+    if team_member_ids:
+        legacy_members = await db.users.find(
+            {"id": {"$in": team_member_ids}, "team_lead_id": {"$ne": team_lead_id}},
+            {"_id": 0, "password": 0}
+        ).to_list(100)
+        members.extend(legacy_members)
     
     return members
 
