@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { usersAPI, attendanceAPI, leaveAPI, payslipAPI, billAPI } from '../services/api';
+import { usersAPI, attendanceAPI, leaveAPI, payslipAPI, billAPI, advanceAPI } from '../services/api';
 import { exportAPI } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '../components/ui/select';
-import { Download, Users, Calendar, IndianRupee, TrendingUp, TrendingDown, Receipt, Loader2 } from 'lucide-react';
+import { Download, Users, Calendar, IndianRupee, TrendingUp, TrendingDown, Receipt, Loader2, Wallet } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const MONTHS = [
@@ -40,6 +40,7 @@ const Reports = () => {
     activeEmployees: 0,
     totalSalaryPaid: 0,
     totalBillsApproved: 0,
+    totalAdvances: 0,
     attendanceSummary: { present: 0, absent: 0, halfDay: 0 },
     pendingLeaves: 0,
     approvedLeaves: 0
@@ -50,6 +51,7 @@ const Reports = () => {
     { id: 'payroll', name: 'Payroll Report', icon: IndianRupee, description: 'Salary disbursement details' },
     { id: 'leave', name: 'Leave Report', icon: Calendar, description: 'Leave balance and history' },
     { id: 'bills', name: 'Bills Report', icon: Receipt, description: 'Bill submissions and approvals' },
+    { id: 'advances', name: 'Advance Report', icon: Wallet, description: 'Salary advance requests' },
     { id: 'employee', name: 'Employee Report', icon: Users, description: 'Employee details and status' },
   ];
 
