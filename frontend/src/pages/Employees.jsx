@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { usersAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -20,6 +21,7 @@ import toast from 'react-hot-toast';
 
 const Employees = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -206,13 +208,13 @@ const Employees = () => {
         <TabsContent value="active" className="mt-4">
           <EmployeeList employees={filteredEmployees} onView={(e) => setViewDialog({ open: true, employee: e })}
             onToggle={toggleStatus} canResetPassword={canResetPassword}
-            onResetPassword={(e) => setPasswordDialog({ open: true, employee: e })} />
+            onResetPassword={(e) => setPasswordDialog({ open: true, employee: e })} navigate={navigate} />
         </TabsContent>
 
         <TabsContent value="inactive" className="mt-4">
           <EmployeeList employees={filteredEmployees} onView={(e) => setViewDialog({ open: true, employee: e })}
             onToggle={toggleStatus} canResetPassword={canResetPassword}
-            onResetPassword={(e) => setPasswordDialog({ open: true, employee: e })} />
+            onResetPassword={(e) => setPasswordDialog({ open: true, employee: e })} navigate={navigate} />
         </TabsContent>
       </Tabs>
 
@@ -362,7 +364,7 @@ const Employees = () => {
   );
 };
 
-const EmployeeList = ({ employees, onView, onToggle, canResetPassword, onResetPassword }) => {
+const EmployeeList = ({ employees, onView, onToggle, canResetPassword, onResetPassword, navigate }) => {
   if (employees.length === 0) {
     return (
       <Card>
@@ -404,7 +406,7 @@ const EmployeeList = ({ employees, onView, onToggle, canResetPassword, onResetPa
                 <Button size="sm" variant="outline" onClick={() => onView(emp)} className="flex-1">
                   <Eye size={14} className="mr-1" /> View
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => window.location.href = `/attendance/${emp.id}`} className="flex-1 text-blue-600 border-blue-200">
+                <Button size="sm" variant="outline" onClick={() => navigate(`/attendance/${emp.id}`)} className="flex-1 text-blue-600 border-blue-200">
                   <Calendar size={14} className="mr-1" /> Attendance
                 </Button>
                 {canResetPassword && (
