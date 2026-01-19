@@ -1466,6 +1466,10 @@ async def get_advances(emp_id: str = None, status: str = None):
 @router.put("/advances/{advance_id}/approve")
 async def approve_advance(advance_id: str, approved_by: str):
     """Approve a salary advance request"""
+    advance = await db.advances.find_one({"id": advance_id}, {"_id": 0})
+    if not advance:
+        raise HTTPException(status_code=404, detail="Advance not found")
+    
     result = await db.advances.update_one(
         {"id": advance_id, "status": AdvanceStatus.PENDING},
         {"$set": {
@@ -1476,7 +1480,17 @@ async def approve_advance(advance_id: str, approved_by: str):
     )
     
     if result.modified_count == 0:
-        raise HTTPException(status_code=404, detail="Advance not found or already processed")
+        raise HTTPException(status_code=400, detail="Advance already processed")
+    
+    # Notify employee
+    await create_notification(
+        recipient_id=advance["emp_id"],
+        title="Advance Approved",
+        message=f"Your advance request of ₹{advance['amount']} has been approved. It will be deducted from {advance.get('deduct_from_month', '')} {advance.get('deduct_from_year', '')} salary.",
+        notification_type="bill",
+        related_id=advance_id,
+        data={"action": "advance_approved"}
+    )
     
     advance = await db.advances.find_one({"id": advance_id}, {"_id": 0})
     return advance
@@ -1484,6 +1498,10 @@ async def approve_advance(advance_id: str, approved_by: str):
 @router.put("/advances/{advance_id}/reject")
 async def reject_advance(advance_id: str, rejected_by: str):
     """Reject a salary advance request"""
+    advance = await db.advances.find_one({"id": advance_id}, {"_id": 0})
+    if not advance:
+        raise HTTPException(status_code=404, detail="Advance not found")
+    
     result = await db.advances.update_one(
         {"id": advance_id, "status": AdvanceStatus.PENDING},
         {"$set": {
@@ -1494,7 +1512,17 @@ async def reject_advance(advance_id: str, rejected_by: str):
     )
     
     if result.modified_count == 0:
-        raise HTTPException(status_code=404, detail="Advance not found or already processed")
+        raise HTTPException(status_code=400, detail="Advance already processed")
+    
+    # Notify employee
+    await create_notification(
+        recipient_id=advance["emp_id"],
+        title="Advance Rejected",
+        message=f"Your advance request of ₹{advance['amount']} has been rejected.",
+        notification_type="bill",
+        related_id=advance_id,
+        data={"action": "advance_rejected"}
+    )
     
     advance = await db.advances.find_one({"id": advance_id}, {"_id": 0})
     return advance
