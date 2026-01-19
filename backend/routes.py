@@ -1407,24 +1407,25 @@ async def generate_payslip_final(payslip_id: str):
     }).to_list(100)
     advance_deduction = sum(a.get("amount", 0) for a in advances)
     
-    # Calculate attendance adjustment
-    working_days = 26
-    daily_rate = basic / working_days
-    attendance_adjustment = -((half_days * 0.5 * daily_rate) + (absent_days * daily_rate))
-    attendance_adjustment = round(attendance_adjustment, 2)
+    # CORRECT CALCULATION (User's Logic):
+    # 1. First calculate total earned from attendance (duty earned)
+    # 2. Distribute that earned amount proportionally into Basic, HRA, Special Allowance
+    # 3. Add Conveyance, Bills, Audit Expenses separately
+    # 4. Net Pay = Gross - Advance
     
-    # CORRECT CALCULATION: 
-    # Net Pay = Total Duty Earned + Conveyance + Bills + Audit Expenses - Advance Deduction
-    # If no attendance marked, net_pay should be 0 (not full salary)
-    if len(attendance_records) == 0:
-        # No attendance marked at all - salary should be 0
-        gross = 0
+    # Distribute total_duty_earned proportionally
+    # Basic = 60%, HRA = 24%, Special Allowance = 16% of duty earned
+    basic = round(total_duty_earned * 0.60, 2)
+    hra = round(total_duty_earned * 0.24, 2)
+    special_allowance = round(total_duty_earned * 0.16, 2)
+    
+    # Gross = Duty Earned + Conveyance + Bills + Audit Expenses
+    gross = total_duty_earned + attendance_conveyance + extra_conveyance + total_audit_expenses
+    
+    # Net Pay = Gross - Advance Deduction
+    net_pay = round(gross - advance_deduction, 2)
+    if net_pay < 0:
         net_pay = 0
-        attendance_conveyance = 0
-        total_duty_earned = 0
-    else:
-        gross = total_duty_earned + attendance_conveyance + extra_conveyance + total_audit_expenses
-        net_pay = round(gross - advance_deduction, 2)
     
     # Update payslip with recalculated values
     updated_breakdown = {
@@ -1435,7 +1436,7 @@ async def generate_payslip_final(payslip_id: str):
         "leave_adjustment": 0,
         "extra_conveyance": extra_conveyance,
         "previous_pending_allowances": 0,
-        "attendance_adjustment": attendance_adjustment,
+        "attendance_adjustment": 0,  # Not needed - we calculate from earned amount directly
         "full_days": full_days,
         "half_days": half_days,
         "absent_days": absent_days,
