@@ -1383,7 +1383,9 @@ const Cashbook = () => {
       <Dialog open={emiDialog.open} onOpenChange={(open) => setEmiDialog({ open, loan: null })}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Record EMI Payment</DialogTitle>
+            <DialogTitle>
+              {emiDialog.loan?.loan_type === 'lump_sum' ? 'Record Payment' : 'Record EMI Payment'}
+            </DialogTitle>
             {emiDialog.loan && (
               <p className="text-sm text-gray-500">{emiDialog.loan.loan_name} - Balance: ₹{emiDialog.loan.remaining_balance?.toLocaleString()}</p>
             )}
@@ -1399,16 +1401,18 @@ const Cashbook = () => {
                 <Input type="number" value={newEmi.amount} onChange={(e) => setNewEmi({...newEmi, amount: e.target.value})} />
               </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <input 
-                type="checkbox" 
-                id="extra-payment" 
-                checked={newEmi.is_extra_payment}
-                onChange={(e) => setNewEmi({...newEmi, is_extra_payment: e.target.checked})}
-                className="w-4 h-4"
-              />
-              <Label htmlFor="extra-payment" className="cursor-pointer">This is an extra payment (not regular EMI)</Label>
-            </div>
+            {emiDialog.loan?.loan_type === 'emi_based' && (
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="checkbox" 
+                  id="extra-payment" 
+                  checked={newEmi.is_extra_payment}
+                  onChange={(e) => setNewEmi({...newEmi, is_extra_payment: e.target.checked})}
+                  className="w-4 h-4"
+                />
+                <Label htmlFor="extra-payment" className="cursor-pointer">This is an extra payment (not regular EMI)</Label>
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Notes</Label>
               <Textarea placeholder="Payment details..." value={newEmi.notes} onChange={(e) => setNewEmi({...newEmi, notes: e.target.value})} rows={2} />
