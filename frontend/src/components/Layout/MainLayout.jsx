@@ -3,7 +3,8 @@ import { Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Sidebar from './Sidebar';
 import MobileBottomNav from './MobileBottomNav';
-import { Bell, LogOut, User, ChevronDown } from 'lucide-react';
+import NotificationBell from '../NotificationBell';
+import { LogOut, ChevronDown } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -88,11 +89,8 @@ const MainLayout = () => {
               {getRoleLabel()}
             </span>
 
-            {/* Notifications */}
-            <button className="relative p-2 hover:bg-gray-100 rounded-xl transition-colors">
-              <Bell size={20} className="text-gray-600" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
+            {/* Notifications - Using NotificationBell component */}
+            <NotificationBell />
 
             {/* User Menu */}
             <DropdownMenu>
