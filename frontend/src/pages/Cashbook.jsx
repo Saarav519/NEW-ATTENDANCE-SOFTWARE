@@ -539,15 +539,16 @@ const Cashbook = () => {
         </TabsContent>
 
         {/* Cash Out Tab */}
-        <TabsContent value="cash-out" className="space-y-4">
+        <TabsContent value="cash-out" className="space-y-4" data-testid="cash-out-content">
           {!isMonthLocked() && viewMode === 'monthly' && (
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setCategoryDialog({ open: true })}>
+              <Button variant="outline" onClick={() => setCategoryDialog({ open: true })} data-testid="add-category-btn">
                 <Plus size={16} className="mr-2" /> Add Category
               </Button>
               <Button 
                 className="bg-red-600 hover:bg-red-700"
                 onClick={() => { resetCashOutForm(); setCashOutDialog({ open: true, mode: 'add', data: null }); }}
+                data-testid="add-expense-btn"
               >
                 <Plus size={16} className="mr-2" /> Add Expense
               </Button>
