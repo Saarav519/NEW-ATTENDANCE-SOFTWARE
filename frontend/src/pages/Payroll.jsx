@@ -389,6 +389,53 @@ const Payroll = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Create Monthly Payslips Dialog */}
+      <Dialog open={monthlyDialog} onOpenChange={setMonthlyDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create Monthly Payslips</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-800">
+                This will create <strong>preview payslips</strong> for all active employees and team leads for the selected month.
+                Employees who already have a payslip for this period will be skipped.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Month</Label>
+                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {months.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Year</Label>
+                <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {years.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="text-sm text-gray-600">
+              <p><strong>Active Employees/Team Leads:</strong> {employees.length}</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMonthlyDialog(false)}>Cancel</Button>
+            <Button onClick={handleCreateMonthlyPayslips} disabled={creatingMonthly} className="bg-[#1E2A5E]">
+              {creatingMonthly ? <Loader2 className="animate-spin mr-2" size={16} /> : <Calendar className="mr-2" size={16} />}
+              Create for {selectedMonth} {selectedYear}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
