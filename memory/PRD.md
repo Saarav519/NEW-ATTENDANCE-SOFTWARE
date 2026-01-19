@@ -127,6 +127,34 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 - Preview payslip auto-created when new employee/teamlead is added
 - Initial breakdown with salary components, ready for attendance updates
 
+### Phase 11: Real-time Updates & Notifications (Completed ✅) - January 19, 2026
+
+**WebSocket Real-time Sync:**
+- WebSocket endpoint at `/api/ws/{user_id}?role={role}`
+- ConnectionManager for managing user and role-based connections
+- Real-time attendance updates broadcast to admins and team leads
+- Auto-reconnect on disconnect (5 second retry)
+- Frontend NotificationContext handles WebSocket messages
+
+**Push Notifications:**
+- Browser notification permission requested on login
+- In-app toast notifications for real-time events
+- Notification bell with unread count badge
+- Notification panel with full history
+- Mark as read / Mark all read functionality
+
+**Events that trigger notifications:**
+- Employee Punch In (QR) → Admins & Team Leads
+- Team Lead Direct Punch In → Admins
+- Employee Punch Out → Admins & Team Leads
+- Leave Request Created → Admins & Team Leads
+- Leave Approved/Rejected → Employee
+- Bill Submitted → Admins & Team Leads
+- Bill Approved/Rejected → Employee
+- Payslip Generated → Employee
+- Advance Request Created → Admins
+- Advance Approved/Rejected → Employee
+
 ---
 
 ## Technical Architecture
