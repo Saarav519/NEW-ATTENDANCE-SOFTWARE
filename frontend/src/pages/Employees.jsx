@@ -611,57 +611,58 @@ const EmployeeList = ({ employees, onView, onToggle, canResetPassword, canManage
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {employees.map((emp) => (
         <Card key={emp.id} className="hover:shadow-lg transition-shadow" data-testid={`employee-card-${emp.id}`}>
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="space-y-3">
               <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-semibold text-lg">{emp.name}</h3>
-                  <p className="text-sm text-gray-500">{emp.id}</p>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-base sm:text-lg truncate">{emp.name}</h3>
+                  <p className="text-xs sm:text-sm text-gray-500">{emp.id}</p>
                 </div>
-                <span className={`px-2 py-1 rounded text-xs ${emp.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                <span className={`px-2 py-1 rounded text-xs flex-shrink-0 ${emp.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                   {emp.status}
                 </span>
               </div>
-              <div className="space-y-1 text-sm">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Mail size={14} /> {emp.email}
+              <div className="space-y-1 text-xs sm:text-sm">
+                <div className="flex items-center gap-2 text-gray-600 truncate">
+                  <Mail size={14} className="flex-shrink-0" /> <span className="truncate">{emp.email}</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-600">
-                  <Building size={14} /> {emp.department || 'N/A'}
+                  <Building size={14} className="flex-shrink-0" /> {emp.department || 'N/A'}
                 </div>
                 <div className="flex items-center gap-2 text-gray-600">
-                  <IndianRupee size={14} /> ₹{emp.salary?.toLocaleString()}
+                  <IndianRupee size={14} className="flex-shrink-0" /> ₹{emp.salary?.toLocaleString()}
                 </div>
                 {emp.role === 'employee' && (
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Users size={14} /> TL: {getTeamLeaderName(emp.team_lead_id)}
+                  <div className="flex items-center gap-2 text-gray-600 truncate">
+                    <Users size={14} className="flex-shrink-0" /> TL: {getTeamLeaderName(emp.team_lead_id)}
                   </div>
                 )}
               </div>
-              <div className="flex flex-wrap gap-2 pt-2">
-                <Button size="sm" variant="outline" onClick={() => onView(emp)} className="flex-1" data-testid={`view-employee-${emp.id}`}>
-                  <Eye size={14} className="mr-1" /> View
+              {/* Mobile: Horizontal scroll for buttons */}
+              <div className="flex gap-1 sm:gap-2 pt-2 overflow-x-auto pb-1 -mx-1 px-1 sm:flex-wrap">
+                <Button size="sm" variant="outline" onClick={() => onView(emp)} className="flex-shrink-0 text-xs sm:text-sm" data-testid={`view-employee-${emp.id}`}>
+                  <Eye size={14} className="sm:mr-1" /> <span className="hidden sm:inline">View</span>
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => navigate(`/attendance/${emp.id}`)} className="flex-1 text-blue-600 border-blue-200">
-                  <Calendar size={14} className="mr-1" /> Attendance
+                <Button size="sm" variant="outline" onClick={() => navigate(`/attendance/${emp.id}`)} className="flex-shrink-0 text-blue-600 border-blue-200 text-xs sm:text-sm">
+                  <Calendar size={14} className="sm:mr-1" /> <span className="hidden sm:inline">Attend</span>
                 </Button>
                 {canManageEmployees && emp.role === 'employee' && (
                   <>
-                    <Button size="sm" variant="outline" onClick={() => onEdit(emp)} className="text-purple-600 border-purple-200" data-testid={`edit-employee-${emp.id}`}>
+                    <Button size="sm" variant="outline" onClick={() => onEdit(emp)} className="flex-shrink-0 text-purple-600 border-purple-200" data-testid={`edit-employee-${emp.id}`}>
                       <Edit size={14} />
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => onViewHistory(emp)} className="text-gray-600 border-gray-200" data-testid={`history-employee-${emp.id}`}>
+                    <Button size="sm" variant="outline" onClick={() => onViewHistory(emp)} className="flex-shrink-0 text-gray-600 border-gray-200" data-testid={`history-employee-${emp.id}`}>
                       <History size={14} />
                     </Button>
                   </>
                 )}
                 {canResetPassword && (
-                  <Button size="sm" variant="outline" onClick={() => onResetPassword(emp)} className="text-orange-600 border-orange-200">
+                  <Button size="sm" variant="outline" onClick={() => onResetPassword(emp)} className="flex-shrink-0 text-orange-600 border-orange-200">
                     <Key size={14} />
                   </Button>
                 )}
                 <Button size="sm" variant="outline" onClick={() => onToggle(emp)}
-                  className={emp.status === 'active' ? 'text-red-600 border-red-200' : 'text-green-600 border-green-200'}>
+                  className={`flex-shrink-0 ${emp.status === 'active' ? 'text-red-600 border-red-200' : 'text-green-600 border-green-200'}`}>
                   {emp.status === 'active' ? <UserX size={14} /> : <UserCheck size={14} />}
                 </Button>
               </div>
