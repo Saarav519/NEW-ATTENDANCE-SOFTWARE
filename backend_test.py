@@ -37,6 +37,8 @@ attendance_id = None
 leave_id = None
 bill_id = None
 payslip_id = None
+emi_loan_id = None
+lumpsum_loan_id = None
 
 def log_test(test_name, success, details=""):
     status = "✅ PASS" if success else "❌ FAIL"
