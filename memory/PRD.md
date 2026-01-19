@@ -242,6 +242,34 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 
 ## Changelog
 
+### January 19, 2026 (Session 2)
+- **NEW FEATURE:** Bank Details (Mandatory for Employees/Team Leads) ✅
+  - Added `bank_name`, `bank_account_number`, `bank_ifsc` fields to user model
+  - Mandatory validation on POST /api/users for employees/teamleads
+  - Bank details visible on View Employee dialog, Payslip page, PDF, CSV exports
+  - Admin users don't require bank details
+
+- **NEW FEATURE:** Employee-Team Leader Mapping ✅
+  - `team_lead_id` field on employees links to assigned Team Leader
+  - Team Leader dropdown in Add Employee dialog (filters active TLs only)
+  - Employee cards display "TL: [Name]" 
+  - GET /api/users/team/{team_lead_id} returns employees with matching team_lead_id
+
+- **NEW FEATURE:** Admin Change TL with History ✅
+  - Edit Employee dialog for Team Leader reassignment
+  - "Reason for Change" optional field
+  - Changes logged to `team_leader_history` collection
+  - GET /api/users/{id}/team-leader-history returns audit trail
+  - TL History dialog shows all changes with dates and admin who made change
+
+- **UPDATED:** Payslips CSV Export ✅
+  - Added Bank Name, Account Number, IFSC Code columns to /api/export/payslips
+  - Lookup employee bank details during export generation
+
+- **UPDATED:** Seed Data ✅
+  - All employees and team leads now have bank details in seed data
+  - Bank details: State Bank of India (EMP001), Axis Bank (EMP002), etc.
+
 ### January 19, 2026
 - **NEW FEATURE:** Loan / EMI Management (Completed ✅)
   - **Add External Loans:** Capture loan name, lender, total amount, EMI amount, EMI day (1-28), start date, interest rate, tenure
