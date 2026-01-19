@@ -289,7 +289,7 @@ const Payslip = () => {
                     </div>
                     {(breakdown.extra_conveyance || 0) > 0 && (
                       <div className="flex justify-between items-center p-3 bg-blue-50 rounded-xl">
-                        <span className="text-gray-700">Extra Conveyance (Approved)</span>
+                        <span className="text-gray-700">Bills / Previous Pending Approved</span>
                         <span className="font-semibold text-blue-600">+₹{breakdown.extra_conveyance.toLocaleString()}</span>
                       </div>
                     )}
