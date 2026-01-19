@@ -26,6 +26,8 @@ import Profile from "./pages/Profile";
 import ShiftTemplates from "./pages/ShiftTemplates";
 import AuditExpenses from "./pages/AuditExpenses";
 
+import EmployeeAttendance from "./pages/EmployeeAttendance";
+
 function App() {
   return (
     <AuthProvider>
@@ -38,6 +40,7 @@ function App() {
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="employees" element={<Employees />} />
+              <Route path="attendance/:empId" element={<EmployeeAttendance />} />
               <Route path="attendance" element={<Attendance />} />
               <Route path="my-attendance" element={<MyAttendance />} />
               <Route path="attendance-details" element={<AttendanceDetails />} />
