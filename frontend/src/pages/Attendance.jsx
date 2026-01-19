@@ -46,7 +46,8 @@ const Attendance = () => {
       setEmployees(activeEmployees);
 
       // Fetch attendance for the selected month/year
-      const attendanceData = await attendanceAPI.getAll(null, selectedMonth, selectedYear);
+      // getAll(empId, date, month, year)
+      const attendanceData = await attendanceAPI.getAll(null, null, selectedMonth, selectedYear);
       setAttendanceRecords(attendanceData || []);
     } catch (error) {
       console.error('Error loading data:', error);
