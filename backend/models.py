@@ -272,7 +272,9 @@ class SalaryAdvanceCreate(BaseModel):
     emp_name: str
     amount: float
     reason: str
-    repayment_months: int = 3  # Number of months to repay
+    deduct_from_month: str  # Month name (e.g., "January")
+    deduct_from_year: int  # Year (e.g., 2026)
+    repayment_months: int = 1  # Number of months to repay (default 1 for single deduction)
 
 class SalaryAdvanceResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -281,12 +283,16 @@ class SalaryAdvanceResponse(BaseModel):
     emp_name: str
     amount: float
     reason: str
-    repayment_months: int
-    monthly_deduction: float
+    deduct_from_month: Optional[str] = None
+    deduct_from_year: Optional[int] = None
+    repayment_months: int = 1
+    monthly_deduction: float = 0
     status: AdvanceStatus
     requested_on: str
     approved_by: Optional[str] = None
     approved_on: Optional[str] = None
+    is_deducted: bool = False
+    deducted_on: Optional[str] = None
 
 # Shift Template Models
 class ShiftTemplateCreate(BaseModel):
