@@ -15,7 +15,7 @@ import {
 } from '../components/ui/select';
 import {
   Users, Plus, Search, Edit, Trash2, Eye, Mail, Phone, Building,
-  Calendar, IndianRupee, UserCheck, UserX, Key, Loader2
+  Calendar, IndianRupee, UserCheck, UserX, Key, Loader2, Landmark, History
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -23,17 +23,25 @@ const Employees = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [employees, setEmployees] = useState([]);
+  const [teamLeaders, setTeamLeaders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('active');
   const [addDialog, setAddDialog] = useState(false);
+  const [editDialog, setEditDialog] = useState({ open: false, employee: null });
   const [viewDialog, setViewDialog] = useState({ open: false, employee: null });
   const [passwordDialog, setPasswordDialog] = useState({ open: false, employee: null });
+  const [historyDialog, setHistoryDialog] = useState({ open: false, employee: null, history: [] });
   const [submitting, setSubmitting] = useState(false);
   
   const [newEmployee, setNewEmployee] = useState({
     id: '', name: '', email: '', phone: '', department: '', designation: '',
-    salary: '', salary_type: 'monthly', role: 'employee', password: '', team_lead_id: ''
+    salary: '', salary_type: 'monthly', role: 'employee', password: '', team_lead_id: '',
+    bank_name: '', bank_account_number: '', bank_ifsc: ''
+  });
+
+  const [editEmployee, setEditEmployee] = useState({
+    team_lead_id: '', change_reason: ''
   });
   
   const [newPassword, setNewPassword] = useState('');
