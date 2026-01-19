@@ -577,6 +577,17 @@ async def create_bill_submission(bill: BillSubmissionCreate, emp_id: str, emp_na
     await db.bills.insert_one(bill_doc)
     bill_doc.pop("_id", None)
     
+    # Send notification to admins and team leads
+    await create_notification(
+        recipient_id="",
+        recipient_role="admin",
+        title="New Bill Submission",
+        message=f"{emp_name} submitted a bill of ₹{total} for {bill.month}",
+        notification_type="bill",
+        related_id=bill_doc["id"],
+        data={"emp_id": emp_id, "action": "created"}
+    )
+    
     return BillSubmissionResponse(**bill_doc)
 
 @router.get("/bills", response_model=List[BillSubmissionResponse])
@@ -601,6 +612,10 @@ async def get_bills(
 
 @router.put("/bills/{bill_id}/approve")
 async def approve_bill(bill_id: str, approved_by: str, approved_amount: float):
+    bill = await db.bills.find_one({"id": bill_id}, {"_id": 0})
+    if not bill:
+        raise HTTPException(status_code=404, detail="Bill not found")
+    
     result = await db.bills.update_one(
         {"id": bill_id},
         {"$set": {
@@ -610,12 +625,25 @@ async def approve_bill(bill_id: str, approved_by: str, approved_amount: float):
             "approved_on": get_utc_now_str()[:10]
         }}
     )
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Bill not found")
+    
+    # Notify employee
+    await create_notification(
+        recipient_id=bill["emp_id"],
+        title="Bill Approved",
+        message=f"Your bill of ₹{bill['total_amount']} for {bill['month']} has been approved (₹{approved_amount})",
+        notification_type="bill",
+        related_id=bill_id,
+        data={"action": "approved", "approved_amount": approved_amount}
+    )
+    
     return {"message": "Bill approved"}
 
 @router.put("/bills/{bill_id}/reject")
 async def reject_bill(bill_id: str, rejected_by: str):
+    bill = await db.bills.find_one({"id": bill_id}, {"_id": 0})
+    if not bill:
+        raise HTTPException(status_code=404, detail="Bill not found")
+    
     result = await db.bills.update_one(
         {"id": bill_id},
         {"$set": {"status": BillStatus.REJECTED, "rejected_by": rejected_by}}
