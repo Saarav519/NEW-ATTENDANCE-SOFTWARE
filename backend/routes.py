@@ -1544,8 +1544,14 @@ async def generate_payslip_final(payslip_id: str):
         }}
     )
     
-    # Create Cash Out entry for salary (use recalculated net_pay)
-    if net_pay > 0:
+    # Create Cash Out entry for salary 
+    # FIX: Use only Duty Earned + Conveyance - Advance (NOT net_pay)
+    # Bills and Audit Expenses already create their own Cash Out entries when approved
+    salary_cash_out_amount = round(total_duty_earned + attendance_conveyance - advance_deduction, 2)
+    if salary_cash_out_amount < 0:
+        salary_cash_out_amount = 0
+    
+    if salary_cash_out_amount > 0:
         # Delete any existing auto cash-out entry to avoid duplicates
         await db.cash_out.delete_many({
             "reference_type": "payslip",
@@ -1558,7 +1564,7 @@ async def generate_payslip_final(payslip_id: str):
         await create_auto_cash_out(
             category="salary",
             description=f"Salary - {payslip.get('emp_name', '')} ({month} {year})",
-            amount=net_pay,
+            amount=salary_cash_out_amount,
             date=date_str,
             reference_id=payslip_id,
             reference_type="payslip",
