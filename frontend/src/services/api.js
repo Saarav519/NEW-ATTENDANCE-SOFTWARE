@@ -188,6 +188,9 @@ export const payslipAPI = {
   // Admin generate payslip (makes it downloadable, adds to cashbook)
   generate: (payslipId) => 
     apiCall(`/payslips/${payslipId}/generate`, { method: 'PUT' }),
+  // Recalculate payslip from attendance (for preview payslips)
+  recalculate: (payslipId) => 
+    apiCall(`/payslips/${payslipId}/recalculate`, { method: 'PUT' }),
   // Mark as settled/paid
   settle: (payslipId) => 
     apiCall(`/payslips/${payslipId}/settle`, { method: 'PUT' }),
