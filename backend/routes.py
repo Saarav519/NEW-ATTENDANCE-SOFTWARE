@@ -3095,6 +3095,168 @@ async def export_advances(
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
+
+@router.get("/export/audit-expenses")
+async def export_audit_expenses(
+    status: Optional[str] = None,
+    emp_id: Optional[str] = None,
+    month: Optional[int] = None,
+    year: Optional[int] = None
+):
+    """Export audit expense records to CSV"""
+    query = {}
+    if status:
+        query["status"] = status
+    if emp_id:
+        query["emp_id"] = emp_id
+    
+    audit_expenses = await db.audit_expenses.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
+    
+    # Filter by month/year if provided
+    if month and year:
+        start_date = f"{year}-{str(month).zfill(2)}-01"
+        if month == 12:
+            end_date = f"{year + 1}-01-01"
+        else:
+            end_date = f"{year}-{str(month + 1).zfill(2)}-01"
+        audit_expenses = [e for e in audit_expenses if e.get("created_at", "") >= start_date and e.get("created_at", "") < end_date]
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Header
+    writer.writerow([
+        "Expense ID", "Employee ID", "Employee Name", "Trip Name", "Client Name",
+        "From Date", "To Date", "Ticket Amount", "Travel Amount", "Food Amount", 
+        "Hotel Amount", "Other Amount", "Total Amount", "Approved Amount", 
+        "Amount Paid", "Balance Remaining", "Status", "Created At",
+        "Approved By", "Approved At", "Rejection Reason", "Revalidation Reason"
+    ])
+    
+    # Data rows
+    for expense in audit_expenses:
+        writer.writerow([
+            expense.get("id", ""),
+            expense.get("emp_id", ""),
+            expense.get("emp_name", ""),
+            expense.get("trip_name", ""),
+            expense.get("client_name", ""),
+            expense.get("from_date", ""),
+            expense.get("to_date", ""),
+            expense.get("ticket_amount", 0),
+            expense.get("travel_amount", 0),
+            expense.get("food_amount", 0),
+            expense.get("hotel_amount", 0),
+            expense.get("other_amount", 0),
+            expense.get("total_amount", 0),
+            expense.get("approved_amount", 0),
+            expense.get("amount_paid", 0),
+            expense.get("balance_remaining", 0),
+            expense.get("status", ""),
+            expense.get("created_at", ""),
+            expense.get("approved_by", ""),
+            expense.get("approved_at", ""),
+            expense.get("rejection_reason", ""),
+            expense.get("revalidation_reason", "")
+        ])
+    
+    output.seek(0)
+    
+    filename = f"audit_expenses_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+@router.get("/export/bills-advances")
+async def export_bills_advances(
+    status: Optional[str] = None,
+    emp_id: Optional[str] = None,
+    month: Optional[str] = None,
+    year: Optional[int] = None
+):
+    """Export combined bills and advances records to CSV"""
+    query = {}
+    if status:
+        query["status"] = status
+    if emp_id:
+        query["emp_id"] = emp_id
+    if month:
+        query["month"] = month
+    if year:
+        query["year"] = year
+    
+    # Get bills
+    bills = await db.bills.find(query, {"_id": 0}).sort("submitted_on", -1).to_list(10000)
+    
+    # Get advances - use different field names
+    adv_query = {}
+    if status:
+        adv_query["status"] = status
+    if emp_id:
+        adv_query["emp_id"] = emp_id
+    if month:
+        adv_query["deduct_from_month"] = month
+    if year:
+        adv_query["deduct_from_year"] = year
+    
+    advances = await db.advances.find(adv_query, {"_id": 0}).sort("requested_on", -1).to_list(10000)
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Header
+    writer.writerow([
+        "Type", "ID", "Employee ID", "Employee Name", "Month", "Year",
+        "Requested Amount", "Approved Amount", "Status", "Date",
+        "Approved By", "Remarks/Reason"
+    ])
+    
+    # Bills rows
+    for bill in bills:
+        writer.writerow([
+            "Bill",
+            bill.get("id", ""),
+            bill.get("emp_id", ""),
+            bill.get("emp_name", ""),
+            bill.get("month", ""),
+            bill.get("year", ""),
+            bill.get("total_amount", 0),
+            bill.get("approved_amount", 0),
+            bill.get("status", ""),
+            bill.get("submitted_on", ""),
+            bill.get("approved_by", ""),
+            bill.get("remarks", "")
+        ])
+    
+    # Advances rows
+    for advance in advances:
+        writer.writerow([
+            "Advance",
+            advance.get("id", ""),
+            advance.get("emp_id", ""),
+            advance.get("emp_name", ""),
+            advance.get("deduct_from_month", ""),
+            advance.get("deduct_from_year", ""),
+            advance.get("amount", 0),
+            advance.get("amount", 0) if advance.get("status") == "approved" else 0,
+            advance.get("status", ""),
+            advance.get("requested_on", ""),
+            advance.get("approved_by", ""),
+            advance.get("reason", "")
+        ])
+    
+    output.seek(0)
+    
+    filename = f"bills_advances_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
 # ==================== CASHBOOK / COMPANY FINANCE ROUTES ====================
 
 MONTHS_LIST = ["January", "February", "March", "April", "May", "June", 
