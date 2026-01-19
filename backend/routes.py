@@ -2493,7 +2493,7 @@ async def export_attendance(
     # Header
     writer.writerow([
         "Date", "Employee ID", "Employee Name", "Punch In", "Punch Out",
-        "Work Hours", "Status", "Location", "Conveyance", "Shift Type"
+        "Work Hours", "Status", "Location", "Conveyance", "Daily Duty", "Shift Type"
     ])
     
     # Data rows
@@ -2508,6 +2508,7 @@ async def export_attendance(
             record.get("attendance_status", record.get("status", "")),
             record.get("location", ""),
             record.get("conveyance_amount", 0),
+            record.get("daily_duty_amount", 0),
             record.get("shift_type", "")
         ])
     
