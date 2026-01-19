@@ -279,9 +279,10 @@ const Payroll = () => {
       <Dialog open={generateDialog} onOpenChange={setGenerateDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Generate Payslip</DialogTitle>
+            <DialogTitle>Create Payslip (Preview)</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            <p className="text-sm text-gray-500">Create a payslip preview. You can review and then click "Generate" to finalize it.</p>
             <div className="space-y-2">
               <Label>Select Employee</Label>
               <Select value={selectedEmp} onValueChange={setSelectedEmp}>
@@ -316,9 +317,9 @@ const Payroll = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setGenerateDialog(false)}>Cancel</Button>
-            <Button onClick={handleGeneratePayslip} disabled={submitting} className="bg-[#1E2A5E]">
+            <Button onClick={handleCreatePayslip} disabled={submitting} className="bg-[#1E2A5E]">
               {submitting ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
-              Generate
+              Create Preview
             </Button>
           </DialogFooter>
         </DialogContent>
