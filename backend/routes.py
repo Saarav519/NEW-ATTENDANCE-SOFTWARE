@@ -990,10 +990,11 @@ async def generate_payslip(data: PayslipCreate):
         "month": data.month,
         "year": data.year,
         "breakdown": breakdown.model_dump(),
-        "status": PayslipStatus.PENDING,
+        "status": PayslipStatus.PREVIEW,  # Start as preview - not downloadable until admin generates
         "created_on": get_utc_now_str()[:10],
         "paid_on": None,
         "settled_on": None,
+        "generated_on": None,  # Will be set when admin clicks Generate
         "advance_ids": [a["id"] for a in advances]  # Track which advances were included
     }
     
@@ -1001,6 +1002,66 @@ async def generate_payslip(data: PayslipCreate):
     payslip_doc.pop("_id", None)
     
     return PayslipResponse(**payslip_doc)
+
+# NEW: Admin Generate Payslip endpoint
+@router.put("/payslips/{payslip_id}/generate")
+async def generate_payslip(payslip_id: str):
+    """Admin generates payslip - makes it downloadable and adds to cashbook"""
+    payslip = await db.payslips.find_one({"id": payslip_id}, {"_id": 0})
+    if not payslip:
+        raise HTTPException(status_code=404, detail="Payslip not found")
+    
+    if payslip.get("status") not in [PayslipStatus.PREVIEW, "preview", "pending"]:
+        raise HTTPException(status_code=400, detail="Payslip already generated")
+    
+    # Update status to generated
+    await db.payslips.update_one(
+        {"id": payslip_id},
+        {"$set": {
+            "status": PayslipStatus.GENERATED,
+            "generated_on": get_utc_now_str()[:10]
+        }}
+    )
+    
+    # Create Cash Out entry for salary
+    net_pay = payslip.get("breakdown", {}).get("net_pay", 0)
+    if net_pay > 0:
+        payslip_month = payslip.get("month", "January")
+        payslip_year = payslip.get("year", 2026)
+        month_num = ["January", "February", "March", "April", "May", "June", 
+                     "July", "August", "September", "October", "November", "December"].index(payslip_month.split()[0]) + 1
+        date_str = f"{payslip_year}-{month_num:02d}-28"
+        
+        # Delete any existing auto cash-out entry to avoid duplicates
+        await db.cash_out.delete_many({
+            "reference_type": "payslip",
+            "month": payslip_month,
+            "year": payslip_year,
+            "description": {"$regex": f".*{payslip.get('emp_name', '')}.*"}
+        })
+        
+        await create_auto_cash_out(
+            category="salary",
+            description=f"Salary - {payslip.get('emp_name', '')} ({payslip_month} {payslip_year})",
+            amount=net_pay,
+            date=date_str,
+            reference_id=payslip_id,
+            reference_type="payslip",
+            month=payslip_month,
+            year=payslip_year
+        )
+    
+    # Create notification for employee
+    await create_notification(
+        recipient_id=payslip.get("emp_id"),
+        title="Payslip Generated",
+        message=f"Your payslip for {payslip.get('month')} {payslip.get('year')} is now available for download",
+        notification_type="payslip",
+        related_id=payslip_id,
+        data={"action": "generated"}
+    )
+    
+    return {"message": "Payslip generated successfully", "status": "generated"}
 
 @router.put("/payslips/{payslip_id}/settle")
 async def settle_payslip(payslip_id: str):
