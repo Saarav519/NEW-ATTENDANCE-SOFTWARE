@@ -417,6 +417,106 @@ export const exportAPI = {
     if (empId) params.append('emp_id', empId);
     return `${API_URL}/api/export/advances?${params}`;
   },
+  cashbook: (monthName, year) => {
+    const params = new URLSearchParams();
+    if (monthName) params.append('month', monthName);
+    if (year) params.append('year', year);
+    return `${API_URL}/api/export/cashbook?${params}`;
+  },
+  invoices: (monthName, year) => {
+    const params = new URLSearchParams();
+    if (monthName) params.append('month', monthName);
+    if (year) params.append('year', year);
+    return `${API_URL}/api/export/invoices?${params}`;
+  },
+  invoicesZip: (monthName, year) => {
+    const params = new URLSearchParams();
+    if (monthName) params.append('month', monthName);
+    if (year) params.append('year', year);
+    return `${API_URL}/api/export/invoices-zip?${params}`;
+  },
+};
+
+// Cashbook API
+export const cashbookAPI = {
+  // Cash In
+  getCashIn: (month, year) => {
+    const params = new URLSearchParams();
+    if (month) params.append('month', month);
+    if (year) params.append('year', year);
+    return apiCall(`/cashbook/cash-in?${params}`);
+  },
+  createCashIn: (data) => apiCall('/cashbook/cash-in', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  updateCashIn: (id, data) => apiCall(`/cashbook/cash-in/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  deleteCashIn: (id) => apiCall(`/cashbook/cash-in/${id}`, { method: 'DELETE' }),
+  
+  // Upload Invoice
+  uploadInvoice: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await fetch(`${API_URL}/api/cashbook/upload-invoice`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Upload failed');
+    }
+    return response.json();
+  },
+  
+  // Cash Out
+  getCashOut: (month, year) => {
+    const params = new URLSearchParams();
+    if (month) params.append('month', month);
+    if (year) params.append('year', year);
+    return apiCall(`/cashbook/cash-out?${params}`);
+  },
+  createCashOut: (data) => apiCall('/cashbook/cash-out', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  updateCashOut: (id, data) => apiCall(`/cashbook/cash-out/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  deleteCashOut: (id) => apiCall(`/cashbook/cash-out/${id}`, { method: 'DELETE' }),
+  
+  // Categories
+  getCategories: () => apiCall('/cashbook/categories'),
+  createCategory: (data) => apiCall('/cashbook/categories', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  deleteCategory: (id) => apiCall(`/cashbook/categories/${id}`, { method: 'DELETE' }),
+  
+  // Locks
+  getLocks: (year) => {
+    const params = year ? `?year=${year}` : '';
+    return apiCall(`/cashbook/locks${params}`);
+  },
+  lockMonth: (month, year, lockedBy) => apiCall(`/cashbook/lock?locked_by=${lockedBy}`, {
+    method: 'POST',
+    body: JSON.stringify({ month, year }),
+  }),
+  unlockMonth: (month, year, unlockedBy) => apiCall(`/cashbook/unlock?unlocked_by=${unlockedBy}`, {
+    method: 'POST',
+    body: JSON.stringify({ month, year }),
+  }),
+  
+  // Summary
+  getSummary: (month, year) => {
+    const params = new URLSearchParams();
+    if (month) params.append('month', month);
+    if (year) params.append('year', year);
+    return apiCall(`/cashbook/summary?${params}`);
+  },
 };
 
 // WebSocket URL for real-time updates
@@ -445,5 +545,6 @@ export default {
   notification: notificationAPI,
   analytics: analyticsAPI,
   export: exportAPI,
+  cashbook: cashbookAPI,
   getWebSocketURL,
 };
