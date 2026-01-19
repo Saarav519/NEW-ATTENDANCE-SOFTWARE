@@ -187,8 +187,14 @@ const Employees = () => {
   const resetForm = () => {
     setNewEmployee({
       id: '', name: '', email: '', phone: '', department: '', designation: '',
-      salary: '', salary_type: 'monthly', role: 'employee', password: '', team_lead_id: ''
+      salary: '', salary_type: 'monthly', role: 'employee', password: '', team_lead_id: '',
+      bank_name: '', bank_account_number: '', bank_ifsc: ''
     });
+  };
+
+  const getTeamLeaderName = (tlId) => {
+    const tl = teamLeaders.find(t => t.id === tlId);
+    return tl ? tl.name : 'Not Assigned';
   };
 
   const filteredEmployees = employees.filter(emp => {
