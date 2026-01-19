@@ -275,7 +275,10 @@ const Profile = () => {
               </p>
               <p className="text-xs text-blue-600 mt-1">Used: {leaveBalance.total_used || 0}</p>
               <p className="text-xs text-gray-500 mt-2">
-                Working Days: {leaveBalance.working_days_count || 0} • Accrual: 1 leave per 24 working days
+                Total Working Days: {leaveBalance.working_days_count || 0}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                Rule: 24+ working days in a month = 1 leave accrued
               </p>
             </div>
           </CardContent>
