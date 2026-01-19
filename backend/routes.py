@@ -31,7 +31,7 @@ from models import (
     CashInCreate, CashInResponse, CashOutCreate, CashOutResponse,
     CustomCategoryCreate, CustomCategoryResponse, MonthLockCreate, MonthLockResponse,
     CashbookSummary, PaymentStatus, CashOutCategory,
-    LoanCreate, LoanResponse, LoanStatus, EMIPaymentCreate, EMIPaymentResponse, LoanSummary,
+    LoanCreate, LoanResponse, LoanStatus, LoanType, EMIPaymentCreate, EMIPaymentResponse, LoanSummary,
     PayableCreate, PayableResponse, PayableStatus, PayablePaymentCreate, PayablePaymentResponse, PayableSummary
 )
 
