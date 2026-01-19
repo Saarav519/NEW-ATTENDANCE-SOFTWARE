@@ -87,12 +87,14 @@ const Cashbook = () => {
     setLoading(true);
     try {
       const month = viewMode === 'monthly' ? selectedMonth : null;
-      const [cashIn, cashOut, cats, sum, lockData] = await Promise.all([
+      const [cashIn, cashOut, cats, sum, lockData, loansData, loanSum] = await Promise.all([
         cashbookAPI.getCashIn(month, selectedYear),
         cashbookAPI.getCashOut(month, selectedYear),
         cashbookAPI.getCategories(),
         cashbookAPI.getSummary(month, selectedYear),
-        cashbookAPI.getLocks(selectedYear)
+        cashbookAPI.getLocks(selectedYear),
+        loanAPI.getAll(),
+        loanAPI.getSummary()
       ]);
       
       setCashInEntries(cashIn || []);
@@ -100,6 +102,8 @@ const Cashbook = () => {
       setCategories(cats || []);
       setSummary(sum || { total_cash_in: 0, total_cash_out: 0, net_profit_loss: 0, is_locked: false });
       setLocks(lockData || []);
+      setLoans(loansData || []);
+      setLoanSummary(loanSum || { total_loans: 0, active_loans: 0, total_remaining: 0 });
     } catch (error) {
       console.error('Error loading data:', error);
       toast.error('Failed to load cashbook data');
