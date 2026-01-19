@@ -57,9 +57,7 @@ async def add_attendance(emp_id, month, year):
     for day in range(1, days_in_month + 1):
         date_str = f"{year}-{month_num:02d}-{day:02d}"
         
-        # Skip Sundays (assume 7, 14, 21, 28 are Sundays)
-        if day % 7 == 0:
-            continue
+        # Include ALL days (including Sundays/holidays)
         
         # Create attendance record with full day status
         record = {
