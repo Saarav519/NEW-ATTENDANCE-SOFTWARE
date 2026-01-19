@@ -25,7 +25,6 @@ import Reports from "./pages/Reports";
 import Profile from "./pages/Profile";
 import ShiftTemplates from "./pages/ShiftTemplates";
 import AuditExpenses from "./pages/AuditExpenses";
-import Analytics from "./pages/Analytics";
 
 function App() {
   return (
@@ -56,7 +55,6 @@ function App() {
               <Route path="reports" element={<Reports />} />
               <Route path="profile" element={<Profile />} />
               <Route path="shift-templates" element={<ShiftTemplates />} />
-              <Route path="analytics" element={<Analytics />} />
             </Route>
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
