@@ -622,6 +622,323 @@ def test_holiday_apis():
     except Exception as e:
         log_test("Get Holidays", False, f"Exception: {str(e)}")
 
+def test_analytics_apis():
+    """Test NEW Analytics APIs"""
+    print("=" * 60)
+    print("TESTING: NEW Analytics APIs")
+    print("=" * 60)
+    
+    # Test 1: Employee Counts
+    try:
+        response = requests.get(f"{API_URL}/analytics/employee-counts")
+        if response.status_code == 200:
+            data = response.json()
+            if "total_employees" in data and "by_role" in data:
+                log_test("Analytics - Employee Counts", True, f"Total: {data.get('total_employees')}, Roles: {list(data.get('by_role', {}).keys())}")
+            else:
+                log_test("Analytics - Employee Counts", False, "Missing required fields in response")
+        else:
+            log_test("Analytics - Employee Counts", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Analytics - Employee Counts", False, f"Exception: {str(e)}")
+    
+    # Test 2: Attendance Trends
+    try:
+        response = requests.get(f"{API_URL}/analytics/attendance-trends?time_filter=this_month")
+        if response.status_code == 200:
+            data = response.json()
+            if "trends" in data:
+                log_test("Analytics - Attendance Trends", True, f"Retrieved {len(data.get('trends', []))} trend data points")
+            else:
+                log_test("Analytics - Attendance Trends", False, "Missing trends field in response")
+        else:
+            log_test("Analytics - Attendance Trends", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Analytics - Attendance Trends", False, f"Exception: {str(e)}")
+    
+    # Test 3: Leave Distribution
+    try:
+        response = requests.get(f"{API_URL}/analytics/leave-distribution?time_filter=this_month")
+        if response.status_code == 200:
+            data = response.json()
+            if "distribution" in data:
+                log_test("Analytics - Leave Distribution", True, f"Retrieved leave distribution data")
+            else:
+                log_test("Analytics - Leave Distribution", False, "Missing distribution field in response")
+        else:
+            log_test("Analytics - Leave Distribution", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Analytics - Leave Distribution", False, f"Exception: {str(e)}")
+    
+    # Test 4: Department Attendance
+    try:
+        response = requests.get(f"{API_URL}/analytics/department-attendance?time_filter=this_month")
+        if response.status_code == 200:
+            data = response.json()
+            if "departments" in data:
+                log_test("Analytics - Department Attendance", True, f"Retrieved {len(data.get('departments', []))} department data points")
+            else:
+                log_test("Analytics - Department Attendance", False, "Missing departments field in response")
+        else:
+            log_test("Analytics - Department Attendance", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Analytics - Department Attendance", False, f"Exception: {str(e)}")
+    
+    # Test 5: Salary Overview
+    try:
+        response = requests.get(f"{API_URL}/analytics/salary-overview?time_filter=this_year")
+        if response.status_code == 200:
+            data = response.json()
+            if "overview" in data:
+                log_test("Analytics - Salary Overview", True, f"Retrieved salary overview data")
+            else:
+                log_test("Analytics - Salary Overview", False, "Missing overview field in response")
+        else:
+            log_test("Analytics - Salary Overview", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Analytics - Salary Overview", False, f"Exception: {str(e)}")
+    
+    # Test 6: Summary Analytics (All in one)
+    try:
+        response = requests.get(f"{API_URL}/analytics/summary?time_filter=this_month")
+        if response.status_code == 200:
+            data = response.json()
+            required_fields = ["employee_counts", "attendance_trends", "leave_distribution", "department_attendance", "salary_overview"]
+            missing_fields = [field for field in required_fields if field not in data]
+            
+            if not missing_fields:
+                log_test("Analytics - Summary (All in One)", True, f"All analytics data retrieved in single call")
+            else:
+                log_test("Analytics - Summary (All in One)", False, f"Missing fields: {missing_fields}")
+        else:
+            log_test("Analytics - Summary (All in One)", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Analytics - Summary (All in One)", False, f"Exception: {str(e)}")
+
+def test_export_csv_apis():
+    """Test NEW Export to CSV APIs"""
+    print("=" * 60)
+    print("TESTING: NEW Export to CSV APIs")
+    print("=" * 60)
+    
+    # Test 1: Export Employees
+    try:
+        response = requests.get(f"{API_URL}/export/employees")
+        if response.status_code == 200:
+            content_type = response.headers.get('content-type', '')
+            if 'text/csv' in content_type or 'application/csv' in content_type:
+                csv_content = response.text
+                lines = csv_content.strip().split('\n')
+                log_test("Export - Employees CSV", True, f"CSV exported with {len(lines)} lines (including header)")
+            else:
+                log_test("Export - Employees CSV", False, f"Wrong content type: {content_type}")
+        else:
+            log_test("Export - Employees CSV", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Export - Employees CSV", False, f"Exception: {str(e)}")
+    
+    # Test 2: Export Attendance
+    try:
+        response = requests.get(f"{API_URL}/export/attendance")
+        if response.status_code == 200:
+            content_type = response.headers.get('content-type', '')
+            if 'text/csv' in content_type or 'application/csv' in content_type:
+                csv_content = response.text
+                lines = csv_content.strip().split('\n')
+                log_test("Export - Attendance CSV", True, f"CSV exported with {len(lines)} lines (including header)")
+            else:
+                log_test("Export - Attendance CSV", False, f"Wrong content type: {content_type}")
+        else:
+            log_test("Export - Attendance CSV", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Export - Attendance CSV", False, f"Exception: {str(e)}")
+    
+    # Test 3: Export Leaves
+    try:
+        response = requests.get(f"{API_URL}/export/leaves")
+        if response.status_code == 200:
+            content_type = response.headers.get('content-type', '')
+            if 'text/csv' in content_type or 'application/csv' in content_type:
+                csv_content = response.text
+                lines = csv_content.strip().split('\n')
+                log_test("Export - Leaves CSV", True, f"CSV exported with {len(lines)} lines (including header)")
+            else:
+                log_test("Export - Leaves CSV", False, f"Wrong content type: {content_type}")
+        else:
+            log_test("Export - Leaves CSV", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Export - Leaves CSV", False, f"Exception: {str(e)}")
+    
+    # Test 4: Export Payslips
+    try:
+        response = requests.get(f"{API_URL}/export/payslips")
+        if response.status_code == 200:
+            content_type = response.headers.get('content-type', '')
+            if 'text/csv' in content_type or 'application/csv' in content_type:
+                csv_content = response.text
+                lines = csv_content.strip().split('\n')
+                log_test("Export - Payslips CSV", True, f"CSV exported with {len(lines)} lines (including header)")
+            else:
+                log_test("Export - Payslips CSV", False, f"Wrong content type: {content_type}")
+        else:
+            log_test("Export - Payslips CSV", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Export - Payslips CSV", False, f"Exception: {str(e)}")
+    
+    # Test 5: Export Bills
+    try:
+        response = requests.get(f"{API_URL}/export/bills")
+        if response.status_code == 200:
+            content_type = response.headers.get('content-type', '')
+            if 'text/csv' in content_type or 'application/csv' in content_type:
+                csv_content = response.text
+                lines = csv_content.strip().split('\n')
+                log_test("Export - Bills CSV", True, f"CSV exported with {len(lines)} lines (including header)")
+            else:
+                log_test("Export - Bills CSV", False, f"Wrong content type: {content_type}")
+        else:
+            log_test("Export - Bills CSV", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Export - Bills CSV", False, f"Exception: {str(e)}")
+
+def test_notification_apis():
+    """Test NEW Notification APIs"""
+    print("=" * 60)
+    print("TESTING: NEW Notification APIs")
+    print("=" * 60)
+    
+    global leave_id, bill_id
+    notification_id = None
+    
+    # Test 1: Get initial notifications (may be empty)
+    try:
+        response = requests.get(f"{API_URL}/notifications?user_id=ADMIN001")
+        if response.status_code == 200:
+            notifications = response.json()
+            initial_count = len(notifications)
+            log_test("Get Initial Notifications", True, f"Retrieved {initial_count} notifications for ADMIN001")
+        else:
+            log_test("Get Initial Notifications", False, f"Status: {response.status_code}, Response: {response.text}")
+            initial_count = 0
+    except Exception as e:
+        log_test("Get Initial Notifications", False, f"Exception: {str(e)}")
+        initial_count = 0
+    
+    # Test 2: Get unread count
+    try:
+        response = requests.get(f"{API_URL}/notifications/unread-count?user_id=ADMIN001")
+        if response.status_code == 200:
+            data = response.json()
+            if "unread_count" in data:
+                log_test("Get Unread Count", True, f"Unread count: {data.get('unread_count')}")
+            else:
+                log_test("Get Unread Count", False, "Missing unread_count field")
+        else:
+            log_test("Get Unread Count", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Get Unread Count", False, f"Exception: {str(e)}")
+    
+    # Test 3: Create a leave request to trigger notification
+    try:
+        leave_data = {
+            "emp_id": "EMP001",
+            "emp_name": "Rahul Kumar",
+            "type": "Casual Leave",
+            "from_date": "2026-01-25",
+            "to_date": "2026-01-27",
+            "days": 3,
+            "reason": "Family function"
+        }
+        response = requests.post(f"{API_URL}/leaves", json=leave_data)
+        if response.status_code == 200:
+            leave = response.json()
+            leave_id = leave.get("id")
+            log_test("Create Leave (Notification Trigger)", True, f"Leave created: {leave_id}")
+        else:
+            log_test("Create Leave (Notification Trigger)", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Create Leave (Notification Trigger)", False, f"Exception: {str(e)}")
+    
+    # Test 4: Check if notification was created
+    try:
+        response = requests.get(f"{API_URL}/notifications?user_id=ADMIN001")
+        if response.status_code == 200:
+            notifications = response.json()
+            new_count = len(notifications)
+            if new_count > initial_count:
+                # Find the newest notification
+                newest_notification = max(notifications, key=lambda x: x.get('created_at', ''))
+                notification_id = newest_notification.get('id')
+                log_test("Notification Created for Leave", True, f"New notification created: {notification_id}, Type: {newest_notification.get('type')}")
+            else:
+                log_test("Notification Created for Leave", False, f"No new notification found. Count: {new_count} (was {initial_count})")
+        else:
+            log_test("Notification Created for Leave", False, f"Status: {response.status_code}")
+    except Exception as e:
+        log_test("Notification Created for Leave", False, f"Exception: {str(e)}")
+    
+    # Test 5: Mark notification as read
+    if notification_id:
+        try:
+            response = requests.put(f"{API_URL}/notifications/{notification_id}/read")
+            if response.status_code == 200:
+                log_test("Mark Notification as Read", True, f"Notification {notification_id} marked as read")
+            else:
+                log_test("Mark Notification as Read", False, f"Status: {response.status_code}, Response: {response.text}")
+        except Exception as e:
+            log_test("Mark Notification as Read", False, f"Exception: {str(e)}")
+    
+    # Test 6: Create a bill to trigger another notification
+    try:
+        bill_data = {
+            "items": [
+                {
+                    "date": "2026-01-20",
+                    "location": "Client Site",
+                    "description": "Travel expenses for client meeting",
+                    "amount": 750.0,
+                    "has_attachment": False
+                }
+            ],
+            "month": "January 2026",
+            "year": 2026,
+            "remarks": "Client visit expenses"
+        }
+        response = requests.post(f"{API_URL}/bills?emp_id=EMP001&emp_name=Rahul Kumar", json=bill_data)
+        if response.status_code == 200:
+            bill = response.json()
+            bill_id = bill.get("id")
+            log_test("Create Bill (Notification Trigger)", True, f"Bill created: {bill_id}")
+        else:
+            log_test("Create Bill (Notification Trigger)", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Create Bill (Notification Trigger)", False, f"Exception: {str(e)}")
+    
+    # Test 7: Mark all notifications as read
+    try:
+        response = requests.put(f"{API_URL}/notifications/mark-all-read?user_id=ADMIN001")
+        if response.status_code == 200:
+            log_test("Mark All Notifications as Read", True, "All notifications marked as read for ADMIN001")
+        else:
+            log_test("Mark All Notifications as Read", False, f"Status: {response.status_code}, Response: {response.text}")
+    except Exception as e:
+        log_test("Mark All Notifications as Read", False, f"Exception: {str(e)}")
+    
+    # Test 8: Verify unread count is now 0
+    try:
+        response = requests.get(f"{API_URL}/notifications/unread-count?user_id=ADMIN001")
+        if response.status_code == 200:
+            data = response.json()
+            unread_count = data.get("unread_count", -1)
+            if unread_count == 0:
+                log_test("Verify All Read", True, "Unread count is 0 after marking all as read")
+            else:
+                log_test("Verify All Read", False, f"Unread count should be 0, but is {unread_count}")
+        else:
+            log_test("Verify All Read", False, f"Status: {response.status_code}")
+    except Exception as e:
+        log_test("Verify All Read", False, f"Exception: {str(e)}")
+
 def run_all_tests():
     """Run all backend API tests"""
     print("🚀 Starting SuperManage Backend API Tests")
@@ -648,6 +965,15 @@ def run_all_tests():
     
     test_dashboard_apis()
     test_holiday_apis()
+    
+    print("=" * 80)
+    print("🚀 TESTING NEW FEATURES (Review Request)")
+    print("=" * 80)
+    
+    # NEW FEATURES TESTING (as per review request)
+    test_analytics_apis()
+    test_export_csv_apis()
+    test_notification_apis()
     
     print("=" * 80)
     print("🏁 Backend API Testing Complete")
