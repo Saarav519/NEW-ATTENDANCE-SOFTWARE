@@ -46,12 +46,17 @@ async def seed_database():
     half_day_dates = [5, 12, 19]  # 3 half days
     absent_dates = [26]  # 1 absent day
     
+    # Rahul's salary for daily duty calculation
+    rahul_salary = 50000
+    daily_rate = rahul_salary / 26  # 26 working days per month = ₹1,923.08
+    
     attendance_records = []
     full_days = 0
     half_days = 0
     absent_days = 0
     total_conveyance = 0
     total_hours = 0
+    total_daily_duty = 0
     
     for day in range(1, 32):  # 1 to 31
         date_str = f"2025-12-{day:02d}"
@@ -62,6 +67,7 @@ async def seed_database():
             work_hours = 5.75
             attendance_status = "half_day"
             conveyance = 100
+            daily_duty = round(daily_rate / 2, 2)  # Half daily duty
             status = "present"
             half_days += 1
         elif day in absent_dates:
@@ -70,6 +76,7 @@ async def seed_database():
             work_hours = 2.5
             attendance_status = "absent"
             conveyance = 0
+            daily_duty = 0  # No daily duty for absent
             status = "absent"
             absent_days += 1
         else:
@@ -85,11 +92,13 @@ async def seed_database():
             punch_out = f"{out_hour:02d}:{out_min:02d}"
             attendance_status = "full_day"
             conveyance = 200
+            daily_duty = round(daily_rate, 2)  # Full daily duty
             status = "present"
             full_days += 1
         
         total_conveyance += conveyance
         total_hours += work_hours
+        total_daily_duty += daily_duty
         
         record = {
             "id": f"ATT{day:04d}",
@@ -103,12 +112,13 @@ async def seed_database():
             "qr_code_id": f"QR{day:02d}DEC",
             "location": "Main Office",
             "conveyance_amount": conveyance,
+            "daily_duty_amount": daily_duty,
             "shift_type": "day",
             "shift_start": "10:00",
             "shift_end": "19:00"
         }
         attendance_records.append(record)
-        print(f"  Dec {day:02d}: {attendance_status.upper():10} | {punch_in} - {punch_out} | {work_hours:.2f}h | ₹{conveyance}")
+        print(f"  Dec {day:02d}: {attendance_status.upper():10} | {punch_in} - {punch_out} | {work_hours:.2f}h | Conv: ₹{conveyance} | Duty: ₹{daily_duty:,.2f}")
     
     await db.attendance.insert_many(attendance_records)
     
