@@ -582,9 +582,9 @@ const Cashbook = () => {
                     </thead>
                     <tbody className="divide-y">
                       {cashOutEntries.map((entry) => (
-                        <tr key={entry.id} className="hover:bg-gray-50">
+                        <tr key={entry.id} className="hover:bg-gray-50" data-testid={`cash-out-row-${entry.id}`}>
                           <td className="p-3 text-sm">{entry.date}</td>
-                          <td className="p-3 capitalize">{entry.category?.replace('_', ' ')}</td>
+                          <td className="p-3">{getCategoryName(entry.category)}</td>
                           <td className="p-3 text-sm text-gray-600">{entry.description}</td>
                           <td className="p-3 text-right font-semibold text-red-600">₹{entry.amount?.toLocaleString()}</td>
                           <td className="p-3 text-center">
@@ -597,10 +597,10 @@ const Cashbook = () => {
                           <td className="p-3 text-center">
                             {!entry.is_auto && !isMonthLocked() && viewMode === 'monthly' && (
                               <div className="flex justify-center gap-2">
-                                <button onClick={() => editCashOut(entry)} className="text-blue-600 hover:text-blue-800">
+                                <button onClick={() => editCashOut(entry)} className="text-blue-600 hover:text-blue-800" data-testid={`edit-cash-out-${entry.id}`}>
                                   <Edit2 size={16} />
                                 </button>
-                                <button onClick={() => handleDeleteCashOut(entry.id)} className="text-red-600 hover:text-red-800">
+                                <button onClick={() => handleDeleteCashOut(entry.id)} className="text-red-600 hover:text-red-800" data-testid={`delete-cash-out-${entry.id}`}>
                                   <Trash2 size={16} />
                                 </button>
                               </div>
