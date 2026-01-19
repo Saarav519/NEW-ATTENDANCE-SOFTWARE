@@ -568,6 +568,30 @@ export const loanAPI = {
   getSummary: () => apiCall('/loans/summary'),
 };
 
+// Payable / Credit API
+export const payableAPI = {
+  getAll: (status) => {
+    const params = status ? `?status=${status}` : '';
+    return apiCall(`/payables${params}`);
+  },
+  getById: (id) => apiCall(`/payables/${id}`),
+  create: (data) => apiCall('/payables', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  update: (id, data) => apiCall(`/payables/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  delete: (id) => apiCall(`/payables/${id}`, { method: 'DELETE' }),
+  pay: (id, data) => apiCall(`/payables/${id}/pay`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  getPayments: (id) => apiCall(`/payables/${id}/payments`),
+  getSummary: () => apiCall('/payables/summary'),
+};
+
 // WebSocket URL for real-time updates
 export const getWebSocketURL = (userId, role) => {
   const wsBase = API_URL.replace('http', 'ws');
