@@ -7,7 +7,7 @@ import requests
 import os
 from datetime import datetime
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://continue-dev-28.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://employee-tracker-99.preview.emergentagent.com')
 
 @pytest.fixture(scope="session")
 def api_client():
