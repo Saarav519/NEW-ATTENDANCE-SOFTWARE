@@ -1195,6 +1195,84 @@ async def generate_payslip(data: PayslipCreate):
     
     return PayslipResponse(**payslip_doc)
 
+
+@router.post("/payslips/create-monthly")
+async def create_monthly_payslips(month: str, year: int):
+    """
+    Create preview payslips for all active employees/teamleads for a specific month.
+    This should be called at the start of each month (manually or via cron job).
+    Skips users who already have a payslip for that month.
+    """
+    # Get all active employees and team leads
+    active_users = await db.users.find(
+        {"status": "active", "role": {"$in": ["employee", "teamlead"]}},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    created_count = 0
+    skipped_count = 0
+    
+    for user in active_users:
+        emp_id = user.get("id")
+        
+        # Check if payslip already exists for this month/year
+        existing = await db.payslips.find_one({
+            "emp_id": emp_id,
+            "month": month,
+            "year": year
+        })
+        
+        if existing:
+            skipped_count += 1
+            continue
+        
+        # Calculate salary breakdown
+        salary = user.get("salary", 0)
+        basic = round(salary * 0.6, 2)
+        hra = round(salary * 0.24, 2)
+        special_allowance = round(salary * 0.16, 2)
+        
+        payslip_doc = {
+            "id": generate_id(),
+            "emp_id": emp_id,
+            "emp_name": user.get("name"),
+            "month": month,
+            "year": year,
+            "status": "preview",
+            "breakdown": {
+                "basic": basic,
+                "hra": hra,
+                "special_allowance": special_allowance,
+                "conveyance": 0.0,
+                "leave_adjustment": 0.0,
+                "extra_conveyance": 0.0,
+                "previous_pending_allowances": 0.0,
+                "attendance_adjustment": 0.0,
+                "full_days": 0,
+                "half_days": 0,
+                "absent_days": 0,
+                "leave_days": 0,
+                "total_duty_earned": 0.0,
+                "audit_expenses": 0.0,
+                "advance_deduction": 0.0,
+                "gross_pay": salary,
+                "deductions": 0.0,
+                "net_pay": salary
+            },
+            "created_on": datetime.now().isoformat(),
+            "paid_on": None
+        }
+        
+        await db.payslips.insert_one(payslip_doc)
+        created_count += 1
+    
+    return {
+        "message": f"Monthly payslips created for {month} {year}",
+        "created": created_count,
+        "skipped": skipped_count,
+        "total_users": len(active_users)
+    }
+
 # NEW: Admin Generate Payslip endpoint
 @router.put("/payslips/{payslip_id}/generate")
 async def generate_payslip(payslip_id: str):
