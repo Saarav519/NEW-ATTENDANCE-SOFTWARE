@@ -141,6 +141,9 @@ const Reports = () => {
         case 'invoices':
           url = exportAPI.invoices(monthName, yearNum);
           break;
+        case 'loans':
+          url = exportAPI.loans();
+          break;
         default:
           toast.error('Unknown report type');
           return;
