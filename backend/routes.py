@@ -1841,6 +1841,19 @@ async def approve_audit_expense(expense_id: str, approved_by: str, approved_amou
         }}
     )
     
+    # Auto-create Cash Out entry for approved audit expense
+    if payment_amount > 0:
+        date_str = get_utc_now_str()[:10]
+        
+        await create_auto_cash_out(
+            category="audit_expenses",
+            description=f"Audit Expense - {expense.get('emp_name', '')} ({expense.get('trip_purpose', '')})",
+            amount=payment_amount,
+            date=date_str,
+            reference_id=expense_id,
+            reference_type="audit_expense"
+        )
+    
     return {
         "message": f"Expense {status.value}",
         "payment_amount": payment_amount,
