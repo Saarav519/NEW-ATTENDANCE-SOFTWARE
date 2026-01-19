@@ -590,6 +590,37 @@ async def direct_punch_in(emp_id: str, location: str = "Office", shift_type: str
     await db.attendance.insert_one(attendance_doc)
     attendance_doc.pop("_id", None)
     
+    # Get user name for notification
+    user = await db.users.find_one({"id": emp_id}, {"_id": 0})
+    emp_name = user.get("name", emp_id) if user else emp_id
+    punch_in_time = attendance_doc.get("punch_in", "")
+    
+    # Broadcast real-time attendance update to admins
+    await manager.broadcast_to_role("admin", {
+        "type": "attendance_update",
+        "action": "punch_in",
+        "data": {
+            "emp_id": emp_id,
+            "emp_name": emp_name,
+            "punch_in": punch_in_time,
+            "location": location,
+            "attendance_status": attendance_status,
+            "date": today,
+            "is_direct_punch": True
+        }
+    })
+    
+    # Create notification for admins
+    await create_notification(
+        recipient_id="",
+        recipient_role="admin",
+        title="Team Lead Punched In",
+        message=f"{emp_name} punched in directly at {punch_in_time} ({attendance_status})",
+        notification_type="attendance",
+        related_id=attendance_doc["id"],
+        data={"emp_id": emp_id, "action": "direct_punch_in"}
+    )
+    
     return AttendanceResponse(**attendance_doc)
 
 @router.post("/attendance/punch-out", response_model=AttendanceResponse)
