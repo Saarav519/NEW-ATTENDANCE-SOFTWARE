@@ -463,6 +463,28 @@ const Employees = () => {
               <div className="flex items-center gap-2"><strong>Role:</strong> {viewDialog.employee.role}</div>
               <div className="flex items-center gap-2"><IndianRupee size={16} /> ₹{viewDialog.employee.salary?.toLocaleString()} / {viewDialog.employee.salary_type}</div>
               <div className="flex items-center gap-2"><Calendar size={16} /> Joined: {viewDialog.employee.joining_date || 'N/A'}</div>
+              
+              {/* Team Leader */}
+              {viewDialog.employee.role === 'employee' && (
+                <div className="flex items-center gap-2">
+                  <strong>Team Leader:</strong> {getTeamLeaderName(viewDialog.employee.team_lead_id)}
+                </div>
+              )}
+              
+              {/* Bank Details */}
+              {viewDialog.employee.role !== 'admin' && (
+                <div className="border-t pt-3 mt-3">
+                  <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                    <Landmark size={14} /> Bank Details
+                  </h4>
+                  <div className="space-y-1 text-sm">
+                    <div><strong>Bank:</strong> {viewDialog.employee.bank_name || 'N/A'}</div>
+                    <div><strong>Account:</strong> {viewDialog.employee.bank_account_number || 'N/A'}</div>
+                    <div><strong>IFSC:</strong> {viewDialog.employee.bank_ifsc || 'N/A'}</div>
+                  </div>
+                </div>
+              )}
+              
               <div className="flex items-center gap-2">
                 <strong>Status:</strong>
                 <span className={`px-2 py-1 rounded text-xs ${viewDialog.employee.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
@@ -471,6 +493,76 @@ const Employees = () => {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Employee Dialog (Team Leader Change) */}
+      <Dialog open={editDialog.open} onOpenChange={(open) => setEditDialog({ open, employee: null })}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Employee - {editDialog.employee?.name}</DialogTitle>
+          </DialogHeader>
+          {editDialog.employee && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Assign Team Leader</Label>
+                <Select value={editEmployee.team_lead_id} onValueChange={(v) => setEditEmployee({...editEmployee, team_lead_id: v})}>
+                  <SelectTrigger data-testid="edit-employee-team-leader"><SelectValue placeholder="Select Team Leader" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No Team Leader</SelectItem>
+                    {teamLeaders.map(tl => (
+                      <SelectItem key={tl.id} value={tl.id}>{tl.name} ({tl.id})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500">Current: {getTeamLeaderName(editDialog.employee.team_lead_id)}</p>
+              </div>
+              <div className="space-y-2">
+                <Label>Reason for Change (Optional)</Label>
+                <Input placeholder="e.g., Team restructuring" value={editEmployee.change_reason}
+                  onChange={(e) => setEditEmployee({...editEmployee, change_reason: e.target.value})}
+                  data-testid="edit-employee-change-reason" />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialog({ open: false, employee: null })}>Cancel</Button>
+            <Button onClick={handleEditEmployee} disabled={submitting} className="bg-[#1E2A5E]" data-testid="edit-employee-submit">
+              {submitting ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
+              Update
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Team Leader History Dialog */}
+      <Dialog open={historyDialog.open} onOpenChange={(open) => setHistoryDialog({ open, employee: null, history: [] })}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Team Leader Change History - {historyDialog.employee?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 max-h-80 overflow-y-auto">
+            {historyDialog.history.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">No team leader changes recorded</p>
+            ) : (
+              historyDialog.history.map((h, idx) => (
+                <div key={idx} className="border rounded-lg p-3 bg-gray-50">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <div className="text-sm">
+                        <strong>From:</strong> {h.old_team_leader_name || 'None'} → <strong>To:</strong> {h.new_team_leader_name}
+                      </div>
+                      {h.reason && <div className="text-xs text-gray-600">Reason: {h.reason}</div>}
+                    </div>
+                    <div className="text-xs text-gray-500 text-right">
+                      <div>{new Date(h.changed_at).toLocaleDateString()}</div>
+                      <div>by {h.changed_by}</div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
