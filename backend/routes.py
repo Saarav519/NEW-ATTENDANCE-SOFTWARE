@@ -482,6 +482,17 @@ async def create_leave(leave: LeaveCreate):
     await db.leaves.insert_one(leave_doc)
     leave_doc.pop("_id", None)
     
+    # Send notification to admins and team leads
+    await create_notification(
+        recipient_id="",
+        recipient_role="admin",
+        title="New Leave Request",
+        message=f"{leave.emp_name} requested {leave.days} days of {leave.type}",
+        notification_type="leave",
+        related_id=leave_doc["id"],
+        data={"emp_id": leave.emp_id, "action": "created"}
+    )
+    
     return LeaveResponse(**leave_doc)
 
 @router.get("/leaves", response_model=List[LeaveResponse])
@@ -497,22 +508,48 @@ async def get_leaves(emp_id: Optional[str] = None, status: Optional[str] = None)
 
 @router.put("/leaves/{leave_id}/approve")
 async def approve_leave(leave_id: str, approved_by: str):
+    leave = await db.leaves.find_one({"id": leave_id}, {"_id": 0})
+    if not leave:
+        raise HTTPException(status_code=404, detail="Leave request not found")
+    
     result = await db.leaves.update_one(
         {"id": leave_id},
         {"$set": {"status": LeaveStatus.APPROVED, "approved_by": approved_by}}
     )
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Leave request not found")
+    
+    # Notify employee
+    await create_notification(
+        recipient_id=leave["emp_id"],
+        title="Leave Approved",
+        message=f"Your {leave['type']} request for {leave['days']} days has been approved",
+        notification_type="leave",
+        related_id=leave_id,
+        data={"action": "approved"}
+    )
+    
     return {"message": "Leave approved"}
 
 @router.put("/leaves/{leave_id}/reject")
 async def reject_leave(leave_id: str, rejected_by: str):
+    leave = await db.leaves.find_one({"id": leave_id}, {"_id": 0})
+    if not leave:
+        raise HTTPException(status_code=404, detail="Leave request not found")
+    
     result = await db.leaves.update_one(
         {"id": leave_id},
         {"$set": {"status": LeaveStatus.REJECTED, "rejected_by": rejected_by}}
     )
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Leave request not found")
+    
+    # Notify employee
+    await create_notification(
+        recipient_id=leave["emp_id"],
+        title="Leave Rejected",
+        message=f"Your {leave['type']} request for {leave['days']} days has been rejected",
+        notification_type="leave",
+        related_id=leave_id,
+        data={"action": "rejected"}
+    )
+    
     return {"message": "Leave rejected"}
 
 # ==================== BILL SUBMISSION ROUTES ====================
