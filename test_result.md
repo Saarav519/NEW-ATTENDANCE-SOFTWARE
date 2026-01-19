@@ -447,10 +447,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Real-time Attendance Sync (WebSocket)"
-    - "Push Notifications (Browser + In-app)"
-    - "Admin Dashboard Analytics"
-    - "Export to CSV"
+    - "Analytics APIs"
+    - "Export to CSV APIs"
+    - "Notification APIs"
+    - "Real-time Features (WebSocket + Notifications)"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
