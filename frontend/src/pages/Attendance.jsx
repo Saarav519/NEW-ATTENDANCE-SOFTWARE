@@ -495,16 +495,12 @@ const Attendance = () => {
             </div>
             <div className="space-y-2">
               <Label className="flex items-center gap-2"><MapPin size={14} /> Location</Label>
-              <Select value={markData.location} onValueChange={(v) => setMarkData({...markData, location: v})}>
-                <SelectTrigger><SelectValue placeholder="Select location" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Office">Office</SelectItem>
-                  <SelectItem value="Field">Field</SelectItem>
-                  <SelectItem value="Client Site">Client Site</SelectItem>
-                  <SelectItem value="Work From Home">Work From Home</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input 
+                type="text" 
+                value={markData.location} 
+                onChange={(e) => setMarkData({...markData, location: e.target.value})}
+                placeholder="Enter work location"
+              />
             </div>
             <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
               <p><strong>Date:</strong> {selectedDate}</p>
