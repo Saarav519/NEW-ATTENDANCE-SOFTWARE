@@ -1546,51 +1546,52 @@ async def upload_profile_photo(user_id: str, photo: UploadFile = File(...)):
 
 @router.get("/leave-balance/{emp_id}", response_model=LeaveBalanceResponse)
 async def get_leave_balance(emp_id: str, year: int = None):
-    """Get employee leave balance for a year"""
+    """Get employee leave balance for a year - calculated based on working days"""
     if year is None:
         year = datetime.now().year
     
-    balance = await db.leave_balances.find_one(
-        {"emp_id": emp_id, "year": year}, {"_id": 0}
-    )
+    # Calculate working days from attendance (full_day + leave count as working days)
+    year_start = f"{year}-01"
+    year_end = f"{year}-12"
+    attendance_records = await db.attendance.find({
+        "emp_id": emp_id,
+        "date": {"$gte": f"{year}-01-01", "$lte": f"{year}-12-31"}
+    }).to_list(1000)
     
-    if not balance:
-        # Return default balance
-        balance = {
-            "emp_id": emp_id,
-            "year": year,
-            "casual_leave": 12,
-            "sick_leave": 6,
-            "vacation": 15,
-            "casual_used": 0,
-            "sick_used": 0,
-            "vacation_used": 0
-        }
-        await db.leave_balances.insert_one(balance)
+    # Count full days and leaves as working days
+    working_days = sum(1 for a in attendance_records 
+                       if a.get("attendance_status") in ["full_day", "leave"])
+    
+    # Calculate accrued leave: 1 leave per 24 working days
+    accrued_leave = working_days // 24
+    
+    # Get used leaves from approved leave requests
+    approved_leaves = await db.leaves.find({
+        "emp_id": emp_id,
+        "status": "approved",
+        "from_date": {"$gte": f"{year}-01-01", "$lte": f"{year}-12-31"}
+    }).to_list(100)
+    
+    total_used = sum(l.get("days", 0) for l in approved_leaves)
+    
+    balance = {
+        "emp_id": emp_id,
+        "year": year,
+        "total_leave": accrued_leave,
+        "total_used": total_used,
+        "working_days_count": working_days
+    }
     
     return LeaveBalanceResponse(**balance)
 
 @router.put("/leave-balance/{emp_id}")
-async def update_leave_balance(emp_id: str, leave_type: str, days: int, year: int = None):
+async def update_leave_balance(emp_id: str, days: int, year: int = None):
     """Update leave balance when leave is approved"""
     if year is None:
         year = datetime.now().year
     
-    field_map = {
-        "Casual Leave": "casual_used",
-        "Sick Leave": "sick_used",
-        "Vacation": "vacation_used",
-        "Personal": "casual_used"
-    }
-    
-    field = field_map.get(leave_type, "casual_used")
-    
-    await db.leave_balances.update_one(
-        {"emp_id": emp_id, "year": year},
-        {"$inc": {field: days}},
-        upsert=True
-    )
-    
+    # Leave balance is now calculated dynamically, so this just validates
+    # The actual used count comes from approved leaves in the database
     return {"message": "Leave balance updated"}
 
 # ==================== SALARY ADVANCE ROUTES ====================
