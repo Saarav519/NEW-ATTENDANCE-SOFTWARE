@@ -2299,7 +2299,9 @@ async def export_employees():
 @router.get("/export/leaves")
 async def export_leaves(
     status: Optional[str] = None,
-    emp_id: Optional[str] = None
+    emp_id: Optional[str] = None,
+    month: Optional[int] = None,
+    year: Optional[int] = None
 ):
     """Export leave records to CSV"""
     query = {}
@@ -2307,6 +2309,10 @@ async def export_leaves(
         query["status"] = status
     if emp_id:
         query["emp_id"] = emp_id
+    if month and year:
+        # Filter leaves where from_date falls in the given month/year
+        month_str = f"{year}-{month:02d}"
+        query["from_date"] = {"$regex": f"^{month_str}"}
     
     leaves = await db.leaves.find(query, {"_id": 0}).sort("applied_on", -1).to_list(10000)
     
