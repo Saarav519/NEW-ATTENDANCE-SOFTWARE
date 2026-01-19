@@ -931,7 +931,7 @@ def test_notification_apis():
         response = requests.get(f"{API_URL}/notifications/unread-count?user_id=ADMIN001")
         if response.status_code == 200:
             data = response.json()
-            unread_count = data.get("unread_count", -1)
+            unread_count = data.get("count", -1)
             if unread_count == 0:
                 log_test("Verify All Read", True, "Unread count is 0 after marking all as read")
             else:
