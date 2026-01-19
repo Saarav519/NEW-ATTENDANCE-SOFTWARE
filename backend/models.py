@@ -110,6 +110,7 @@ class AttendanceBase(BaseModel):
     qr_code_id: Optional[str] = None
     location: Optional[str] = None
     conveyance_amount: float = 0
+    daily_duty_amount: float = 0  # Daily duty based on attendance status
     shift_type: Optional[ShiftType] = None
     shift_start: Optional[str] = None
     shift_end: Optional[str] = None
