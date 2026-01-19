@@ -27,9 +27,12 @@ const EmployeeAttendance = () => {
 
   const loadData = async () => {
     try {
+      // Convert month name to number (1-12)
+      const monthNumber = months.indexOf(selectedMonth) + 1;
+      
       const [empData, attData] = await Promise.all([
         usersAPI.getById(empId),
-        attendanceAPI.getAll(empId, null, selectedMonth, selectedYear)
+        attendanceAPI.getAll(empId, null, monthNumber, selectedYear)
       ]);
       setEmployee(empData);
       setAttendance(attData);
