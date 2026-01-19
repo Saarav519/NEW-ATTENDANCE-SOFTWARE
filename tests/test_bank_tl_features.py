@@ -160,9 +160,10 @@ class TestBankDetailsAndTLFeatures:
     
     def test_08_verify_created_employee_data(self):
         """Verify created employee data persisted correctly"""
+        test_id = f"TEST_VERIFY_{int(time.time())}"
         # First create the employee
         new_employee = {
-            "id": self.test_employee_id,
+            "id": test_id,
             "name": "Test Employee Verify",
             "email": f"test_verify_{int(time.time())}@test.com",
             "phone": "+91 98765 22222",
@@ -179,11 +180,10 @@ class TestBankDetailsAndTLFeatures:
             "bank_ifsc": "HDFC0009876"
         }
         create_response = requests.post(f"{BASE_URL}/api/users", json=new_employee)
-        if create_response.status_code != 200:
-            pytest.skip("Employee creation failed, skipping verification")
+        assert create_response.status_code == 200, f"Employee creation failed: {create_response.text}"
         
         # GET to verify data persisted
-        get_response = requests.get(f"{BASE_URL}/api/users/{self.test_employee_id.upper()}")
+        get_response = requests.get(f"{BASE_URL}/api/users/{test_id.upper()}")
         assert get_response.status_code == 200
         data = get_response.json()
         
@@ -191,13 +191,17 @@ class TestBankDetailsAndTLFeatures:
         assert data.get("bank_account_number") == "9876543210"
         assert data.get("bank_ifsc") == "HDFC0009876"
         assert data.get("team_lead_id") == "TL002"
+        
+        # Cleanup
+        requests.delete(f"{BASE_URL}/api/users/{test_id.upper()}")
         print("PASS: Employee data persisted correctly with bank details and TL")
     
     def test_09_update_team_leader(self):
         """Test updating employee's team leader"""
+        test_id = f"TEST_TLCHANGE_{int(time.time())}"
         # First create an employee
         new_employee = {
-            "id": self.test_employee_id,
+            "id": test_id,
             "name": "Test Employee TL Change",
             "email": f"test_tlchange_{int(time.time())}@test.com",
             "phone": "+91 98765 33333",
@@ -214,8 +218,7 @@ class TestBankDetailsAndTLFeatures:
             "bank_ifsc": "UTIB0005555"
         }
         create_response = requests.post(f"{BASE_URL}/api/users", json=new_employee)
-        if create_response.status_code != 200:
-            pytest.skip("Employee creation failed")
+        assert create_response.status_code == 200, f"Employee creation failed: {create_response.text}"
         
         # Update team leader
         update_data = {
@@ -223,21 +226,25 @@ class TestBankDetailsAndTLFeatures:
             "changed_by": "ADMIN001",
             "change_reason": "Team restructuring for testing"
         }
-        update_response = requests.put(f"{BASE_URL}/api/users/{self.test_employee_id.upper()}", json=update_data)
+        update_response = requests.put(f"{BASE_URL}/api/users/{test_id.upper()}", json=update_data)
         assert update_response.status_code == 200, f"Update failed: {update_response.text}"
         
         # Verify update
-        get_response = requests.get(f"{BASE_URL}/api/users/{self.test_employee_id.upper()}")
+        get_response = requests.get(f"{BASE_URL}/api/users/{test_id.upper()}")
         assert get_response.status_code == 200
         data = get_response.json()
         assert data.get("team_lead_id") == "TL002", f"Expected TL002, got {data.get('team_lead_id')}"
+        
+        # Cleanup
+        requests.delete(f"{BASE_URL}/api/users/{test_id.upper()}")
         print("PASS: Team leader updated successfully")
     
     def test_10_team_leader_history_logged(self):
         """Test that TL change history is logged"""
+        test_id = f"TEST_HISTORY_{int(time.time())}"
         # First create an employee and change TL
         new_employee = {
-            "id": self.test_employee_id,
+            "id": test_id,
             "name": "Test Employee History",
             "email": f"test_history_{int(time.time())}@test.com",
             "phone": "+91 98765 44444",
@@ -254,8 +261,7 @@ class TestBankDetailsAndTLFeatures:
             "bank_ifsc": "ICIC0001111"
         }
         create_response = requests.post(f"{BASE_URL}/api/users", json=new_employee)
-        if create_response.status_code != 200:
-            pytest.skip("Employee creation failed")
+        assert create_response.status_code == 200, f"Employee creation failed: {create_response.text}"
         
         # Change TL
         update_data = {
@@ -263,10 +269,10 @@ class TestBankDetailsAndTLFeatures:
             "changed_by": "ADMIN001",
             "change_reason": "Testing history logging"
         }
-        requests.put(f"{BASE_URL}/api/users/{self.test_employee_id.upper()}", json=update_data)
+        requests.put(f"{BASE_URL}/api/users/{test_id.upper()}", json=update_data)
         
         # Get TL history
-        history_response = requests.get(f"{BASE_URL}/api/users/{self.test_employee_id.upper()}/team-leader-history")
+        history_response = requests.get(f"{BASE_URL}/api/users/{test_id.upper()}/team-leader-history")
         assert history_response.status_code == 200
         history = history_response.json()
         
@@ -276,6 +282,9 @@ class TestBankDetailsAndTLFeatures:
         assert latest.get("new_team_leader_id") == "TL002"
         assert latest.get("changed_by") == "ADMIN001"
         assert "Testing history logging" in latest.get("reason", "")
+        
+        # Cleanup
+        requests.delete(f"{BASE_URL}/api/users/{test_id.upper()}")
         print("PASS: Team leader change history logged correctly")
     
     def test_11_get_settled_payslips_for_employee(self):
