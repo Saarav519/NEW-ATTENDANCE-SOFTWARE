@@ -331,14 +331,66 @@ frontend:
         agent: "main"
         comment: "5-item nav: Home, Attendance, Leaves, Bills, Payslip"
 
+  - task: "Real-time Attendance Sync (WebSocket)"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes.py, /app/frontend/src/context/NotificationContext.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "NEW FEATURE: WebSocket-based real-time attendance sync. Admin/Team Lead dashboards receive live updates when employees punch in/out."
+
+  - task: "Push Notifications (Browser + In-app)"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/NotificationBell.jsx, /app/backend/routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "NEW FEATURE: NotificationBell component with in-app dropdown + browser push notifications. Notifications triggered on punch-in, leave requests, bill submissions, approvals/rejections."
+
+  - task: "Admin Dashboard Analytics"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/Analytics.jsx, /app/backend/routes.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "NEW FEATURE: Analytics page with charts - attendance trends (line), leave distribution (pie), department attendance (bar), salary overview (bar). Time filters: this_week, this_month, this_quarter, this_year."
+
+  - task: "Export to CSV"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes.py, /app/frontend/src/services/api.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "NEW FEATURE: CSV export for employees, attendance, leaves, payslips, bills. Export buttons on Analytics page."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 2
+  test_sequence: 3
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Real-time Attendance Sync (WebSocket)"
+    - "Push Notifications (Browser + In-app)"
+    - "Admin Dashboard Analytics"
+    - "Export to CSV"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -354,3 +406,5 @@ agent_communication:
     message: "✅ SHIFT-BASED ATTENDANCE SYSTEM FULLY TESTED: Comprehensive testing of new shift-based features completed successfully. 1) QR codes now include shift_type, shift_start, shift_end ✅ 2) Attendance calculates attendance_status (full_day, half_day, absent) based on scan time ✅ 3) Conveyance automatically adjusted (full/half/zero) based on attendance status ✅ 4) Payslip generation includes detailed breakdown with full_days, half_days, absent_days, attendance_adjustment ✅. All scenarios from review request tested and working perfectly. Day shift (10:00-19:00) and night shift (21:00-06:00) both functional. No critical issues found."
   - agent: "testing"
     message: "✅ LEAVE AND HOLIDAY APIs RE-TESTED AFTER FRONTEND UPDATES: User requested specific testing of Leave and Holiday APIs after frontend was updated to use real APIs. Comprehensive testing completed with all exact scenarios from review request: 1) POST /api/seed ✅ 2) GET /api/leaves ✅ 3) POST /api/leaves with exact data (EMP001, Rahul Kumar, Casual Leave, 3 days, Family function) ✅ 4) PUT /api/leaves/{id}/approve?approved_by=ADMIN001 ✅ 5) PUT /api/leaves/{id}/reject?rejected_by=ADMIN001 ✅ 6) GET /api/holidays ✅ 7) POST /api/holidays (Republic Day, 2026-01-26, National) ✅ 8) DELETE /api/holidays/{id} ✅. All CRUD operations working perfectly. Error handling verified (404 for invalid IDs). No critical issues found - APIs are production ready."
+  - agent: "main"
+    message: "NEW FEATURES IMPLEMENTED - Testing 4 new features: 1) Real-time Attendance Sync via WebSocket 2) Push Notifications (browser + in-app) 3) Admin Dashboard Analytics with charts 4) Export to CSV. Test the new API endpoints: GET /api/analytics/summary, GET /api/notifications, GET /api/export/employees, GET /api/export/attendance, etc. Frontend Analytics page at /analytics. NotificationBell in header."
