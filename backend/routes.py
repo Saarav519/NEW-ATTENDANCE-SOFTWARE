@@ -967,9 +967,10 @@ async def generate_payslip(data: PayslipCreate):
         extra_conveyance=extra_conveyance,
         previous_pending_allowances=0,
         attendance_adjustment=attendance_adjustment,
-        full_days=full_days,
+        full_days=full_days + leave_days,  # Include leave days as full days
         half_days=half_days,
         absent_days=absent_days,
+        total_duty_earned=round(total_duty_earned, 2),
         advance_deduction=advance_deduction,
         gross_pay=round(gross, 2),
         deductions=deductions,
