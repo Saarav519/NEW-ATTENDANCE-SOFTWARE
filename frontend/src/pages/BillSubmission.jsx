@@ -179,14 +179,16 @@ const BillSubmission = () => {
     try {
       const totalAmount = approveDialog.bill?.total_amount || 0;
       const isPartial = approvedAmount < totalAmount;
+      const shouldRevalidate = approveDialog.isRevalidation || (isPartial && sendToRevalidation);
       
-      // If partial and sendToRevalidation is checked, send for revalidation
-      await billAPI.approve(approveDialog.bill.id, user.id, approvedAmount, isPartial && sendToRevalidation);
-      setApproveDialog({ open: false, bill: null });
+      // Call API with revalidation flag if partial approval with revalidation
+      await billAPI.approve(approveDialog.bill.id, user.id, approvedAmount, shouldRevalidate);
+      setApproveDialog({ open: false, bill: null, isRevalidation: false });
       setSendToRevalidation(false);
       
-      if (isPartial && sendToRevalidation) {
-        toast.success(`Bill partially approved (₹${approvedAmount.toLocaleString()}). Remaining sent for revalidation.`);
+      const remaining = totalAmount - approvedAmount;
+      if (shouldRevalidate && remaining > 0) {
+        toast.success(`Bill partially approved (₹${approvedAmount.toLocaleString()}). Remaining ₹${remaining.toLocaleString()} sent for revalidation.`);
       } else {
         toast.success(`Bill approved for ₹${approvedAmount.toLocaleString()}`);
       }
