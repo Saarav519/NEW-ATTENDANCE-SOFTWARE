@@ -260,6 +260,76 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
   
 - **Fixed:** Team Lead payslip showing empty - Added payslip seed data
 
+### January 19, 2026
+- **NEW FEATURE:** Leave Approval → Attendance Update
+  - When Team Leader approves leave, attendance automatically updates:
+    - `attendance_status` changes from "absent" to "leave"
+    - Full day conveyance (₹200) credited
+    - Full day duty amount credited
+  - Approved leave days are NOT deducted from salary
+  - Leave counts as full day for payroll purposes
+
+- **NEW FEATURE:** Daily Duty Pricing
+  - Daily duty calculated as: `Salary / 26 working days`
+  - Full Day: 100% of daily rate
+  - Half Day: 50% of daily rate  
+  - Leave: 100% of daily rate (same as full day)
+  - Absent: ₹0
+
+- **UPDATED:** Attendance Status Types
+  - `full_day`: Full day present
+  - `half_day`: Half day present (< 6 hours)
+  - `leave`: Approved leave (counts as full day)
+  - `absent`: Absent without approved leave
+
+- **UPDATED:** Payslip Calculation Rules
+  - Attendance Adjustment = Deduction for half days and absents ONLY
+  - Leave days: NO deduction (approved leave = full day credit)
+  - `total_duty_earned`: Sum of all daily_duty_amount from attendance
+  - `extra_conveyance`: From approved bill submissions
+  - `leave_days`: Separate count shown in breakdown
+
+- **UPDATED:** Reports Page
+  - Stats now filter by selected month/year
+  - Attendance chart shows 4 categories: Full Day, Half Day, Leave, Absent
+  - Salary Paid shows only for selected month
+  - Bills Approved shows only for selected month
+
+- **FIXED:** Duplicate payslips removed
+- **FIXED:** Reports showing incorrect attendance counts (was using wrong status field)
+
+---
+
+## Business Rules Summary
+
+### Attendance Rules
+| Status | Conveyance | Daily Duty | Salary Deduction |
+|--------|------------|------------|------------------|
+| Full Day | ₹200 | Salary/26 | None |
+| Half Day | ₹100 | (Salary/26)/2 | 0.5 day |
+| Leave | ₹200 | Salary/26 | None |
+| Absent | ₹0 | ₹0 | 1 day |
+
+### Payslip Breakdown
+| Component | Calculation |
+|-----------|-------------|
+| Basic | 60% of Salary |
+| HRA | 24% of Salary |
+| Special Allowance | 16% of Salary |
+| Conveyance | Sum from attendance records |
+| Extra Conveyance | From approved bills |
+| Attendance Adjustment | -(half_days × 0.5 + absent_days) × daily_rate |
+| Total Duty Earned | Sum of daily_duty_amount |
+
+### Leave Approval Flow
+1. Employee applies leave for date (which may be marked absent)
+2. Team Leader approves leave
+3. System automatically:
+   - Updates attendance_status to "leave"
+   - Credits full day conveyance (₹200)
+   - Credits full day duty amount
+4. Payslip regeneration will not deduct for leave days
+
 ---
 
 ## Last Updated
