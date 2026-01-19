@@ -41,7 +41,7 @@ const Reports = () => {
     totalSalaryPaid: 0,
     totalBillsApproved: 0,
     totalAdvances: 0,
-    attendanceSummary: { present: 0, absent: 0, halfDay: 0 },
+    attendanceSummary: { present: 0, absent: 0, halfDay: 0, leave: 0 },
     pendingLeaves: 0,
     approvedLeaves: 0
   });
