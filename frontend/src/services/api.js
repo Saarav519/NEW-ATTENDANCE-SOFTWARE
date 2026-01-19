@@ -550,6 +550,10 @@ export const loanAPI = {
     method: 'POST',
     body: JSON.stringify(data),
   }),
+  payLumpsum: (loanId, data) => apiCall(`/loans/${loanId}/pay-lumpsum`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
   preclose: (loanId, paymentDate, finalAmount, notes) => {
     const params = new URLSearchParams();
     params.append('payment_date', paymentDate);
