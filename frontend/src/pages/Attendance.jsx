@@ -14,9 +14,10 @@ import toast from 'react-hot-toast';
 
 const Attendance = () => {
   const { user, isAdmin } = useAuth();
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  // Default to December 2025 for testing (where we have data)
+  const [selectedMonth, setSelectedMonth] = useState(12);
+  const [selectedYear, setSelectedYear] = useState(2025);
+  const [selectedDate, setSelectedDate] = useState('2025-12-01');
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,10 +26,16 @@ const Attendance = () => {
 
   const todayStr = new Date().toISOString().split('T')[0];
 
+  // Update selected date when month/year changes
+  useEffect(() => {
+    const newDate = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`;
+    setSelectedDate(newDate);
+  }, [selectedMonth, selectedYear]);
+
   // Fetch data on mount and when filters change
   useEffect(() => {
     loadData();
-  }, [selectedMonth, selectedYear, selectedDate]);
+  }, [selectedMonth, selectedYear]);
 
   const loadData = async () => {
     setLoading(true);
