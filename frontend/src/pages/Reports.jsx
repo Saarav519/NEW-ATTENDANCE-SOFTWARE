@@ -181,7 +181,7 @@ const Reports = () => {
     }
   };
 
-  const total = stats.attendanceSummary.present + stats.attendanceSummary.absent + stats.attendanceSummary.halfDay || 1;
+  const total = stats.attendanceSummary.present + stats.attendanceSummary.absent + stats.attendanceSummary.halfDay + stats.attendanceSummary.leave || 1;
 
   if (loading) {
     return (
