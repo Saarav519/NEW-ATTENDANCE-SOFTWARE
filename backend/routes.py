@@ -180,7 +180,64 @@ async def create_user(user: UserCreate):
     if existing:
         raise HTTPException(status_code=400, detail="Email already exists")
     
+    # Validate bank details are provided (mandatory)
+    if not user.bank_name or not user.bank_account_number or not user.bank_ifsc:
+        raise HTTPException(status_code=400, detail="Bank details (Bank Name, Account Number, IFSC) are mandatory")
+    
+    # Validate team_lead_id if provided
+    if user.team_lead_id:
+        team_lead = await db.users.find_one({"id": user.team_lead_id, "role": "teamlead"})
+        if not team_lead:
+            raise HTTPException(status_code=400, detail="Invalid Team Leader ID")
+    
+    user_dict["created_at"] = get_utc_now_str()
     await db.users.insert_one(user_dict)
+    
+    # Auto-create payslip for current month (for employees and team leads)
+    if user.role in ["employee", "teamlead"]:
+        current_month = datetime.now().strftime("%B")  # January, February, etc.
+        current_year = datetime.now().year
+        
+        # Calculate salary breakdown
+        salary = user.salary or 0
+        basic = round(salary * 0.60, 2)
+        hra = round(salary * 0.24, 2)
+        special_allowance = round(salary * 0.16, 2)
+        
+        payslip_doc = {
+            "id": generate_id(),
+            "emp_id": user_dict["id"],
+            "emp_name": user.name,
+            "month": current_month,
+            "year": current_year,
+            "breakdown": {
+                "basic": basic,
+                "hra": hra,
+                "special_allowance": special_allowance,
+                "conveyance": 0,
+                "leave_adjustment": 0,
+                "extra_conveyance": 0,
+                "previous_pending_allowances": 0,
+                "attendance_adjustment": 0,
+                "full_days": 0,
+                "half_days": 0,
+                "absent_days": 0,
+                "leave_days": 0,
+                "total_duty_earned": 0,
+                "audit_expenses": 0,
+                "advance_deduction": 0,
+                "gross_pay": salary,
+                "deductions": 0,
+                "net_pay": salary
+            },
+            "status": "preview",
+            "created_on": get_utc_now_str()[:10],
+            "paid_on": None,
+            "settled_on": None,
+            "generated_on": None,
+            "advance_ids": []
+        }
+        await db.payslips.insert_one(payslip_doc)
     
     # Return without password
     del user_dict["password"]
@@ -193,12 +250,59 @@ async def update_user(user_id: str, updates: dict):
     updates.pop("id", None)
     updates.pop("password", None)
     
+    # Check if team_lead_id is being changed
+    old_user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not old_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    old_team_lead_id = old_user.get("team_lead_id")
+    new_team_lead_id = updates.get("team_lead_id")
+    
+    # If team leader is being changed, log the history
+    if new_team_lead_id and old_team_lead_id != new_team_lead_id:
+        # Get team leader names
+        old_tl_name = None
+        if old_team_lead_id:
+            old_tl = await db.users.find_one({"id": old_team_lead_id}, {"_id": 0, "name": 1})
+            old_tl_name = old_tl.get("name") if old_tl else None
+        
+        new_tl = await db.users.find_one({"id": new_team_lead_id}, {"_id": 0, "name": 1})
+        new_tl_name = new_tl.get("name") if new_tl else "Unknown"
+        
+        # Log the change
+        history_doc = {
+            "id": generate_id(),
+            "emp_id": user_id,
+            "emp_name": old_user.get("name"),
+            "old_team_leader_id": old_team_lead_id,
+            "old_team_leader_name": old_tl_name,
+            "new_team_leader_id": new_team_lead_id,
+            "new_team_leader_name": new_tl_name,
+            "changed_by": updates.get("changed_by", "ADMIN001"),
+            "changed_at": get_utc_now_str(),
+            "reason": updates.get("change_reason", "Team Leader reassignment")
+        }
+        await db.team_leader_history.insert_one(history_doc)
+        
+        # Remove helper fields from updates
+        updates.pop("changed_by", None)
+        updates.pop("change_reason", None)
+    
     result = await db.users.update_one({"id": user_id}, {"$set": updates})
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
     
     user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
     return UserResponse(**user)
+
+# Get Team Leader change history
+@router.get("/users/{user_id}/team-leader-history")
+async def get_team_leader_history(user_id: str):
+    """Get history of Team Leader changes for an employee"""
+    history = await db.team_leader_history.find(
+        {"emp_id": user_id}, {"_id": 0}
+    ).sort("changed_at", -1).to_list(100)
+    return history
 
 @router.put("/users/{user_id}/reset-password")
 async def reset_password(user_id: str, new_password: str, reset_by: str):
