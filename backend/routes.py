@@ -2684,10 +2684,15 @@ async def export_payslips(
     month: Optional[str] = None,
     year: Optional[int] = None
 ):
-    """Export payslip records to CSV"""
+    """Export payslip records to CSV - Only exports generated/settled payslips"""
     query = {}
+    
+    # Only export generated or settled payslips (not preview)
     if status:
         query["status"] = status
+    else:
+        query["status"] = {"$in": ["generated", "settled"]}
+    
     if emp_id:
         query["emp_id"] = emp_id
     if year:
