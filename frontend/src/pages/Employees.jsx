@@ -506,10 +506,10 @@ const Employees = () => {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label>Assign Team Leader</Label>
-                <Select value={editEmployee.team_lead_id} onValueChange={(v) => setEditEmployee({...editEmployee, team_lead_id: v})}>
+                <Select value={editEmployee.team_lead_id || 'none'} onValueChange={(v) => setEditEmployee({...editEmployee, team_lead_id: v === 'none' ? '' : v})}>
                   <SelectTrigger data-testid="edit-employee-team-leader"><SelectValue placeholder="Select Team Leader" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Team Leader</SelectItem>
+                    <SelectItem value="none">No Team Leader</SelectItem>
                     {teamLeaders.map(tl => (
                       <SelectItem key={tl.id} value={tl.id}>{tl.name} ({tl.id})</SelectItem>
                     ))}
