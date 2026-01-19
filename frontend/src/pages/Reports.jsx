@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '../components/ui/select';
-import { Download, Users, Calendar, IndianRupee, TrendingUp, TrendingDown, Receipt, Loader2, Wallet } from 'lucide-react';
+import { Download, Users, Calendar, IndianRupee, TrendingUp, TrendingDown, Receipt, Loader2, Wallet, BookOpen, FileText as FileTextIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const MONTHS = [
