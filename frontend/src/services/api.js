@@ -174,11 +174,16 @@ export const payslipAPI = {
     return apiCall(`/payslips?${params}`);
   },
   getSettled: (empId) => apiCall(`/payslips/${empId}/settled`),
-  generate: (empId, month, year) => 
+  // Create payslip (preview status)
+  create: (empId, month, year) => 
     apiCall('/payslips/generate', {
       method: 'POST',
       body: JSON.stringify({ emp_id: empId, month, year }),
     }),
+  // Admin generate payslip (makes it downloadable, adds to cashbook)
+  generate: (payslipId) => 
+    apiCall(`/payslips/${payslipId}/generate`, { method: 'PUT' }),
+  // Mark as settled/paid
   settle: (payslipId) => 
     apiCall(`/payslips/${payslipId}/settle`, { method: 'PUT' }),
   download: (payslipId) => `${API_URL}/api/payslips/${payslipId}/download`,
