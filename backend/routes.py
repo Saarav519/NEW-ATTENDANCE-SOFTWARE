@@ -756,6 +756,14 @@ async def mark_attendance(
         punch_in = "10:00"
         punch_out = "14:00"
         work_hours = 4.0
+    elif status == 'leave':
+        # Leave gets full duty amount but NO conveyance
+        attendance_status = "leave"
+        daily_duty = round(daily_rate, 2)  # Full duty on leave
+        conveyance = 0  # NO conveyance on leave days
+        punch_in = None
+        punch_out = None
+        work_hours = 0
     else:  # absent
         attendance_status = "absent"
         conveyance = 0  # No conveyance for absent
