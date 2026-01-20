@@ -4485,6 +4485,142 @@ async def create_loan(data: LoanCreate):
     return LoanResponse(**loan_doc)
 
 
+async def create_historical_emi_entries(
+    loan_id: str,
+    loan_name: str, 
+    lender_name: str,
+    loan_start_date: str,
+    emi_day: int,
+    emi_amount: float,
+    interest_rate: float,
+    total_amount: float
+) -> int:
+    """
+    Create historical EMI payment records and Cash Out entries for past EMIs.
+    
+    Calculates all EMI dates from loan start to today and creates entries for each.
+    Returns the number of historical EMIs created.
+    """
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+    
+    # Parse loan start date
+    try:
+        start_date = datetime.strptime(loan_start_date, "%Y-%m-%d")
+    except:
+        return 0
+    
+    today = datetime.now()
+    
+    # Calculate first EMI date
+    # If start date day > emi_day, first EMI is next month
+    # If start date day <= emi_day, first EMI is same month
+    first_emi_year = start_date.year
+    first_emi_month = start_date.month
+    
+    if start_date.day > emi_day:
+        # First EMI is next month
+        if first_emi_month == 12:
+            first_emi_month = 1
+            first_emi_year += 1
+        else:
+            first_emi_month += 1
+    
+    first_emi_date = datetime(first_emi_year, first_emi_month, emi_day)
+    
+    # Count historical EMIs (EMI dates that have passed, not including current month if EMI day hasn't passed)
+    historical_emi_dates = []
+    current_emi_date = first_emi_date
+    
+    while current_emi_date < today:
+        # Only include if the EMI date has actually passed
+        historical_emi_dates.append(current_emi_date)
+        # Move to next month
+        current_emi_date = current_emi_date + relativedelta(months=1)
+    
+    if not historical_emi_dates:
+        return 0
+    
+    # Create EMI entries for each historical date
+    remaining_balance = total_amount
+    total_paid = 0
+    emis_paid = 0
+    
+    months_list = ["January", "February", "March", "April", "May", "June", 
+                   "July", "August", "September", "October", "November", "December"]
+    
+    for emi_date in historical_emi_dates:
+        # Calculate principal/interest split
+        principal_amount, interest_amount = calculate_emi_split(
+            remaining_balance,
+            interest_rate,
+            emi_amount
+        )
+        
+        # Update balance
+        new_balance = max(0, remaining_balance - principal_amount)
+        total_paid += emi_amount
+        emis_paid += 1
+        
+        # Format date
+        date_str = emi_date.strftime("%Y-%m-%d")
+        month_name = months_list[emi_date.month - 1]
+        year = emi_date.year
+        
+        # Create EMI payment record
+        emi_doc = {
+            "id": f"EMI{generate_id()}",
+            "loan_id": loan_id,
+            "loan_name": loan_name,
+            "payment_date": date_str,
+            "amount": emi_amount,
+            "principal_amount": principal_amount,
+            "interest_amount": interest_amount,
+            "is_extra_payment": False,
+            "is_auto_generated": True,  # Mark as auto-generated historical entry
+            "balance_after_payment": new_balance,
+            "notes": f"Historical EMI - Auto-generated for {month_name} {year}",
+            "created_at": get_utc_now_str(),
+            "month": month_name,
+            "year": year
+        }
+        
+        await db.emi_payments.insert_one(emi_doc)
+        
+        # Create Cash Out entry
+        await create_auto_cash_out(
+            category="loan_emi",
+            description=f"Loan EMI - {loan_name} ({lender_name}) [Historical]",
+            amount=emi_amount,
+            date=date_str,
+            reference_id=emi_doc["id"],
+            reference_type="emi_payment",
+            month=month_name,
+            year=year
+        )
+        
+        remaining_balance = new_balance
+        
+        # Check if loan is now closed
+        if remaining_balance <= 0:
+            break
+    
+    # Update loan with historical data
+    new_status = LoanStatus.CLOSED if remaining_balance <= 0 else LoanStatus.ACTIVE
+    
+    await db.loans.update_one(
+        {"id": loan_id},
+        {"$set": {
+            "remaining_balance": remaining_balance,
+            "total_paid": total_paid,
+            "emis_paid": emis_paid,
+            "status": new_status
+        }}
+    )
+    
+    return emis_paid
+
+
 @router.get("/loans", response_model=List[LoanResponse])
 async def get_loans(status: Optional[str] = None):
     """Get all loans, optionally filtered by status"""
