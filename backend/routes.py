@@ -1538,12 +1538,14 @@ async def generate_payslip_final(payslip_id: str):
     }
     
     # Update status to generated
+    advance_ids = [a.get("id") for a in advances]
     await db.payslips.update_one(
         {"id": payslip_id},
         {"$set": {
             "status": PayslipStatus.GENERATED,
             "breakdown": updated_breakdown,
-            "generated_on": get_utc_now_str()[:10]
+            "generated_on": get_utc_now_str()[:10],
+            "advance_ids": advance_ids  # Store advance IDs to mark as deducted when settled
         }}
     )
     
