@@ -138,7 +138,7 @@ const Attendance = () => {
       const result = await response.json();
       
       if (response.ok) {
-        toast.success(`Attendance marked: ${markData.status} | ₹${result.daily_duty_amount || 0} duty + ₹${markData.conveyance} conv`);
+        toast.success(`Attendance marked: ${markData.status} | ₹${Math.round(result.daily_duty_amount || 0)} duty + ₹${markData.conveyance} conv`);
         setMarkDialog({ open: false, employee: null });
         loadData();
       } else {
