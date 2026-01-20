@@ -98,6 +98,33 @@ const BillSubmission = () => {
     }
   }, [isAddBillDialogOpen, newBill.month, newBill.year, user?.id]);
 
+  // State for advance month lock
+  const [advanceMonthLocked, setAdvanceMonthLocked] = useState({ locked: false, message: null });
+  const [checkingAdvanceMonth, setCheckingAdvanceMonth] = useState(false);
+
+  // Check if selected month is locked for advances
+  const checkAdvanceMonthLocked = async (month, year) => {
+    if (!user?.id) return;
+    try {
+      setCheckingAdvanceMonth(true);
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/check-month-locked/${user.id}?month=${month}&year=${year}`);
+      const data = await response.json();
+      setAdvanceMonthLocked(data);
+    } catch (error) {
+      console.error('Error checking month lock:', error);
+      setAdvanceMonthLocked({ locked: false, message: null });
+    } finally {
+      setCheckingAdvanceMonth(false);
+    }
+  };
+
+  // Check advance month lock when dialog opens or month/year changes
+  useEffect(() => {
+    if (isAddAdvanceDialogOpen && user?.id) {
+      checkAdvanceMonthLocked(newAdvance.deductFromMonth, parseInt(newAdvance.deductFromYear));
+    }
+  }, [isAddAdvanceDialogOpen, newAdvance.deductFromMonth, newAdvance.deductFromYear, user?.id]);
+
   useEffect(() => {
     loadBills();
     loadAdvances();
