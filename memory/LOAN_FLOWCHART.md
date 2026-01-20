@@ -34,7 +34,7 @@ Features:
 
 ## 2. LOAN CREATION FLOW
 
-### 2.1 Create EMI-Based Loan
+### 2.1 Create EMI-Based Loan (NEW or CURRENT)
 ```
 Admin goes to Cashbook → Loans tab → Add Loan
 
@@ -47,7 +47,7 @@ Admin goes to Cashbook → Loans tab → Add Loan
   - EMI Day (e.g., 10th of each month)
   - Interest Rate (e.g., 9.5%)
   - Loan Tenure (e.g., 36 months)
-  - Loan Start Date
+  - Loan Start Date (can be past date!)
 
 → System creates loan with:
   - Status: ACTIVE
@@ -60,7 +60,38 @@ Admin goes to Cashbook → Loans tab → Add Loan
   - Loan Summary (Active Loans, Total Remaining)
 ```
 
-### 2.2 Create Lump Sum Loan
+### 2.2 Create HISTORICAL EMI-Based Loan (Past Start Date) ⭐ NEW
+```
+When loan start date is in the past, system AUTO-GENERATES historical EMIs:
+
+Example:
+  - Loan Start Date: November 1, 2025
+  - EMI Day: 10th
+  - Today's Date: January 20, 2026
+  - EMI Amount: ₹15,000
+
+→ System automatically calculates EMI dates that have passed:
+  - November 10, 2025 ✓ (past)
+  - December 10, 2025 ✓ (past)
+  - January 10, 2026 ✓ (past)
+
+→ System AUTO-CREATES for each past EMI:
+  1. EMI Payment Record (with principal/interest split)
+  2. Cash Out Entry (category: "loan_emi", marked [Historical])
+  3. Updates loan balance
+
+→ Result after adding loan:
+  - Total Paid: ₹45,000 (3 EMIs)
+  - EMIs Paid: 3
+  - Remaining Balance: ₹4,66,612 (reduced)
+  - Cash Out shows 3 historical entries
+
+→ For FUTURE EMIs (February onwards):
+  - Admin manually clicks "Pay EMI" each month
+  - Normal flow continues
+```
+
+### 2.3 Create Lump Sum Loan
 ```
 Admin goes to Cashbook → Loans tab → Add Loan
 
@@ -76,6 +107,7 @@ Admin goes to Cashbook → Loans tab → Add Loan
   - Status: ACTIVE
   - Remaining Balance: Full amount
   - No EMI fields
+  - NO historical payments (lump sum has no EMI schedule)
 
 → Reflected in:
   - Loans list
