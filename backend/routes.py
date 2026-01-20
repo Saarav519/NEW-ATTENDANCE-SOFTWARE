@@ -1268,9 +1268,10 @@ async def generate_payslip(data: PayslipCreate):
     
     # Calculate attendance adjustment (deductions for half days and absents ONLY)
     # Leave days are NOT deducted as they are approved
-    # Assuming 26 working days per month
-    working_days = 26
-    daily_rate = basic / working_days
+    # Use actual days in month for calculation
+    from calendar import monthrange
+    days_in_month = monthrange(data.year, month_num)[1]
+    daily_rate = basic / days_in_month
     
     # Half day = 0.5 day deduction, Absent = 1 day deduction, Leave = NO deduction
     attendance_adjustment = -((half_days * 0.5 * daily_rate) + (absent_days * daily_rate))
