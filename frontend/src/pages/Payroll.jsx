@@ -169,6 +169,7 @@ const Payroll = () => {
   const generatedCount = filteredPayslips.filter(p => p.status === 'generated' || p.status === 'settled').length;
   const previewCount = filteredPayslips.filter(p => p.status === 'preview' || p.status === 'pending').length;
   const settledCount = filteredPayslips.filter(p => p.status === 'settled').length;
+  const totalPaidAmount = filteredPayslips.filter(p => p.status === 'settled').reduce((sum, p) => sum + (p.breakdown?.net_pay || 0), 0);
 
   const getStatusBadge = (status) => {
     const styles = {
