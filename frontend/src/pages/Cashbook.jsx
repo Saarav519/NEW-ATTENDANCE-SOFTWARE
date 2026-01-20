@@ -1199,7 +1199,24 @@ const Cashbook = () => {
               <div className="space-y-2">
                 <Label>GST Amount (₹) - Auto-calculated</Label>
                 <Input type="number" value={newCashIn.gst_amount} disabled className="bg-gray-100" />
-                <p className="text-xs text-gray-500">Automatically calculated based on percentage</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>TDS Percentage (%)</Label>
+                <Input type="number" step="0.01" placeholder="e.g., 10" value={newCashIn.tds_percentage} onChange={(e) => {
+                  const tdsPercent = e.target.value;
+                  setNewCashIn({...newCashIn, tds_percentage: tdsPercent});
+                  // Auto-calculate TDS amount
+                  if (newCashIn.invoice_amount && tdsPercent) {
+                    const tdsAmt = (parseFloat(newCashIn.invoice_amount) * parseFloat(tdsPercent)) / 100;
+                    setNewCashIn(prev => ({...prev, tds_percentage: tdsPercent, tds_amount: tdsAmt.toFixed(2)}));
+                  }
+                }} />
+              </div>
+              <div className="space-y-2">
+                <Label>TDS Amount (₹) - Auto-calculated</Label>
+                <Input type="number" value={newCashIn.tds_amount} disabled className="bg-gray-100" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
