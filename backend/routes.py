@@ -3881,7 +3881,7 @@ async def get_cash_in(month: Optional[str] = None, year: Optional[int] = None):
 
 @router.put("/cashbook/cash-in/{entry_id}", response_model=CashInResponse)
 async def update_cash_in(entry_id: str, data: CashInCreate):
-    """Update a cash in entry with GST calculation"""
+    """Update a cash in entry with GST and TDS calculation"""
     entry = await db.cash_in.find_one({"id": entry_id}, {"_id": 0})
     if not entry:
         raise HTTPException(status_code=404, detail="Entry not found")
@@ -3897,7 +3897,12 @@ async def update_cash_in(entry_id: str, data: CashInCreate):
     # Auto-calculate GST amount if percentage is provided
     gst_amount = None
     if data.gst_percentage is not None and data.gst_percentage > 0:
-        gst_amount = (data.invoice_amount * data.gst_percentage) / 100
+        gst_amount = round((data.invoice_amount * data.gst_percentage) / 100, 2)
+    
+    # Auto-calculate TDS amount if percentage is provided
+    tds_amount = None
+    if data.tds_percentage is not None and data.tds_percentage > 0:
+        tds_amount = round((data.invoice_amount * data.tds_percentage) / 100, 2)
     
     # Auto-update payment status based on amounts
     if data.amount_received >= data.invoice_amount:
@@ -3914,6 +3919,8 @@ async def update_cash_in(entry_id: str, data: CashInCreate):
         "invoice_amount": data.invoice_amount,
         "gst_percentage": data.gst_percentage,
         "gst_amount": gst_amount,
+        "tds_percentage": data.tds_percentage,
+        "tds_amount": tds_amount,
         "invoice_pdf_url": data.invoice_pdf_url,
         "payment_status": payment_status,
         "amount_received": data.amount_received,
