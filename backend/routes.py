@@ -3823,7 +3823,7 @@ def get_month_year_from_date(date_str: str):
 
 @router.post("/cashbook/cash-in", response_model=CashInResponse)
 async def create_cash_in(data: CashInCreate):
-    """Create a new cash in entry (client invoice) with GST calculation"""
+    """Create a new cash in entry (client invoice) with GST and TDS calculation"""
     month, year = get_month_year_from_date(data.invoice_date)
     
     # Check if month is locked
@@ -3834,7 +3834,12 @@ async def create_cash_in(data: CashInCreate):
     # Auto-calculate GST amount if percentage is provided
     gst_amount = None
     if data.gst_percentage is not None and data.gst_percentage > 0:
-        gst_amount = (data.invoice_amount * data.gst_percentage) / 100
+        gst_amount = round((data.invoice_amount * data.gst_percentage) / 100, 2)
+    
+    # Auto-calculate TDS amount if percentage is provided
+    tds_amount = None
+    if data.tds_percentage is not None and data.tds_percentage > 0:
+        tds_amount = round((data.invoice_amount * data.tds_percentage) / 100, 2)
     
     pending_balance = data.invoice_amount - data.amount_received
     
@@ -3846,6 +3851,8 @@ async def create_cash_in(data: CashInCreate):
         "invoice_amount": data.invoice_amount,
         "gst_percentage": data.gst_percentage,
         "gst_amount": gst_amount,
+        "tds_percentage": data.tds_percentage,
+        "tds_amount": tds_amount,
         "invoice_pdf_url": data.invoice_pdf_url,
         "payment_status": data.payment_status,
         "amount_received": data.amount_received,
