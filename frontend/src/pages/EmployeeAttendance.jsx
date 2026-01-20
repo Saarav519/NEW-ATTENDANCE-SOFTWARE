@@ -557,7 +557,7 @@ const EmployeeAttendance = () => {
                           </div>
                         </td>
                         <td className="p-3 text-right font-medium text-purple-600">
-                          ₹{(record.daily_duty_amount || 0).toLocaleString()}
+                          ₹{Math.round(record.daily_duty_amount || 0).toLocaleString()}
                         </td>
                         <td className="p-3 text-right font-medium text-green-600">
                           ₹{(record.conveyance_amount || 0).toLocaleString()}
