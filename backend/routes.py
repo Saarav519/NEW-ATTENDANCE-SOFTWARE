@@ -1465,11 +1465,12 @@ async def generate_payslip_final(payslip_id: str):
         total_duty_earned += record.get("daily_duty_amount", 0)
     
     # Get approved bills for this month
+    # Include both 'approved' and 'revalidation' status bills (revalidation bills have partial approved_amount)
     approved_bills = await db.bills.find({
         "emp_id": emp_id,
         "month": month,
         "year": year,
-        "status": BillStatus.APPROVED
+        "status": {"$in": [BillStatus.APPROVED, "revalidation"]}
     }).to_list(100)
     extra_conveyance = sum(b.get("approved_amount", 0) for b in approved_bills)
     
