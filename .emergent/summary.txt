@@ -1,187 +1,173 @@
 <analysis>**original_problem_statement:**
-The user initially requested features like mandatory bank details, auto payslips, and new attendance rules. Subsequently, they reported numerous critical issues and requested new features throughout the session.
-
-**New requirements and bug fixes addressed in this session:**
-1.  **Bill Partial Approval & Revalidation:** Implement a complete frontend workflow for admins to partially approve bills, send them for revalidation, and for the UI to reflect remaining balances and status changes.
-2.  **Cash Out Double Counting:** Fix a critical bug where approved bills were counted in both the payslip's net pay and as separate Cash Out entries, leading to incorrect financial totals.
-3.  **Manual Attendance Fields:** Change the Location field in the attendance marking dialog from a dropdown to a manual text input for admins.
-4.  **Auto Leave Accrual & Display:** Implement a system where employees accrue 1 leave for every 24 working days and display the leave balance (total, used, available) on the frontend with a year selector.
-5.  **Advance Flow Correction:** Ensure a Cash Out entry is created immediately upon an advance being approved and that the payslip correctly marks the advance as deducted upon settlement.
-6.  **Payroll UI Correction:** Change the Paid statistic on the Payroll page to show the total monetary amount of settled payslips instead of just a count.
-7.  **Historical Data Entry:** Create a new page for admins to manually enter historical, date-wise attendance for an employee, including location and conveyance, with bulk-update capabilities.
-8.  **Historical Loan Payments:** When adding an old loan, automatically calculate and create Cash Out entries for all past EMIs that would have been due between the loan start date and the current date.
-9.  **TDS on Invoices:** Add TDS (Tax Deducted at Source) percentage and amount fields to the Cash In (Invoice) flow, including the UI, backend logic, and CSV export.
-10. **Flowchart Documentation:** Create detailed flowchart-style documentation for the application's core workflows (Attendance, Leave, Bills, Payroll) and the Loan Management system.
-11. **Data Resets:** Fulfill multiple user requests to clear all transactional data from the database to allow for fresh testing cycles.
+The user's primary requests in this session revolved around fixing critical financial calculations and UI/UX issues. Key problems included:
+1.  **Mobile UI:** Overlapping elements in the attendance view and the Emergent logo appearing on inner pages.
+2.  **Payroll Calculation:** A major bug where the  for a full month was incorrect. This led to a complete overhaul of the calculation logic to be based on the **actual days in the month** (), which then introduced rounding errors (e.g., ₹49,999.90 instead of ₹50,000) and decimal display issues that the user wanted removed.
+3.  **Business Logic Gaps:**
+    *   Employees could submit bills/advances for a month even after the payslip was generated.
+    *   Leave balances were not updating correctly, admin-applied leaves were misclassified as absent, and conveyance was incorrectly added to leave days.
+    *   Approved audit expenses were appearing in the cash-out report for the wrong month (approval month instead of trip month).
+    *   Leaves marked directly in attendance by an admin were not being deducted from the available leave balance.
+4.  **Reporting Issues:** The main Reports page and its corresponding data export functions were not filtering data correctly by the selected month.
 
 **User's preferred language**: English
 
 **what currently exists?**
-A full-stack staff management application (FastAPI, React, MongoDB) with role-based access. Recent major additions include a complete bill revalidation workflow, corrected payroll and cash-out logic, an auto-leave accrual system, a page for manual entry of historical attendance, automatic generation of historical loan payments, and TDS support for invoices. The application's core workflows have also been documented in flowchart-style markdown files.
+The application is a full-stack staff management tool. Key functionalities were significantly modified in this session. The payroll calculation now uses a  logic, with fixes to handle rounding and display whole numbers. A month lock feature prevents expense submissions after payroll is run. The leave management and audit expense accounting have been corrected. The mobile UI has been improved with a better bottom navigation bar and layout fixes. The Reports page and its export functions have been updated to filter data correctly by month.
 
 **Last working item**:
-The agent just finished implementing TDS (Tax Deducted at Source) functionality for Cash In invoices.
+The agent was addressing a user report that the Reports page and its export functionality were not fetching or exporting data correctly based on the selected month.
 
-    - Last item agent was working: The implementation included updating the backend models (, ) and routes (, , ). The frontend  was modified to add TDS input fields to the Add Invoice dialog, and the CSV export function was updated to include GST and TDS columns.
+    - Last item agent was working: Fixing the data filtering on the Reports page and the associated backend export endpoints. The agent identified that incorrect date fields were being used for filtering (e.g.,  instead of  for audit expenses) and corrected the logic in both  and .
     - Status: **USER VERIFICATION PENDING**
-    - Agent Testing Done: Y (Visual verification of UI via screenshot and backend file checks)
+    - Agent Testing Done: Y (Backend export endpoints were tested with . Frontend filtering was fixed but not visually verified by the agent in the final step.)
     - Which testing method agent to use? both
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  - **Issue 1: End-to-End Payroll and Financial Integrity Test (P0)**
-    - **Description**: A large number of interconnected financial features (Leave Accrual, Bill Partial Approval, Advance Flow, Manual Attendance) were implemented or fixed. A comprehensive end-to-end test is required to ensure payroll calculations are correct and that no financial data is miscalculated or double-counted.
+  - **Issue 1: Comprehensive Test of Reporting and Exports (P0)**
+    - **Description**: The user reported that lots of data was not fetched correctly in reports. The agent fixed the specific examples given (Audit Expenses, Advances), but a full regression test of *every* report type and its corresponding export is required to confirm the entire feature is working correctly.
     - **Status**: NOT STARTED
-  - **Issue 2: Critical Payroll Logic Month Mismatch (P0)**
-    - **Description**: A recurring critical bug where attendance from one month incorrectly affects the next month's payroll. While addressed in the past, it needs re-verification after recent extensive changes to the payroll logic.
+  - **Issue 2: Recurring Decimal Display Issue (P1)**
+    - **Description**: The user has repeatedly reported monetary values showing with decimals (e.g., ₹1,612.90) instead of as whole numbers. While the agent has applied fixes in multiple files, it's a persistent issue. A thorough audit of all frontend components that display monetary values is needed to ensure  is used everywhere.
     - **Status**: TESTING PENDING
 
 **Issues Detail**:
-  - **Issue 1: End-to-End Payroll and Financial Integrity Test**
+  - **Issue 1: Comprehensive Test of Reporting and Exports**
      - **Next debug checklist**:
-       1.  As admin, create a new employee.
-       2.  Navigate to the new manual attendance page and enter a full month of attendance for a past period (e.g., November 2025), including some conveyance.
-       3.  Verify on the Profile/Leaves page that the employee has accrued leave for 2025.
-       4.  Submit a bill for the employee and have the admin partially approve it, sending the remainder for revalidation.
-       5.  Request and approve an advance for the employee for the same month.
-       6.  Generate the payslip for that month and verify it correctly includes duty earned (from manual attendance), the partially approved bill amount, and the advance deduction.
-       7.  Check the Cashbook to confirm that correct, non-duplicated Cash Out entries were created for the partial bill approval, advance approval, and final salary settlement.
-     - **Why fix this issue and what will be achieved with the fix?**: This will validate the stability and correctness of the application's core financial features after a major development push.
-     - **Is recurring issue?**: N
-     - **Should Test frontend/backend/both after fix?**: both
-  - **Issue 2: Critical Payroll Logic Month Mismatch**
-     - **Next debug checklist**:
-       1.  Using fresh data, mark attendance for an employee on the last day of a month (e.g., Dec 31, 2025).
-       2.  Generate a payslip for the *next* month (e.g., Jan 2026).
-       3.  Verify that the Jan 2026 payslip shows 0 days worked and ₹0 net pay initially.
-       4.  Review the  function in  to confirm its date filtering is correct.
-     - **Why fix this issue and what will be achieved with the fix?**: This is a critical financial bug. A final verification ensures payroll is calculated accurately for the correct period.
+       1.  As admin, create comprehensive test data spanning two different months for at least one employee. Include attendance, bills, advances, leaves, and audit expenses in both months.
+       2.  Navigate to the Reports page.
+       3.  For each month, systematically select each report type from the dropdown (Attendance, Payroll, Bills, Advances, Audit Expenses, etc.).
+       4.  Verify that the on-screen data (tables and summary cards) updates correctly and displays data *only* for the selected month.
+       5.  For each report type, use the export function and inspect the downloaded CSV file to confirm it contains the exact same filtered data.
+     - **Why fix this issue and what will be achieved with the fix?**: This will ensure a core feature is reliable for the user's financial tracking and auditing purposes.
      - **Is recurring issue?**: Y
      - **Should Test frontend/backend/both after fix?**: both
+  - **Issue 2: Recurring Decimal Display Issue**
+     - **Next debug checklist**:
+       1.  Log in as admin and create attendance data for an employee.
+       2.  Check the following pages and components for any non-integer monetary values:
+           - : Total Duty Earned card and Duty column in the table.
+           - : Duty and Conv columns in the employee list.
+           - : Total Duty card and daily duty amounts in the list.
+           -  (as Employee): The daily attendance records list.
+           -  and : All fields in the payslip breakdown.
+       3.  The last fix involved storing values with 2-decimal precision in the backend and rounding on the frontend. Confirm this pattern is applied universally.
+     - **Why fix this issue and what will be achieved with the fix?**: To finally resolve a persistent UI complaint and improve the application's professional appearance.
+     - **Is recurring issue?**: Y
+     - **Should Test frontend/backend/both after fix?**: frontend
 
 **In progress Task List**:
-- None. All initiated tasks were completed.
+- None.
 
 **Upcoming and Future Tasks**
 
 **Upcoming Tasks:**
--   **P1**: Thoroughly test the half-day attendance calculation and its impact on the  and final payslip.
--   **P1**: Test the complete Revalidation workflow, including the employee resubmission/justification part and final admin approval of the remaining amount.
+-   **P0**: Perform a full end-to-end payroll test using the new  calculation to ensure its accuracy and that no new bugs were introduced, especially with edge cases like leap years.
+-   **P1**: Test the complete Revalidation workflow for bills, including employee resubmission and final admin approval.
 
 **Future Tasks:**
--   Refactor the  and  components to reduce their size.
+-   Refactor large components like , , and the new .
 -   Implement multi-language support.
 -   Implement a dark mode theme.
 
 **Completed work in this session**
-- **Bill Partial Approval & Revalidation**: Implemented the full frontend workflow with separate Approve, Revalidate, and Reject buttons and a clear display of the remaining balance. Fixed the backend to create a Cash Out entry for the partially approved amount during revalidation.
-- **Cash Out Double Counting Bug**: Corrected the payroll generation logic in  to prevent approved bills from being counted twice in the Cashbook.
-- **Advance Flow Correction**: Ensured a Cash Out entry is created upon advance approval and that advances are correctly marked as deducted when a payslip is settled.
-- **Leave Accrual & Display**: Implemented logic for accruing 1 leave per 24 working days and added a My Leave Balance card to the Profile and Leaves pages with a year selector.
-- **Manual Attendance Entry Feature**: Created a new page () for admins to perform bulk, date-wise manual entry of historical attendance.
-- **Historical Loan EMI Generation**: Enhanced the loan creation process to automatically generate historical EMI payments and corresponding Cash Out entries for past-dated loans.
-- **TDS on Invoices**: Added TDS support to the Cash In flow, including UI, backend logic, and CSV export.
-- **UI/UX Fixes**: Changed the attendance Location field to a manual input and updated the payroll Paid stat to show a monetary amount instead of a count.
-- **Documentation**: Created detailed flowchart documents for all core application workflows () and the loan system ().
-- **Data Management**: Handled multiple user requests to clear transactional data.
+- **Payroll Logic Overhaul**: Changed daily duty calculation from a fixed 26 days to the actual number of days in the month ().
+- **Rounding & Decimal Fixes**: Implemented backend and frontend changes to resolve rounding errors (e.g., ₹49,999.9) and ensure duty amounts display as whole numbers.
+- **Mobile UI Enhancements**:
+    - Removed the Emergent logo from inner pages via JavaScript.
+    - Fixed overlapping elements in mobile attendance views.
+    - Redesigned the mobile bottom navigation with a More menu for better access to all features.
+- **Month Lock Feature**: Implemented backend and frontend logic to block bill and advance submissions for months where payroll has already been generated.
+- **Leave Management Fixes**:
+    - Corrected leave balance calculations to properly count used leaves.
+    - Ensured leaves marked directly by an admin in attendance are also deducted from the balance.
+    - Corrected the system to assign ₹0 conveyance to all leave days.
+- **Audit Expense Accounting**: Fixed logic to record cash-out entries in the month of the expense's trip date, not the approval date.
+- **Reports & Exports**: Fixed data filtering on the Reports page and corresponding backend export endpoints to accurately reflect the selected month.
+- **Data Management**: Handled numerous user requests to clear transactional data for fresh testing cycles.
 
 **Earlier issues found/mentioned but not fixed**
-- None.
+- None. All issues raised by the user in this session were addressed.
 
 **Known issue recurrence from previous fork**
-- **Issue**: Payroll calculation logic remains a sensitive and complex area, being a recurring source of bugs and user-requested adjustments.
-- **Recurrence count**: 4+
-- **Status**: RESOLVED (but requires constant, careful regression testing).
+- **Issue**: Payroll calculation logic.
+- **Recurrence count**: 5+ (This was the primary focus of the entire session).
+- **Status**: RESOLVED (but remains highly sensitive and should be tested thoroughly).
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Backend**: FastAPI, Pydantic, Motor (async MongoDB).
-- **Frontend**: React, Vite, Tailwind CSS, Shadcn UI.
-- **State Management**: React Hooks.
-- **Date/Time**:  for handling relative dates (e.g., historical EMIs).
+- **Backend**: FastAPI. Used Python's  to get days in a month for the new payroll logic.
+- **Frontend**: React, Shadcn UI. Used  extensively to fix display issues. Implemented a More menu pattern for mobile navigation. Used  with dependency on a location object to hide the Emergent badge on route changes.
 
 **key DB schema**
-- **cash_in**: Updated to include  and .
-- **payslips**: Updated to store  to track which advances were deducted in a payslip.
-- **loans**: Updated with fields like , ,  to track historical payments.
+- No schema changes were made in this session.
 
 **changes in tech stack**
-- None.
+- The  module was newly imported and used in .
 
 **All files of reference**
-- : Extensive changes across payroll, bills, advances, cashbook, loans, and attendance logic.
-- : Updated  and  models to include TDS fields.
-- : Major overhaul for the bill approval workflow UI and logic.
-- : Added TDS fields to the Add Invoice dialog and related logic.
-- : **New file** created for manual historical attendance entry.
-- : Added the My Leave Balance card.
-- : Added the My Leave Balance card with a year selector.
-- : Updated the Paid statistics card.
-- : Changed the location field to a manual input.
-- : Updated functions for bills and leave balances.
-- : New documentation file.
-- : New documentation file.
+- : Major changes to payroll, attendance, leave, bill, advance, audit expense, and export logic. A new endpoint  was added.
+- : Major fixes to data fetching and filtering logic.
+- , , , , , : UI fixes to round monetary values.
+- : Added UI and logic to handle locked months for bills and advances.
+- : Completely redesigned for better mobile usability with a More menu.
+- : Added a  hook to hide the Emergent badge on inner pages.
+- : Updated functions to support new filtering on the Reports page.
 
 **Areas that need refactoring**:
--  is over 900 lines and should be broken down.
-- , , and the new  are becoming large and could benefit from being broken into smaller components.
+-  and other large page components remain candidates for refactoring. The  file has also become complex and could be broken down.
 
 **key api endpoints**
-- : Updated to handle TDS data.
-- : Updated to handle TDS data.
-- : CSV export now includes GST and TDS columns.
-- : Enhanced to automatically generate historical EMI payments and Cash Out entries.
-- : Now creates a Cash Out entry on approval.
-- : Now stores  in the payslip document.
-- : Now supports a  query parameter.
+- : Logic updated to calculate daily duty based on days in the month and to handle a leave status correctly.
+- : Logic updated to also count attendance records marked as 'leave'.
+- , : Validation added to block submissions for locked months.
+- : **NEW** endpoint to let the frontend know if a month is closed for submissions.
+- : Logic fixed to use the expense  for the cash-out entry date.
+- : Filtering logic fixed to use .
 
 **Critical Info for New Agent**
-- **Data is Volatile**: The user frequently asks to clear all test data. Assume the database is empty besides the admin account at the start of a session. All testing requires creating fresh data.
-- **Payroll is Top Priority**: All financial calculations (attendance, bills, advances, leaves) culminate in the payroll. The logic to prevent double-counting in the Cashbook is especially critical. Test all changes against the payroll flow.
-- **Historical Data Entry is Key**: The new features for manual attendance and historical loan entry are important to the user. Ensure their calculations and integrations with the rest of the system are robust.
-- **Verify, Then Verify Again**: Many interconnected features have been added. Do not assume a fix in one area hasn't impacted another. A full, end-to-end workflow test is the highest priority before proceeding with new features.
+- **Payroll logic is extremely sensitive.** The user is very particular about the new  calculation, rounding, and display. Any changes in this area must be tested meticulously.
+- **Display of numbers is a top priority.** The user wants all monetary values displayed as whole numbers. This is a recurring issue, so double-check all relevant UI components for .
+- **The Reports page is a key feature.** The user expects it to be a reliable source of truth. After any changes to financial logic, verify that all reports and exports filter and display data correctly.
+- **Assume frequent data wipes.** The user prefers to test on a clean slate. Be prepared to clear transactional data while preserving the base users (, , ).
 
 **documents and test reports created in this job**
-- 
-- 
-- 
--  (updated throughout the session)
+-  (A manual test log created by the agent).
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User**: Clears entries but wants to preserve the Team Lead ID. (Agent clears transactional data, explains users are preserved).
-2.  **User**: Reports missing GST/TDS in cash-in invoice and export. (Agent implements the fix).
-3.  **User**: Asks for a detailed flowchart of the cashbook loan section. (Agent provides it).
-4.  **User**: Reports issue where historical EMIs for old loans aren't created automatically. (Agent implements the fix).
-5.  **User**: Asks to clear all entries. (Agent clears).
-6.  **User**: Requests a new feature for manual, date-wise attendance entry. (Agent implements it).
-7.  **User**: Reports the payroll Paid stat shows count, not amount. (Agent fixes it).
-8.  **User**: Provides corrected workflow for Advances, highlighting missing Cash Out. (Agent fixes it).
-9.  **User**: Provides corrected workflow for Bills, highlighting issues with Cash Out on revalidation. (Agent fixes it).
-10. **User**: Reports leave balance is not showing for team lead. (Agent adds year selector to fix it).
+1.  **User**: Reports that audit expenses appear in the wrong month's cash out. (Agent fixed it).
+2.  **User**: Reports that available leave balance doesn't decrease when admin applies leave directly. (Agent fixed it).
+3.  **User**: Screenshot showing the Reports page is not fetching data correctly for the selected month. (Agent started fixing this).
+4.  **User**: Request to clear test data. (Agent complied).
+5.  **User**: Message . (Agent resumed work).
+6.  **User**: Request to clear test data but preserve users. (Agent complied).
+7.  **User**: Reports 3 issues: 1. Approved leave doesn't reduce available balance. 2. Admin applying leave marks it as absent. 3. Conveyance is added to leave days. (Agent fixed all three).
+8.  **User**: Reports that audit expenses show in the wrong month's cash out. (Agent fixed it).
+9.  **User**: Reports that available leave balance doesn't adjust when leave is applied. (Agent investigated and fixed the root cause).
+10. **User**: Reports that the Reports page has a lot of data not being fetched correctly by month and is also missing from exports. (Agent began fixing this, which is the last working item).
 
 **Project Health Check:**
-- **Broken**: No features are outright broken, but the application's core financial modules have undergone significant changes. It should be considered unstable until a full regression and end-to-end test is completed.
+- **Broken**: No features are outright broken. However, the reliability of the Reports page is pending user verification.
 - **Mocked**: None.
 
 **3rd Party Integrations**
 - None.
 
 **Testing status**
-- **Testing agent used after significant changes**: YES, once for the bill revalidation feature.
+- **Testing agent used after significant changes**: NO
 - **Troubleshoot agent used after agent stuck in loop**: NO
 - **Test files created**: None.
-- **Known regressions**: None identified, but the risk is high due to the number of changes.
+- **Known regressions**: The payroll calculation was changed significantly. While tested for the user's specific scenarios, it's a high-risk area for regressions.
 
 **Credentials to test flow:**
 | Role | User ID | Password |
 | :--- | :--- | :--- |
 | Admin |  |  |
-
-**Note**: All other users were cleared at the user's request. New employees and team leaders must be created for testing.
+| Team Lead |  | (password not specified, create if needed) |
+| Employee |  | (password not specified, create if needed) |
 
 **What agent forgot to execute**
-- The agent did not perform a final, comprehensive regression test after implementing numerous features, which is critical for a financial application.
-- The agent did not explicitly re-verify the Payroll Month Mismatch bug, a known recurring critical issue, after making extensive changes to payroll logic.
-- The agent did not address the test half-day attendance calculation task from the previous handoff's upcoming tasks.</analysis>
+- A comprehensive regression test of *all* reports and exports was not performed after the agent fixed the specific issues reported by the user.
+- The two upcoming tasks from the previous handoff summary (test half-day attendance, test bill revalidation workflow) were not explicitly addressed in this session.</analysis>
