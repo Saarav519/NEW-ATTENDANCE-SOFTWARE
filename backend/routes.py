@@ -2506,6 +2506,21 @@ async def create_advance_request(data: SalaryAdvanceCreate):
     
     return SalaryAdvanceResponse(**advance_doc)
 
+@router.get("/check-month-locked/{emp_id}")
+async def check_month_locked(emp_id: str, month: str, year: int):
+    """Check if a month is locked (payslip generated) for bill/advance submission"""
+    existing_payslip = await db.payslips.find_one({
+        "emp_id": emp_id,
+        "month": month,
+        "year": year,
+        "status": {"$in": ["generated", "settled"]}
+    })
+    
+    return {
+        "locked": existing_payslip is not None,
+        "message": f"Payslip already generated for {month} {year}" if existing_payslip else None
+    }
+
 @router.get("/advances")
 async def get_advances(emp_id: str = None, status: str = None):
     """Get salary advance requests"""
