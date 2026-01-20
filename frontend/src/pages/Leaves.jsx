@@ -14,7 +14,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '../components/ui/select';
 import {
-  CalendarOff, Plus, Check, X, Clock, Calendar, Loader2, RefreshCw, CheckSquare
+  CalendarOff, Plus, Check, X, Clock, Calendar, Loader2, RefreshCw, CheckSquare, CalendarDays, CalendarCheck, Briefcase
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -28,13 +28,32 @@ const Leaves = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedIds, setSelectedIds] = useState([]);
   const [bulkProcessing, setBulkProcessing] = useState(false);
+  const [leaveBalance, setLeaveBalance] = useState(null);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [newLeave, setNewLeave] = useState({
     type: 'Casual Leave', from_date: '', to_date: '', reason: ''
   });
 
+  const years = [2024, 2025, 2026];
+
   useEffect(() => {
     loadLeaves();
+    loadLeaveBalance();
   }, [user?.id]);
+
+  useEffect(() => {
+    loadLeaveBalance();
+  }, [selectedYear]);
+
+  const loadLeaveBalance = useCallback(async () => {
+    if (!user?.id || isAdmin) return;
+    try {
+      const balance = await leaveAPI.getBalance(user.id, selectedYear);
+      setLeaveBalance(balance);
+    } catch (error) {
+      console.error('Error loading leave balance:', error);
+    }
+  }, [user?.id, selectedYear, isAdmin]);
 
   const loadLeaves = useCallback(async (isRefresh = false) => {
     if (!user?.id) return;
@@ -50,7 +69,10 @@ const Leaves = () => {
       const data = await leaveAPI.getAll(empId);
       setLeaves(data || []);
       setSelectedIds([]);
-      if (isRefresh) toast.success('Refreshed!');
+      if (isRefresh) {
+        toast.success('Refreshed!');
+        loadLeaveBalance();
+      }
     } catch (error) {
       console.error('Error loading leaves:', error);
       toast.error('Failed to load leave requests');
@@ -58,7 +80,7 @@ const Leaves = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [user?.id, isAdmin, isTeamLead]);
+  }, [user?.id, isAdmin, isTeamLead, loadLeaveBalance]);
 
   const filteredLeaves = leaves.filter(leave => {
     const matchesStatus = filterStatus === 'all' || leave.status === filterStatus;
