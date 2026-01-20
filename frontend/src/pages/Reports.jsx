@@ -457,7 +457,10 @@ const Reports = () => {
                 <tr>
                   <td className="p-3">Leave Requests</td>
                   <td className="p-3 text-right font-semibold">{stats.pendingLeaves + stats.approvedLeaves}</td>
-                  <td className="p-3 text-right text-yellow-600">{stats.pendingLeaves} pending</td>
+                  <td className="p-3 text-right">
+                    <span className="text-green-600">{stats.approvedLeaves} approved</span>
+                    {stats.pendingLeaves > 0 && <span className="text-yellow-600 ml-2">/ {stats.pendingLeaves} pending</span>}
+                  </td>
                 </tr>
                 <tr>
                   <td className="p-3">Payroll Processed</td>
