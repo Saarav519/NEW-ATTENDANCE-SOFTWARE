@@ -279,28 +279,50 @@ const Profile = () => {
       {leaveBalance && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar size={20} className="text-blue-600" />
-              Leave Balance ({leaveBalance.year})
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <CalendarDays size={20} className="text-blue-600" />
+                Leave Balance
+              </CardTitle>
+              <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(parseInt(v))}>
+                <SelectTrigger className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="p-4 bg-blue-50 rounded-xl">
-              <div className="flex items-center justify-between">
-                <span className="text-blue-700 font-medium">Total Leave</span>
-                <Calendar size={18} className="text-blue-600" />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="p-4 bg-blue-50 rounded-xl text-center">
+                <Briefcase size={20} className="mx-auto text-blue-500 mb-2" />
+                <p className="text-2xl font-bold text-blue-700">{leaveBalance.working_days_count || 0}</p>
+                <p className="text-xs text-blue-600">Working Days</p>
               </div>
-              <p className="text-3xl font-bold text-blue-700 mt-2">
-                {(leaveBalance.total_leave || 0) - (leaveBalance.total_used || 0)} / {leaveBalance.total_leave || 0}
-              </p>
-              <p className="text-xs text-blue-600 mt-1">Used: {leaveBalance.total_used || 0}</p>
-              <p className="text-xs text-gray-500 mt-2">
-                Total Working Days: {leaveBalance.working_days_count || 0}
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                Rule: 24+ working days in a month = 1 leave accrued
-              </p>
+              <div className="p-4 bg-green-50 rounded-xl text-center">
+                <Calendar size={20} className="mx-auto text-green-500 mb-2" />
+                <p className="text-2xl font-bold text-green-700">{leaveBalance.total_leave || 0}</p>
+                <p className="text-xs text-green-600">Total Leaves</p>
+                <p className="text-xs text-gray-400">(1 per 24 days)</p>
+              </div>
+              <div className="p-4 bg-orange-50 rounded-xl text-center">
+                <Clock size={20} className="mx-auto text-orange-500 mb-2" />
+                <p className="text-2xl font-bold text-orange-700">{leaveBalance.total_used || 0}</p>
+                <p className="text-xs text-orange-600">Used Leaves</p>
+              </div>
+              <div className="p-4 bg-emerald-50 rounded-xl text-center border-2 border-emerald-200">
+                <CheckCircle size={20} className="mx-auto text-emerald-500 mb-2" />
+                <p className="text-2xl font-bold text-emerald-700">
+                  {(leaveBalance.total_leave || 0) - (leaveBalance.total_used || 0)}
+                </p>
+                <p className="text-xs text-emerald-600">Available</p>
+              </div>
             </div>
+            <p className="text-xs text-gray-500 mt-4 text-center">
+              Auto Leave Accrual: 1 leave earned for every month with 24+ full working days
+            </p>
           </CardContent>
         </Card>
       )}
