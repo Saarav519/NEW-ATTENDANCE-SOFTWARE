@@ -3549,15 +3549,16 @@ async def export_bills(
     output = io.StringIO()
     writer = csv.writer(output)
     
-    # Header
+    # Header with Remaining Balance for revalidation tracking
     writer.writerow([
         "Bill ID", "Employee ID", "Employee Name", "Month", "Year",
-        "Total Amount", "Approved Amount", "Status", "Submitted On",
-        "Approved By", "Approved On", "Remarks"
+        "Total Amount", "Approved Amount", "Remaining Balance", "Status", 
+        "Submitted On", "Approved By", "Approved On", "Remarks"
     ])
     
     # Data rows
     for bill in bills:
+        remaining = bill.get("remaining_balance", bill.get("total_amount", 0) - bill.get("approved_amount", 0))
         writer.writerow([
             bill.get("id", ""),
             bill.get("emp_id", ""),
@@ -3566,6 +3567,7 @@ async def export_bills(
             bill.get("year", ""),
             bill.get("total_amount", 0),
             bill.get("approved_amount", 0),
+            remaining if bill.get("status") == "revalidation" else 0,
             bill.get("status", ""),
             bill.get("submitted_on", ""),
             bill.get("approved_by", ""),
