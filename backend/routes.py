@@ -1648,18 +1648,13 @@ async def recalculate_payslip(payslip_id: str):
     
     # Get approved bills
     # Include both 'approved' and 'revalidation' status bills (revalidation bills have partial approved_amount)
-    print(f"DEBUG: Querying bills for emp_id={emp_id}, month={month}, year={year}")
     approved_bills = await db.bills.find({
         "emp_id": emp_id,
         "month": month,
         "year": year,
         "status": {"$in": ["approved", "revalidation"]}
     }).to_list(100)
-    print(f"DEBUG: Found {len(approved_bills)} bills")
-    for b in approved_bills:
-        print(f"DEBUG: Bill {b.get('id')}: status={b.get('status')}, approved_amount={b.get('approved_amount')}")
     extra_conveyance = sum(b.get("approved_amount", 0) for b in approved_bills)
-    print(f"DEBUG: extra_conveyance = {extra_conveyance}")
     
     # Get approved audit expenses
     start_date = f"{year}-{month_num:02d}-01"
