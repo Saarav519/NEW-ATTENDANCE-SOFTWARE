@@ -336,20 +336,21 @@ const Attendance = () => {
             </CardHeader>
             <CardContent className="p-2 sm:p-4">
               {/* Mobile View - Cards */}
-              <div className="sm:hidden space-y-2">
+              <div className="sm:hidden space-y-3">
                 {dateAttendance.map((emp) => (
                   <div key={emp.id} className="p-3 bg-gray-50 rounded-lg" data-testid={`attendance-card-${emp.id}`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                    {/* Employee Info Row */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                           {emp.name?.split(' ').map(n => n[0]).join('')}
                         </div>
-                        <div>
-                          <p className="font-medium text-sm">{emp.name}</p>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-sm truncate">{emp.name}</p>
                           <p className="text-xs text-gray-500">{emp.id}</p>
                         </div>
                       </div>
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ml-2 ${
                         emp.attendance.attendanceStatus === 'full_day' ? 'bg-green-100 text-green-700' :
                         emp.attendance.attendanceStatus === 'half_day' ? 'bg-yellow-100 text-yellow-700' :
                         emp.attendance.attendanceStatus === 'absent' ? 'bg-red-100 text-red-700' :
@@ -360,28 +361,41 @@ const Attendance = () => {
                          emp.attendance.attendanceStatus === 'absent' ? 'Absent' : 'Full'}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
-                      <span>₹{emp.attendance.dailyDuty.toLocaleString()} duty</span>
-                      <span>₹{emp.attendance.conveyance} conv</span>
-                      <span>{emp.attendance.location || '-'}</span>
+                    
+                    {/* Stats Row - Stacked for mobile */}
+                    <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 mb-3 bg-white p-2 rounded-md">
+                      <div className="text-center">
+                        <p className="text-gray-400 text-[10px]">Duty</p>
+                        <p className="font-semibold text-green-600">₹{emp.attendance.dailyDuty.toLocaleString()}</p>
+                      </div>
+                      <div className="text-center border-x border-gray-100">
+                        <p className="text-gray-400 text-[10px]">Conv</p>
+                        <p className="font-semibold text-blue-600">₹{emp.attendance.conveyance}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-gray-400 text-[10px]">Location</p>
+                        <p className="font-semibold truncate">{emp.attendance.location || '-'}</p>
+                      </div>
                     </div>
-                    <div className="flex gap-1 overflow-x-auto">
-                      <Button size="sm" variant="outline" onClick={() => openMarkDialog(emp)} className="text-blue-600 flex-shrink-0">
-                        <Edit size={14} className="mr-1" /> Edit
+                    
+                    {/* Action Buttons - Grid layout for mobile */}
+                    <div className="grid grid-cols-4 gap-1">
+                      <Button size="sm" variant="outline" onClick={() => openMarkDialog(emp)} className="text-blue-600 h-8 px-2">
+                        <Edit size={12} className="mr-1" /> Edit
                       </Button>
                       <Button size="sm" variant={emp.attendance.attendanceStatus === 'full_day' ? 'default' : 'outline'} 
                         onClick={() => { setMarkData({status:'present',conveyance:200,location:'Office'}); setMarkDialog({open:true,employee:emp}); }}
-                        className={emp.attendance.attendanceStatus === 'full_day' ? 'bg-green-600' : 'text-green-600 flex-shrink-0'}>
+                        className={`h-8 px-2 ${emp.attendance.attendanceStatus === 'full_day' ? 'bg-green-600' : 'text-green-600'}`}>
                         Full
                       </Button>
                       <Button size="sm" variant={emp.attendance.attendanceStatus === 'half_day' ? 'default' : 'outline'}
                         onClick={() => { setMarkData({status:'half_day',conveyance:100,location:'Office'}); setMarkDialog({open:true,employee:emp}); }}
-                        className={emp.attendance.attendanceStatus === 'half_day' ? 'bg-yellow-600' : 'text-yellow-600 flex-shrink-0'}>
+                        className={`h-8 px-2 ${emp.attendance.attendanceStatus === 'half_day' ? 'bg-yellow-600' : 'text-yellow-600'}`}>
                         Half
                       </Button>
                       <Button size="sm" variant={emp.attendance.attendanceStatus === 'absent' ? 'default' : 'outline'}
                         onClick={() => { setMarkData({status:'absent',conveyance:0,location:''}); setMarkDialog({open:true,employee:emp}); }}
-                        className={emp.attendance.attendanceStatus === 'absent' ? 'bg-red-600' : 'text-red-600 flex-shrink-0'}>
+                        className={`h-8 px-2 ${emp.attendance.attendanceStatus === 'absent' ? 'bg-red-600' : 'text-red-600'}`}>
                         Absent
                       </Button>
                     </div>
