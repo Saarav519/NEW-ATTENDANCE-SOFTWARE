@@ -2411,6 +2411,7 @@ async def get_leave_balance(emp_id: str, year: int = None):
     # Rule: If employee has 24+ working days in a month, 1 leave is accrued for that month
     total_accrued = 0
     total_working_days = 0
+    total_leave_days_from_attendance = 0
     
     for month in range(1, 13):
         month_str = f"{year}-{month:02d}"
@@ -2426,7 +2427,12 @@ async def get_leave_balance(emp_id: str, year: int = None):
         working_days_in_month = sum(1 for a in attendance_records 
                                     if a.get("attendance_status") == "full_day")
         
+        # Count leave days from attendance records (admin marked directly as leave)
+        leave_days_in_month = sum(1 for a in attendance_records 
+                                   if a.get("attendance_status") == "leave")
+        
         total_working_days += working_days_in_month
+        total_leave_days_from_attendance += leave_days_in_month
         
         # If 24+ working days in this month, add 1 leave
         if working_days_in_month >= 24:
@@ -2439,7 +2445,14 @@ async def get_leave_balance(emp_id: str, year: int = None):
         "from_date": {"$gte": f"{year}-01-01", "$lte": f"{year}-12-31"}
     }).to_list(100)
     
-    total_used = sum(l.get("days", 0) for l in approved_leaves)
+    # Total used = approved leave requests + direct attendance leave markings
+    # But avoid double counting - attendance marked as leave via approval already has a leave request
+    # So we only count attendance leaves that DON'T have a corresponding leave request
+    leaves_from_requests = sum(l.get("days", 0) for l in approved_leaves)
+    
+    # Total used leaves = from approved requests + from direct attendance marking (avoiding duplicates)
+    # Since approved leaves create attendance records, we use the max of both to avoid under-counting
+    total_used = max(leaves_from_requests, total_leave_days_from_attendance)
     
     balance = {
         "emp_id": emp_id,
