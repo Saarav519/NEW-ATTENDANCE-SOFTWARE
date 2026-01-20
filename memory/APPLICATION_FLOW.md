@@ -97,7 +97,16 @@ System aggregates attendance for month
 
 ## 3. LEAVE MANAGEMENT
 
-### 3.1 Employee Applies for Leave
+### 3.1 Auto Leave Accrual
+```
+System tracks working days for each employee
+→ After every 24 working days (present/half-day)
+→ 1 leave automatically added to "Total Leaves" balance
+→ Reflected in: Employee's leave balance
+→ Accrual continues throughout employment
+```
+
+### 3.2 Employee Applies for Leave
 ```
 Employee submits leave request
 → Selects: Leave type, Start date, End date, Reason
@@ -107,26 +116,40 @@ Employee submits leave request
 → Visible in: Admin Leaves page, TL dashboard
 ```
 
-### 3.2 Leave Approved
+### 3.3 Leave Approved (PAID LEAVE)
 ```
 Admin/TL approves leave request
 → Leave status = "approved"
-→ Leave days marked in attendance calendar
-→ Daily duty amount = ₹0 for leave days
-→ Conveyance = ₹0 for leave days
+→ Leave deducted from employee's Total Leaves balance
+→ Attendance status = "Leave" for those days
+→ Daily duty amount = FULL DAY amount (paid leave)
+→ Conveyance = Applied as per rules
 → Notification sent to: Employee
-→ Reflected in: Attendance records (as "Leave")
-→ Affects: Monthly payroll (reduced working days if unpaid)
+→ Reflected in:
+  - Attendance calendar (marked as Leave)
+  - Leave history
+  - Employee view
+  - Admin attendance view
+→ Affects: Payroll (leave treated as PAID day)
 → Exportable in: Leave Report, Attendance Report
 ```
 
-### 3.3 Leave Rejected
+### 3.4 Leave Rejected
 ```
 Admin/TL rejects leave request
 → Leave status = "rejected"
 → No impact on attendance
+→ No deduction from leave balance
 → Notification sent to: Employee
 → Reflected in: Employee's leave history
+```
+
+### 3.5 Leave Balance Summary
+```
+Total Leaves = Auto-accrued leaves (1 per 24 working days)
+Used Leaves = Approved leaves taken
+Available Leaves = Total Leaves - Used Leaves
+→ Reflected in: Employee dashboard, Leave page
 ```
 
 ---
