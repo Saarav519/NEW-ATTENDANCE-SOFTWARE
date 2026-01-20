@@ -1007,7 +1007,8 @@ async def approve_bill(bill_id: str, approved_by: str, approved_amount: float, s
     """
     Approve bill with partial amount support.
     If approved_amount < total_amount and send_to_revalidation=True, 
-    bill goes to 'revalidation' status (not settled, no cash out).
+    bill goes to 'revalidation' status for remaining amount.
+    Cash Out is ALWAYS created for approved amount.
     """
     bill = await db.bills.find_one({"id": bill_id}, {"_id": 0})
     if not bill:
@@ -1020,11 +1021,9 @@ async def approve_bill(bill_id: str, approved_by: str, approved_amount: float, s
     if send_to_revalidation and remaining_balance > 0:
         new_status = "revalidation"
         message = f"Bill partially approved (₹{approved_amount}). Remaining ₹{remaining_balance} sent for revalidation."
-        create_cash_out = False
     else:
         new_status = BillStatus.APPROVED
         message = f"Bill approved for ₹{approved_amount}"
-        create_cash_out = True
     
     result = await db.bills.update_one(
         {"id": bill_id},
@@ -1048,8 +1047,8 @@ async def approve_bill(bill_id: str, approved_by: str, approved_amount: float, s
         data={"action": "approved", "approved_amount": approved_amount, "remaining_balance": remaining_balance}
     )
     
-    # Auto-create Cash Out entry ONLY for fully approved bills (not revalidation)
-    if create_cash_out and approved_amount > 0:
+    # ALWAYS create Cash Out entry for approved amount (even for partial approvals)
+    if approved_amount > 0:
         month_num = ["January", "February", "March", "April", "May", "June", 
                      "July", "August", "September", "October", "November", "December"].index(bill.get("month", "January")) + 1
         date_str = f"{bill.get('year', 2026)}-{month_num:02d}-{datetime.now().day:02d}"
@@ -1060,7 +1059,9 @@ async def approve_bill(bill_id: str, approved_by: str, approved_amount: float, s
             amount=approved_amount,
             date=date_str,
             reference_id=bill_id,
-            reference_type="bill"
+            reference_type="bill",
+            month=bill.get("month"),
+            year=bill.get("year")
         )
     
     return {"message": message, "status": new_status, "remaining_balance": remaining_balance}
