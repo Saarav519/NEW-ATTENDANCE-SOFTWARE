@@ -90,7 +90,7 @@ const Attendance = () => {
         attendanceStatus: record.attendance_status || 'full_day',
         location: record.location || '',
         conveyance: record.conveyance_amount || 0,
-        dailyDuty: record.daily_duty_amount || 0
+        dailyDuty: Math.round(record.daily_duty_amount || 0)
       } : { 
         status: 'not-marked', 
         punchIn: null, 
