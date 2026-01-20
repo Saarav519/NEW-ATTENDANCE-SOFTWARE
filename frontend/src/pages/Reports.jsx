@@ -121,9 +121,24 @@ const Reports = () => {
       const leaveDays = attendance.filter(a => a.attendance_status === 'leave').length;
       const absent = attendance.filter(a => a.attendance_status === 'absent').length;
 
-      // Filter leaves by month
+      // Filter leaves by month (from leaves collection - employee submitted)
       const monthStr = `${yearNum}-${String(monthNum).padStart(2, '0')}`;
       const monthLeaves = leaves.filter(l => l.from_date && l.from_date.startsWith(monthStr));
+      
+      // Count approved leaves from leaves collection
+      const approvedLeaveRequests = monthLeaves.filter(l => l.status === 'approved').length;
+      
+      // Admin-marked leaves in attendance (attendance_status === 'leave') are also approved leaves
+      // These are leaves directly marked by admin without a leave request
+      // We need to count unique leave days from attendance that are NOT from approved leave requests
+      const adminMarkedLeaveDays = leaveDays; // All leaves in attendance are effectively approved
+      
+      // Total approved leaves = leave requests approved + admin-marked leaves in attendance
+      // But we need to avoid double counting - if a leave request was approved, it also creates attendance record
+      // So we should show: approved leave requests count + attendance leave days count
+      // The attendance overview shows leaveDays (from attendance), 
+      // The Approved Leaves stat should show total approved (max of both sources)
+      const totalApprovedLeaves = Math.max(approvedLeaveRequests, adminMarkedLeaveDays);
 
       setStats({
         totalEmployees: users.filter(u => u.role !== 'admin').length,
@@ -134,7 +149,9 @@ const Reports = () => {
         totalAuditExpenses: totalAuditExpenses,
         attendanceSummary: { present: fullDay, absent, halfDay, leave: leaveDays },
         pendingLeaves: monthLeaves.filter(l => l.status === 'pending').length,
-        approvedLeaves: monthLeaves.filter(l => l.status === 'approved').length
+        approvedLeaves: totalApprovedLeaves,
+        adminMarkedLeaves: adminMarkedLeaveDays,
+        leaveRequestsApproved: approvedLeaveRequests
       });
     } catch (error) {
       console.error('Error loading stats:', error);
