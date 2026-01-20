@@ -518,13 +518,28 @@ const BillSubmission = () => {
                         onChange={(e) => setNewBill({...newBill, remarks: e.target.value})}
                       />
                     </div>
+
+                    {/* Month Locked Warning */}
+                    {monthLocked.locked && (
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+                        <AlertCircle size={18} />
+                        <span className="text-sm font-medium">
+                          Payslip already generated for {newBill.month} {newBill.year}. Cannot submit bills for this month.
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <DialogFooter>
                     <DialogClose asChild>
                       <Button variant="outline">Cancel</Button>
                     </DialogClose>
-                    <Button onClick={handleSubmitBill} className="bg-[#1E2A5E] hover:bg-[#2D3A8C]">
-                      Submit for Approval
+                    <Button 
+                      onClick={handleSubmitBill} 
+                      className="bg-[#1E2A5E] hover:bg-[#2D3A8C]"
+                      disabled={monthLocked.locked || checkingMonth}
+                    >
+                      {checkingMonth ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
+                      {monthLocked.locked ? 'Month Locked' : 'Submit for Approval'}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
