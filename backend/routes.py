@@ -1216,11 +1216,12 @@ async def generate_payslip(data: PayslipCreate):
     # Note: basic + hra + special_allowance = 100% of salary = ₹50,000
     
     # Get approved bills for this month (Extra Conveyance / Reimbursements)
+    # Include both 'approved' and 'revalidation' status bills (revalidation bills have partial approved_amount)
     approved_bills = await db.bills.find({
         "emp_id": data.emp_id,
         "month": data.month,
         "year": data.year,
-        "status": BillStatus.APPROVED
+        "status": {"$in": [BillStatus.APPROVED, "revalidation"]}
     }).to_list(100)
     extra_conveyance = sum(b.get("approved_amount", 0) for b in approved_bills)
     
