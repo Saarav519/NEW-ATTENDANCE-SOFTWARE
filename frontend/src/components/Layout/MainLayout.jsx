@@ -22,9 +22,19 @@ const MainLayout = () => {
   useEffect(() => {
     if (user) {
       document.body.classList.add('hide-emergent-badge');
+      // Also directly hide the badge element for inline styles with !important
+      const badge = document.getElementById('emergent-badge');
+      if (badge) {
+        badge.style.setProperty('display', 'none', 'important');
+      }
     }
     return () => {
       document.body.classList.remove('hide-emergent-badge');
+      // Restore badge when leaving inner pages
+      const badge = document.getElementById('emergent-badge');
+      if (badge) {
+        badge.style.setProperty('display', 'flex', 'important');
+      }
     };
   }, [user]);
 
