@@ -481,15 +481,16 @@ const Attendance = () => {
 
       {/* Mark Attendance Dialog */}
       <Dialog open={markDialog.open} onOpenChange={(open) => setMarkDialog({ open, employee: null })}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-[95vw] sm:max-w-sm mx-2 sm:mx-auto">
           <DialogHeader>
-            <DialogTitle>Mark Attendance - {markDialog.employee?.name}</DialogTitle>
+            <DialogTitle className="text-base sm:text-lg">Mark Attendance</DialogTitle>
+            <p className="text-sm text-gray-500 truncate">{markDialog.employee?.name}</p>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label>Attendance Status</Label>
+              <Label className="text-sm">Attendance Status</Label>
               <Select value={markData.status} onValueChange={(v) => setMarkData({...markData, status: v, conveyance: v === 'absent' ? 0 : v === 'half_day' ? 100 : 200})}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="present">Full Day (Present)</SelectItem>
                   <SelectItem value="half_day">Half Day</SelectItem>
@@ -497,35 +498,40 @@ const Attendance = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2"><IndianRupee size={14} /> Conveyance (₹)</Label>
-              <Input 
-                type="number" 
-                value={markData.conveyance} 
-                onChange={(e) => setMarkData({...markData, conveyance: parseFloat(e.target.value) || 0})}
-                placeholder="Enter conveyance amount"
-              />
-              <p className="text-xs text-gray-500">0 for absent, adjust as needed</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-sm flex items-center gap-1"><IndianRupee size={12} /> Conveyance</Label>
+                <Input 
+                  type="number" 
+                  value={markData.conveyance} 
+                  onChange={(e) => setMarkData({...markData, conveyance: parseFloat(e.target.value) || 0})}
+                  placeholder="₹ Amount"
+                  className="h-9"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm flex items-center gap-1"><MapPin size={12} /> Location</Label>
+                <Input 
+                  type="text" 
+                  value={markData.location} 
+                  onChange={(e) => setMarkData({...markData, location: e.target.value})}
+                  placeholder="Location"
+                  className="h-9"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2"><MapPin size={14} /> Location</Label>
-              <Input 
-                type="text" 
-                value={markData.location} 
-                onChange={(e) => setMarkData({...markData, location: e.target.value})}
-                placeholder="Enter work location"
-              />
-            </div>
-            <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-              <p><strong>Date:</strong> {selectedDate}</p>
-              <p><strong>Employee:</strong> {markDialog.employee?.id}</p>
+            <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded-lg flex justify-between">
+              <span><strong>Date:</strong> {selectedDate}</span>
+              <span><strong>ID:</strong> {markDialog.employee?.id}</span>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setMarkDialog({ open: false, employee: null })}>Cancel</Button>
-            <Button onClick={submitAttendance} disabled={submitting} className="bg-[#1E2A5E]">
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setMarkDialog({ open: false, employee: null })} className="w-full sm:w-auto order-2 sm:order-1">
+              Cancel
+            </Button>
+            <Button onClick={submitAttendance} disabled={submitting} className="bg-[#1E2A5E] w-full sm:w-auto order-1 sm:order-2">
               {submitting ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
-              Save Attendance
+              Save
             </Button>
           </DialogFooter>
         </DialogContent>
