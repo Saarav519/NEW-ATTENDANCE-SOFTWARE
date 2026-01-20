@@ -417,7 +417,7 @@ const Payslip = () => {
                     {(breakdown.total_duty_earned || 0) > 0 && (
                       <div className="mt-3 p-3 bg-blue-50 rounded-xl flex justify-between items-center">
                         <span className="text-gray-700 font-medium">Total Duty Earned</span>
-                        <span className="font-bold text-blue-600">₹{(breakdown.total_duty_earned || 0).toLocaleString()}</span>
+                        <span className="font-bold text-blue-600">₹{Math.round(breakdown.total_duty_earned || 0).toLocaleString()}</span>
                       </div>
                     )}
                   </div>
