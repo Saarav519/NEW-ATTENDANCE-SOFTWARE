@@ -3474,13 +3474,14 @@ async def export_payslips(
     output = io.StringIO()
     writer = csv.writer(output)
     
-    # Header - includes bank details
+    # Header - includes bank details and audit expenses
     writer.writerow([
         "Payslip ID", "Employee ID", "Employee Name", "Month", "Year",
         "Bank Name", "Account Number", "IFSC Code",
-        "Basic", "HRA", "Special Allowance", "Conveyance", "Bills/Previous Pending Approved",
-        "Leave Adjustment", "Attendance Adjustment", "Full Days", "Half Days",
-        "Leave Days", "Absent Days", "Total Duty Earned", "Advance Deduction",
+        "Basic", "HRA", "Special Allowance", "Conveyance", "Bills/Reimbursements",
+        "Audit Expenses", "Leave Adjustment", "Attendance Adjustment", 
+        "Full Days", "Half Days", "Leave Days", "Absent Days", 
+        "Total Duty Earned", "Advance Deduction",
         "Gross Pay", "Deductions", "Net Pay", "Status", "Paid On"
     ])
     
@@ -3502,6 +3503,7 @@ async def export_payslips(
             breakdown.get("special_allowance", 0),
             breakdown.get("conveyance", 0),
             breakdown.get("extra_conveyance", 0),
+            breakdown.get("audit_expenses", 0),
             breakdown.get("leave_adjustment", 0),
             breakdown.get("attendance_adjustment", 0),
             breakdown.get("full_days", 0),
