@@ -326,7 +326,7 @@ const Payroll = () => {
                         {payslip.breakdown?.leave_days > 0 && <span className="text-blue-600 ml-1">{payslip.breakdown.leave_days}L</span>}
                         {payslip.breakdown?.absent_days > 0 && <span className="text-red-600 ml-1">{payslip.breakdown.absent_days}A</span>}
                       </td>
-                      <td className="p-3 text-right">₹{(payslip.breakdown?.total_duty_earned || 0).toLocaleString()}</td>
+                      <td className="p-3 text-right">₹{Math.round(payslip.breakdown?.total_duty_earned || 0).toLocaleString()}</td>
                       <td className="p-3 text-right">₹{(payslip.breakdown?.conveyance || 0).toLocaleString()}</td>
                       <td className="p-3 text-right text-orange-600">
                         {payslip.breakdown?.advance_deduction > 0 ? `-₹${payslip.breakdown.advance_deduction.toLocaleString()}` : '-'}
