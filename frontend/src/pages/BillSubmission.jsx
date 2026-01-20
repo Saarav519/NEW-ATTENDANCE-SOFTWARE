@@ -874,9 +874,20 @@ const BillSubmission = () => {
                         rows={3}
                       />
                     </div>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
-                      <strong>Note:</strong> The advance amount will be deducted from your {newAdvance.deductFromMonth} {newAdvance.deductFromYear} salary after approval.
-                    </div>
+                    
+                    {/* Month Locked Warning for Advances */}
+                    {advanceMonthLocked.locked ? (
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+                        <AlertCircle size={18} />
+                        <span className="text-sm font-medium">
+                          Payslip already generated for {newAdvance.deductFromMonth} {newAdvance.deductFromYear}. Cannot request advance for this month.
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
+                        <strong>Note:</strong> The advance amount will be deducted from your {newAdvance.deductFromMonth} {newAdvance.deductFromYear} salary after approval.
+                      </div>
+                    )}
                   </div>
                   <DialogFooter>
                     <DialogClose asChild>
@@ -885,12 +896,14 @@ const BillSubmission = () => {
                     <Button 
                       onClick={handleSubmitAdvance} 
                       className="bg-[#1E2A5E] hover:bg-[#2D3A8C]"
-                      disabled={submittingAdvance}
+                      disabled={submittingAdvance || advanceMonthLocked.locked || checkingAdvanceMonth}
                     >
-                      {submittingAdvance ? (
+                      {submittingAdvance || checkingAdvanceMonth ? (
                         <>
-                          <Loader2 size={16} className="mr-2 animate-spin" /> Submitting...
+                          <Loader2 size={16} className="mr-2 animate-spin" /> {checkingAdvanceMonth ? 'Checking...' : 'Submitting...'}
                         </>
+                      ) : advanceMonthLocked.locked ? (
+                        'Month Locked'
                       ) : (
                         'Submit Request'
                       )}
