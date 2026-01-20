@@ -71,6 +71,33 @@ const BillSubmission = () => {
     deductFromYear: currentYear.toString()
   });
 
+  // State for checking if month is locked
+  const [monthLocked, setMonthLocked] = useState({ locked: false, message: null });
+  const [checkingMonth, setCheckingMonth] = useState(false);
+
+  // Check if selected month is locked when bill month/year changes
+  const checkMonthLocked = async (month, year) => {
+    if (!user?.id) return;
+    try {
+      setCheckingMonth(true);
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/check-month-locked/${user.id}?month=${month}&year=${year}`);
+      const data = await response.json();
+      setMonthLocked(data);
+    } catch (error) {
+      console.error('Error checking month lock:', error);
+      setMonthLocked({ locked: false, message: null });
+    } finally {
+      setCheckingMonth(false);
+    }
+  };
+
+  // Check month lock when dialog opens or month/year changes
+  useEffect(() => {
+    if (isAddBillDialogOpen && user?.id) {
+      checkMonthLocked(newBill.month, newBill.year);
+    }
+  }, [isAddBillDialogOpen, newBill.month, newBill.year, user?.id]);
+
   useEffect(() => {
     loadBills();
     loadAdvances();
