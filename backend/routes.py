@@ -4421,14 +4421,20 @@ def calculate_emi_split(principal_remaining: float, annual_rate: float, emi_amou
 
 @router.post("/loans", response_model=LoanResponse)
 async def create_loan(data: LoanCreate):
-    """Create a new loan entry (EMI-based or Lump Sum)"""
+    """Create a new loan entry (EMI-based or Lump Sum)
+    
+    For EMI-based loans with a past start date, automatically creates
+    historical EMI payment records and Cash Out entries for all EMIs
+    that should have been paid between the start date and today.
+    """
     # Validate EMI fields are provided for EMI-based loans
     if data.loan_type == LoanType.EMI_BASED:
         if not data.emi_amount or not data.emi_day:
             raise HTTPException(status_code=400, detail="EMI amount and EMI day are required for EMI-based loans")
     
+    loan_id = f"LOAN{generate_id()}"
     loan_doc = {
-        "id": f"LOAN{generate_id()}",
+        "id": loan_id,
         "loan_name": data.loan_name,
         "lender_name": data.lender_name,
         "total_loan_amount": data.total_loan_amount,
@@ -4457,7 +4463,25 @@ async def create_loan(data: LoanCreate):
         loan_doc["loan_tenure_months"] = None
     
     await db.loans.insert_one(loan_doc)
-    loan_doc.pop("_id", None)
+    
+    # For EMI-based loans, calculate and create historical EMI entries
+    historical_emis_created = 0
+    if data.loan_type == LoanType.EMI_BASED:
+        historical_emis_created = await create_historical_emi_entries(
+            loan_id=loan_id,
+            loan_name=data.loan_name,
+            lender_name=data.lender_name,
+            loan_start_date=data.loan_start_date,
+            emi_day=loan_doc["emi_day"],
+            emi_amount=data.emi_amount,
+            interest_rate=data.interest_rate,
+            total_amount=data.total_loan_amount
+        )
+    
+    # Refresh loan document to get updated values
+    loan_doc = await db.loans.find_one({"id": loan_id}, {"_id": 0})
+    loan_doc["historical_emis_created"] = historical_emis_created
+    
     return LoanResponse(**loan_doc)
 
 
