@@ -221,6 +221,8 @@ const Cashbook = () => {
       invoice_amount: entry.invoice_amount.toString(),
       gst_percentage: entry.gst_percentage?.toString() || '',
       gst_amount: entry.gst_amount?.toString() || '0',
+      tds_percentage: entry.tds_percentage?.toString() || '',
+      tds_amount: entry.tds_amount?.toString() || '0',
       payment_status: entry.payment_status,
       amount_received: entry.amount_received.toString(),
       invoice_pdf_url: entry.invoice_pdf_url || '',
