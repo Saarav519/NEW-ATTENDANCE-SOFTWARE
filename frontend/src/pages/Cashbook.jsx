@@ -171,7 +171,9 @@ const Cashbook = () => {
         invoice_amount: parseFloat(newCashIn.invoice_amount),
         amount_received: parseFloat(newCashIn.amount_received || 0),
         gst_percentage: newCashIn.gst_percentage ? parseFloat(newCashIn.gst_percentage) : null,
-        gst_amount: newCashIn.gst_amount ? parseFloat(newCashIn.gst_amount) : null
+        gst_amount: newCashIn.gst_amount ? parseFloat(newCashIn.gst_amount) : null,
+        tds_percentage: newCashIn.tds_percentage ? parseFloat(newCashIn.tds_percentage) : null,
+        tds_amount: newCashIn.tds_amount ? parseFloat(newCashIn.tds_amount) : null
       };
       
       if (cashInDialog.mode === 'add') {
@@ -206,7 +208,7 @@ const Cashbook = () => {
   const resetCashInForm = () => {
     setNewCashIn({
       client_name: '', invoice_number: '', invoice_date: '', invoice_amount: '',
-      gst_percentage: '', gst_amount: '0',
+      gst_percentage: '', gst_amount: '0', tds_percentage: '', tds_amount: '0',
       payment_status: 'pending', amount_received: '0', invoice_pdf_url: '', notes: ''
     });
   };
