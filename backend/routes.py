@@ -740,18 +740,19 @@ async def mark_attendance(
     month = int(date_parts[1])
     days_in_month = monthrange(year, month)[1]  # Get total days in this month
     
-    daily_rate = round(emp_salary / days_in_month, 2)  # Daily rate based on actual days in month
+    # Don't round daily_rate - keep full precision to avoid ₹49,999.9 issue
+    daily_rate = emp_salary / days_in_month
     
     # Determine attendance status and daily duty based on status
     if status == 'present' or status == 'full_day':
         attendance_status = "full_day"
-        daily_duty = daily_rate
+        daily_duty = round(daily_rate, 4)  # Keep more precision
         punch_in = "10:00"
         punch_out = "19:00"
         work_hours = 9.0
     elif status == 'half_day':
         attendance_status = "half_day"
-        daily_duty = round(daily_rate * 0.5, 2)
+        daily_duty = round(daily_rate * 0.5, 4)  # Keep more precision
         punch_in = "10:00"
         punch_out = "14:00"
         work_hours = 4.0
