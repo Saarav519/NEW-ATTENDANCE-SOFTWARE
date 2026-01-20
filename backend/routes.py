@@ -2458,6 +2458,20 @@ async def update_leave_balance(emp_id: str, days: int, year: int = None):
 @router.post("/advances", response_model=SalaryAdvanceResponse)
 async def create_advance_request(data: SalaryAdvanceCreate):
     """Create a salary advance request"""
+    # Check if payslip already exists for the deduction month (generated or settled)
+    existing_payslip = await db.payslips.find_one({
+        "emp_id": data.emp_id,
+        "month": data.deduct_from_month,
+        "year": data.deduct_from_year,
+        "status": {"$in": ["generated", "settled"]}
+    })
+    
+    if existing_payslip:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot request advance for {data.deduct_from_month} {data.deduct_from_year}. Payslip has already been generated for this month."
+        )
+    
     advance_doc = {
         "id": generate_id(),
         "emp_id": data.emp_id,
