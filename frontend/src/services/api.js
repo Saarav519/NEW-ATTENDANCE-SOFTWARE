@@ -127,6 +127,11 @@ export const leaveAPI = {
     if (status) params.append('status', status);
     return apiCall(`/leaves?${params}`);
   },
+  getBalance: (empId, year) => {
+    const params = new URLSearchParams();
+    if (year) params.append('year', year);
+    return apiCall(`/leave-balance/${empId}?${params}`);
+  },
   approve: (leaveId, approvedBy) => 
     apiCall(`/leaves/${leaveId}/approve?approved_by=${approvedBy}`, { method: 'PUT' }),
   reject: (leaveId, rejectedBy) => 
