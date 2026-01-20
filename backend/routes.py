@@ -1652,7 +1652,7 @@ async def recalculate_payslip(payslip_id: str):
         "emp_id": emp_id,
         "month": month,
         "year": year,
-        "status": {"$in": [BillStatus.APPROVED, "revalidation"]}
+        "status": {"$in": ["approved", "revalidation"]}
     }).to_list(100)
     extra_conveyance = sum(b.get("approved_amount", 0) for b in approved_bills)
     
