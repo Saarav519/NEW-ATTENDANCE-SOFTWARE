@@ -255,7 +255,8 @@ const Payroll = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Paid</p>
-                <p className="text-2xl font-bold text-green-600">{settledCount}</p>
+                <p className="text-2xl font-bold text-green-600">₹{totalPaidAmount.toLocaleString()}</p>
+                <p className="text-xs text-gray-400">{settledCount} payslips</p>
               </div>
               <IndianRupee className="text-green-500" size={32} />
             </div>
