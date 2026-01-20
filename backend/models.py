@@ -506,6 +506,8 @@ class CashInCreate(BaseModel):
     invoice_amount: float
     gst_percentage: Optional[float] = None  # GST percentage (e.g., 18)
     gst_amount: Optional[float] = None  # Calculated GST amount
+    tds_percentage: Optional[float] = None  # TDS percentage (e.g., 10)
+    tds_amount: Optional[float] = None  # Calculated TDS amount
     invoice_pdf_url: Optional[str] = None
     payment_status: PaymentStatus = PaymentStatus.PENDING
     amount_received: float = 0
@@ -520,6 +522,8 @@ class CashInResponse(BaseModel):
     invoice_amount: float
     gst_percentage: Optional[float] = None
     gst_amount: Optional[float] = None
+    tds_percentage: Optional[float] = None
+    tds_amount: Optional[float] = None
     invoice_pdf_url: Optional[str] = None
     payment_status: PaymentStatus
     amount_received: float
