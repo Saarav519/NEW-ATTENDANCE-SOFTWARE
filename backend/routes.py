@@ -3777,59 +3777,63 @@ async def export_audit_expenses(
     if emp_id:
         query["emp_id"] = emp_id
     
-    audit_expenses = await db.audit_expenses.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
+    audit_expenses = await db.audit_expenses.find(query, {"_id": 0}).sort("submitted_on", -1).to_list(10000)
     
-    # Filter by month/year if provided
+    # Filter by month/year using trip_start_date (when expense was incurred)
     if month and year:
-        start_date = f"{year}-{str(month).zfill(2)}-01"
-        if month == 12:
-            end_date = f"{year + 1}-01-01"
-        else:
-            end_date = f"{year}-{str(month + 1).zfill(2)}-01"
-        audit_expenses = [e for e in audit_expenses if e.get("created_at", "") >= start_date and e.get("created_at", "") < end_date]
+        filtered_expenses = []
+        for e in audit_expenses:
+            trip_date = e.get("trip_start_date", e.get("submitted_on", ""))
+            if trip_date:
+                try:
+                    date_parts = trip_date.split("-")
+                    exp_year = int(date_parts[0])
+                    exp_month = int(date_parts[1])
+                    if exp_year == year and exp_month == month:
+                        filtered_expenses.append(e)
+                except:
+                    pass
+        audit_expenses = filtered_expenses
     
     output = io.StringIO()
     writer = csv.writer(output)
     
-    # Header
+    # Header - Updated to match actual data fields
     writer.writerow([
-        "Expense ID", "Employee ID", "Employee Name", "Trip Name", "Client Name",
-        "From Date", "To Date", "Ticket Amount", "Travel Amount", "Food Amount", 
-        "Hotel Amount", "Other Amount", "Total Amount", "Approved Amount", 
-        "Amount Paid", "Balance Remaining", "Status", "Created At",
-        "Approved By", "Approved At", "Rejection Reason", "Revalidation Reason"
+        "Expense ID", "Employee ID", "Employee Name", "Trip Purpose", "Trip Location",
+        "Trip Start", "Trip End", "Total Amount", "Approved Amount", 
+        "Remaining Balance", "Status", "Submitted On",
+        "Approved By", "Approved On", "Remarks"
     ])
     
-    # Data rows
+    # Data rows - Updated to use correct field names
     for expense in audit_expenses:
+        # Calculate totals from items if available
+        items = expense.get("items", [])
+        item_total = sum(item.get("amount", 0) for item in items) if items else expense.get("total_amount", 0)
+        
         writer.writerow([
             expense.get("id", ""),
             expense.get("emp_id", ""),
             expense.get("emp_name", ""),
-            expense.get("trip_name", ""),
-            expense.get("client_name", ""),
-            expense.get("from_date", ""),
-            expense.get("to_date", ""),
-            expense.get("ticket_amount", 0),
-            expense.get("travel_amount", 0),
-            expense.get("food_amount", 0),
-            expense.get("hotel_amount", 0),
-            expense.get("other_amount", 0),
-            expense.get("total_amount", 0),
+            expense.get("trip_purpose", ""),
+            expense.get("trip_location", ""),
+            expense.get("trip_start_date", ""),
+            expense.get("trip_end_date", ""),
+            expense.get("total_amount", item_total),
             expense.get("approved_amount", 0),
-            expense.get("amount_paid", 0),
-            expense.get("balance_remaining", 0),
+            expense.get("remaining_balance", 0),
             expense.get("status", ""),
-            expense.get("created_at", ""),
+            expense.get("submitted_on", ""),
             expense.get("approved_by", ""),
-            expense.get("approved_at", ""),
-            expense.get("rejection_reason", ""),
-            expense.get("revalidation_reason", "")
+            expense.get("approved_on", ""),
+            expense.get("remarks", "")
         ])
     
     output.seek(0)
     
-    filename = f"audit_expenses_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    period = f"{month}_{year}" if month and year else "all"
+    filename = f"audit_expenses_{period}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
     return StreamingResponse(
         iter([output.getvalue()]),
         media_type="text/csv",
