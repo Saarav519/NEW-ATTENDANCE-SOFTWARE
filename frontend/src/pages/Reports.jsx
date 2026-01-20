@@ -94,7 +94,13 @@ const Reports = () => {
       const monthBills = bills.filter(b => b.month === monthName && b.year === yearNum && b.status === 'approved');
       const approvedBills = monthBills.reduce((sum, b) => sum + (b.approved_amount || 0), 0);
       
-      const totalAdvances = advances.filter(a => a.status === 'approved').reduce((sum, a) => sum + (a.amount || 0), 0);
+      // Filter advances by selected month/year (using deduct_from_month and deduct_from_year)
+      const monthAdvances = advances.filter(a => {
+        const advMonth = a.deduct_from_month || '';
+        const advYear = a.deduct_from_year || 0;
+        return advMonth === monthName && advYear === yearNum && a.status === 'approved';
+      });
+      const totalAdvances = monthAdvances.reduce((sum, a) => sum + (a.amount || 0), 0);
       
       // Filter audit expenses by selected month/year using trip_start_date
       const monthAuditExpenses = auditExpenses.filter(e => {
