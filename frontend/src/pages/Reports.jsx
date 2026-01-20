@@ -96,12 +96,17 @@ const Reports = () => {
       
       const totalAdvances = advances.filter(a => a.status === 'approved').reduce((sum, a) => sum + (a.amount || 0), 0);
       
-      // Filter audit expenses by selected month/year
-      const startDate = `${yearNum}-${String(monthNum).padStart(2, '0')}-01`;
-      const endDate = monthNum === 12 ? `${yearNum + 1}-01-01` : `${yearNum}-${String(monthNum + 1).padStart(2, '0')}-01`;
-      const monthAuditExpenses = auditExpenses.filter(e => 
-        e.created_at >= startDate && e.created_at < endDate && e.status === 'approved'
-      );
+      // Filter audit expenses by selected month/year using trip_start_date
+      const monthAuditExpenses = auditExpenses.filter(e => {
+        // Use trip_start_date to determine which month the expense belongs to
+        const tripDate = e.trip_start_date || e.submitted_on || '';
+        if (!tripDate) return false;
+        
+        const expenseDate = new Date(tripDate);
+        return expenseDate.getMonth() + 1 === monthNum && 
+               expenseDate.getFullYear() === yearNum && 
+               e.status === 'approved';
+      });
       const totalAuditExpenses = monthAuditExpenses.reduce((sum, e) => sum + (e.approved_amount || 0), 0);
 
       // Attendance summary - use attendance_status only
