@@ -2462,6 +2462,25 @@ async def approve_advance(advance_id: str, approved_by: str):
     if result.modified_count == 0:
         raise HTTPException(status_code=400, detail="Advance already processed")
     
+    # Create Cash Out entry for "Advance Given"
+    # This records when money is given to employee
+    deduct_month = advance.get('deduct_from_month', 'January')
+    deduct_year = advance.get('deduct_from_year', 2026)
+    month_num = ["January", "February", "March", "April", "May", "June", 
+                 "July", "August", "September", "October", "November", "December"].index(deduct_month) + 1
+    date_str = f"{deduct_year}-{month_num:02d}-{datetime.now().day:02d}"
+    
+    await create_auto_cash_out(
+        category="advance",
+        description=f"Advance Given - {advance.get('emp_name', '')} (To be deducted in {deduct_month} {deduct_year})",
+        amount=advance.get('amount', 0),
+        date=get_utc_now_str()[:10],  # Today's date when advance is given
+        reference_id=advance_id,
+        reference_type="advance_given",
+        month=deduct_month,
+        year=deduct_year
+    )
+    
     # Notify employee
     await create_notification(
         recipient_id=advance["emp_id"],
