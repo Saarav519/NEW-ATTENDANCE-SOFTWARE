@@ -10,8 +10,11 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose
 } from '../components/ui/dialog';
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
+} from '../components/ui/select';
+import {
   User, Phone, Mail, MapPin, Building, Calendar, Camera, Edit2, Save, Loader2,
-  CreditCard, AlertCircle, CheckCircle, Clock, IndianRupee, Briefcase
+  CreditCard, AlertCircle, CheckCircle, Clock, IndianRupee, Briefcase, CalendarDays
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -23,7 +26,10 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showAdvanceDialog, setShowAdvanceDialog] = useState(false);
   const [submittingAdvance, setSubmittingAdvance] = useState(false);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const fileInputRef = useRef(null);
+  
+  const years = [2024, 2025, 2026];
   
   const [profileData, setProfileData] = useState({
     phone: user?.phone || '',
@@ -43,12 +49,26 @@ const Profile = () => {
     loadData();
   }, [user?.id]);
 
+  useEffect(() => {
+    loadLeaveBalance();
+  }, [selectedYear, user?.id]);
+
+  const loadLeaveBalance = async () => {
+    if (!user?.id) return;
+    try {
+      const balanceData = await leaveBalanceAPI.get(user.id, selectedYear);
+      setLeaveBalance(balanceData);
+    } catch (error) {
+      console.error('Error loading leave balance:', error);
+    }
+  };
+
   const loadData = async () => {
     if (!user?.id) return;
     
     try {
       const [balanceData, advancesData] = await Promise.all([
-        leaveBalanceAPI.get(user.id),
+        leaveBalanceAPI.get(user.id, selectedYear),
         advanceAPI.getAll(user.id)
       ]);
       setLeaveBalance(balanceData);
