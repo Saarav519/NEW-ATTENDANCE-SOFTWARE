@@ -18,6 +18,16 @@ const MainLayout = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
 
+  // Hide Emergent badge on inner pages (when logged in)
+  useEffect(() => {
+    if (user) {
+      document.body.classList.add('hide-emergent-badge');
+    }
+    return () => {
+      document.body.classList.remove('hide-emergent-badge');
+    };
+  }, [user]);
+
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-50">
