@@ -565,7 +565,12 @@ async def direct_punch_in(emp_id: str, location: str = "Office", shift_type: str
     # Get employee salary for daily duty calculation
     user = await db.users.find_one({"id": emp_id}, {"_id": 0})
     emp_salary = user.get("salary", 0) if user else 0
-    daily_rate = emp_salary / 26  # 26 working days per month
+    
+    # Calculate daily rate based on actual days in the month
+    from calendar import monthrange
+    today_date = datetime.now()
+    days_in_month = monthrange(today_date.year, today_date.month)[1]
+    daily_rate = emp_salary / days_in_month  # Daily rate based on actual days in month
     
     # Calculate daily duty based on attendance status
     if attendance_status == "full_day":
