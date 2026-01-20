@@ -555,7 +555,7 @@ START OF MONTH
 | Action | Creates/Updates | Reflects In | Cash Impact |
 |--------|-----------------|-------------|-------------|
 | Mark Attendance | attendance record | Attendance, Payroll | Adds to Duty Earned |
-| Apply Leave | leave record | Leaves, Attendance | No duty if approved |
+| Apply Leave | leave record | Leaves, Attendance | FULL duty (paid leave) |
 | Submit Bill | bill record | Bills page | None until approved |
 | Approve Bill | bill status, cash_out | Cashbook, Payslip | Cash Out + Payslip |
 | Request Advance | advance record | Advances page | None until approved |
