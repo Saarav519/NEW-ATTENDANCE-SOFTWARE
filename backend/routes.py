@@ -974,6 +974,20 @@ async def reject_leave(leave_id: str, rejected_by: str):
 
 @router.post("/bills", response_model=BillSubmissionResponse)
 async def create_bill_submission(bill: BillSubmissionCreate, emp_id: str, emp_name: str):
+    # Check if payslip already exists for this month (generated or settled)
+    existing_payslip = await db.payslips.find_one({
+        "emp_id": emp_id,
+        "month": bill.month,
+        "year": bill.year,
+        "status": {"$in": ["generated", "settled"]}
+    })
+    
+    if existing_payslip:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot submit bills for {bill.month} {bill.year}. Payslip has already been generated for this month."
+        )
+    
     total = sum(item.amount for item in bill.items)
     
     bill_doc = {
