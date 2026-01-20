@@ -94,7 +94,7 @@ const Payslip = () => {
       
       // Total Duty Earned
       if (breakdown.total_duty_earned && breakdown.total_duty_earned > 0) {
-        doc.text(`Total Duty Earned: Rs. ${breakdown.total_duty_earned.toLocaleString()}`, 20, y);
+        doc.text(`Total Duty Earned: Rs. ${Math.round(breakdown.total_duty_earned).toLocaleString()}`, 20, y);
         y += 10;
       }
     }
