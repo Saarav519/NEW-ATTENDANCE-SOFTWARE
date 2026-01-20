@@ -1281,6 +1281,9 @@ async def generate_payslip(data: PayslipCreate):
         attendance_conveyance += record.get("conveyance_amount", 0)
         total_duty_earned += record.get("daily_duty_amount", 0)
     
+    # Round total_duty_earned to avoid decimal issues (e.g., 49999.9 -> 50000)
+    total_duty_earned = round(total_duty_earned, 0)
+    
     # Calculate attendance adjustment (deductions for half days and absents ONLY)
     # Leave days are NOT deducted as they are approved
     # Use actual days in month for calculation
