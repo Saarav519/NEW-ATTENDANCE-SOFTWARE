@@ -4219,7 +4219,7 @@ async def get_cashbook_summary(month: Optional[str] = None, year: int = None):
 
 @router.get("/export/cashbook")
 async def export_cashbook(month: Optional[str] = None, year: Optional[int] = None):
-    """Export cashbook report to CSV"""
+    """Export cashbook report to CSV with GST and TDS columns"""
     cash_in_query = {}
     cash_out_query = {}
     
@@ -4236,24 +4236,34 @@ async def export_cashbook(month: Optional[str] = None, year: Optional[int] = Non
     output = io.StringIO()
     writer = csv.writer(output)
     
-    # Cash In Section
+    # Cash In Section with GST and TDS columns
     writer.writerow(["=== CASH IN (INCOME) ==="])
-    writer.writerow(["Date", "Client Name", "Invoice No", "Invoice Amount", "Amount Received", "Pending Balance", "Status"])
+    writer.writerow(["Date", "Client Name", "Invoice No", "Invoice Amount", "GST %", "GST Amount", "TDS %", "TDS Amount", "Amount Received", "Pending Balance", "Status"])
     
     total_in = 0
+    total_gst = 0
+    total_tds = 0
     for entry in cash_in_entries:
+        gst_amount = entry.get("gst_amount", 0) or 0
+        tds_amount = entry.get("tds_amount", 0) or 0
         writer.writerow([
             entry.get("invoice_date", ""),
             entry.get("client_name", ""),
             entry.get("invoice_number", ""),
             entry.get("invoice_amount", 0),
+            entry.get("gst_percentage", "") or "",
+            gst_amount,
+            entry.get("tds_percentage", "") or "",
+            tds_amount,
             entry.get("amount_received", 0),
             entry.get("pending_balance", 0),
             entry.get("payment_status", "")
         ])
         total_in += entry.get("amount_received", 0)
+        total_gst += gst_amount
+        total_tds += tds_amount
     
-    writer.writerow(["", "", "", "", f"Total: {total_in}", "", ""])
+    writer.writerow(["", "", "", "", "", f"GST Total: {total_gst}", "", f"TDS Total: {total_tds}", f"Received Total: {total_in}", "", ""])
     writer.writerow([])
     
     # Cash Out Section
@@ -4277,7 +4287,9 @@ async def export_cashbook(month: Optional[str] = None, year: Optional[int] = Non
     
     # Summary
     writer.writerow(["=== SUMMARY ==="])
-    writer.writerow(["Total Cash In", total_in])
+    writer.writerow(["Total Cash In (Received)", total_in])
+    writer.writerow(["Total GST Collected", total_gst])
+    writer.writerow(["Total TDS Deducted", total_tds])
     writer.writerow(["Total Cash Out", total_out])
     writer.writerow(["Net Profit/Loss", total_in - total_out])
     
