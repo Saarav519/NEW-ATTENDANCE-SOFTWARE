@@ -721,7 +721,16 @@ async def mark_attendance(
         raise HTTPException(status_code=404, detail="Employee not found")
     
     emp_salary = user.get("salary", 0)
-    daily_rate = round(emp_salary / 26, 2)  # 26 working days per month
+    
+    # Calculate daily rate based on actual days in the month
+    # Parse the date to get year and month
+    from calendar import monthrange
+    date_parts = date.split("-")
+    year = int(date_parts[0])
+    month = int(date_parts[1])
+    days_in_month = monthrange(year, month)[1]  # Get total days in this month
+    
+    daily_rate = round(emp_salary / days_in_month, 2)  # Daily rate based on actual days in month
     
     # Determine attendance status and daily duty based on status
     if status == 'present' or status == 'full_day':
