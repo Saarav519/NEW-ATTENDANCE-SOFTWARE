@@ -489,7 +489,7 @@ const Attendance = () => {
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label className="text-sm">Attendance Status</Label>
-              <Select value={markData.status} onValueChange={(v) => setMarkData({...markData, status: v, conveyance: v === 'absent' ? 0 : v === 'half_day' ? 100 : 200})}>
+              <Select value={markData.status} onValueChange={(v) => setMarkData({...markData, status: v, conveyance: v === 'absent' || v === 'leave' ? 0 : v === 'half_day' ? 100 : 200})}>
                 <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="present">Full Day (Present)</SelectItem>
