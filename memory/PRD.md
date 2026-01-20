@@ -513,6 +513,37 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 
 ## Changelog
 
+### January 20, 2026 (Session 5) - Priority Action Items Verification
+
+- **VERIFIED**: Reports Page Month Filtering ✅
+  - Period indicator correctly updates to show selected month/year
+  - Attendance Overview title updates correctly
+  - Stats (Salary Paid, Bills Approved, Audit Expenses) filter by selected month
+  - Audit expenses correctly use `trip_start_date` for month filtering
+
+- **VERIFIED**: Export Functionality ✅
+  - Attendance export filters by month/year correctly
+  - Audit expenses export filters by `trip_start_date` month (not approval date)
+  - Bills-advances export filters by month correctly
+  - Payslips export filters by month/year correctly
+
+- **VERIFIED**: Decimal Display ✅
+  - All monetary values display as whole numbers (no decimals like ₹1,612.90)
+  - Attendance page Duty column shows whole numbers (₹1,667 not ₹1,666.67)
+  - Payroll page Net Salary shows whole numbers (₹50,000)
+  - Frontend uses `Math.round()` for all `daily_duty_amount` displays
+
+- **VERIFIED**: Payroll Calculation (`salary/days_in_month`) ✅
+  - Daily rate calculated as `salary/days_in_month` (e.g., 50000/30 = 1666.67)
+  - Backend correctly uses Python's `monthrange()` to get actual days in month
+  - Full day duty = daily_rate, Half day duty = daily_rate/2
+
+- **NEW**: Added `/api/health` endpoint for monitoring
+
+- **Testing**: Comprehensive test completed (17/17 backend tests passed)
+  - Test report: `/app/test_reports/iteration_6.json`
+  - Test file: `/app/tests/test_reports_exports.py`
+
 ### January 20, 2026 (Session 4)
 
 - **CRITICAL BUG FIX**: Payslip Preview Calculation
@@ -538,4 +569,4 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 ---
 
 ## Last Updated
-January 20, 2026 (Session 4)
+January 20, 2026 (Session 5)
