@@ -1208,14 +1208,6 @@ async def generate_payslip(data: PayslipCreate):
     if not user:
         raise HTTPException(status_code=404, detail="Employee not found")
     
-    # Calculate salary breakdown
-    # Salary = Basic + HRA + Special Allowance (total = 100% of salary)
-    total_salary = user.get("salary", 0)
-    basic = round(total_salary * 0.60, 2)  # 60% of salary
-    hra = round(total_salary * 0.24, 2)  # 24% of salary  
-    special_allowance = round(total_salary * 0.16, 2)  # 16% of salary  
-    # Note: basic + hra + special_allowance = 100% of salary = ₹50,000
-    
     # Get approved bills for this month (Extra Conveyance / Reimbursements)
     # Include both 'approved' and 'revalidation' status bills (revalidation bills have partial approved_amount)
     approved_bills = await db.bills.find({
@@ -1257,19 +1249,15 @@ async def generate_payslip(data: PayslipCreate):
         attendance_conveyance += record.get("conveyance_amount", 0)
         total_duty_earned += record.get("daily_duty_amount", 0)
     
-    # Calculate attendance adjustment (deductions for half days and absents ONLY)
-    # Leave days are NOT deducted as they are approved
-    # Assuming 26 working days per month
-    working_days = 26
-    daily_rate = basic / working_days
-    
-    # Half day = 0.5 day deduction, Absent = 1 day deduction, Leave = NO deduction
-    attendance_adjustment = -((half_days * 0.5 * daily_rate) + (absent_days * daily_rate))
-    attendance_adjustment = round(attendance_adjustment, 2)
-    
-    # Leave adjustment is now 0 since approved leaves don't get deducted
-    # and attendance is already updated to "leave" status with full credits
-    leave_adjustment = 0
+    # Get approved audit expenses for this month
+    start_date = f"{data.year}-{month_num:02d}-01"
+    end_date = f"{data.year}-{month_num+1:02d}-01" if month_num < 12 else f"{data.year+1}-01-01"
+    audit_expenses = await db.audit_expenses.find({
+        "emp_id": data.emp_id,
+        "status": "approved",
+        "created_at": {"$gte": start_date, "$lt": end_date}
+    }).to_list(100)
+    total_audit_expenses = sum(e.get("approved_amount", 0) for e in audit_expenses)
     
     # Get approved advances for this month that need to be deducted
     # Handle both month formats: "January" and "January 2026"
@@ -1283,31 +1271,39 @@ async def generate_payslip(data: PayslipCreate):
     }).to_list(100)
     advance_deduction = sum(a.get("amount", 0) for a in advances)
     
-    # CORRECT CALCULATION:
-    # Gross = Salary (Basic + HRA + Special) + Conveyance (from attendance) + Bills (approved)
-    # Net = Gross - Attendance Adjustment - Advance Deduction
+    # CORRECT CALCULATION (consistent with final generation):
+    # 1. Total Earned = total_duty_earned (from attendance)
+    # 2. Distribute proportionally: Basic=60%, HRA=24%, Special=16%
+    # 3. Gross = Duty Earned + Conveyance + Bills + Audit
+    # 4. Net = Gross - Advance
     
-    gross = basic + hra + special_allowance + attendance_conveyance + extra_conveyance
-    deductions = 0  # No PF/Tax deductions
-    net_pay = round(gross + attendance_adjustment - deductions - advance_deduction, 2)
+    basic = round(total_duty_earned * 0.60, 2)
+    hra = round(total_duty_earned * 0.24, 2)
+    special_allowance = round(total_duty_earned * 0.16, 2)
+    
+    gross = total_duty_earned + attendance_conveyance + extra_conveyance + total_audit_expenses
+    net_pay = round(gross - advance_deduction, 2)
+    if net_pay < 0:
+        net_pay = 0
     
     breakdown = SalaryBreakdown(
         basic=basic,
         hra=hra,
         special_allowance=special_allowance,
-        conveyance=attendance_conveyance,  # Conveyance from attendance only
-        leave_adjustment=round(leave_adjustment, 2),
-        extra_conveyance=extra_conveyance,  # From approved bills
+        conveyance=attendance_conveyance,
+        leave_adjustment=0,
+        extra_conveyance=extra_conveyance,
         previous_pending_allowances=0,
-        attendance_adjustment=attendance_adjustment,
+        attendance_adjustment=0,  # Not needed - we calculate from earned amount directly
         full_days=full_days,
         half_days=half_days,
         absent_days=absent_days,
         leave_days=leave_days,
         total_duty_earned=round(total_duty_earned, 2),
+        audit_expenses=total_audit_expenses,
         advance_deduction=advance_deduction,
         gross_pay=round(gross, 2),
-        deductions=deductions,
+        deductions=0,
         net_pay=net_pay
     )
     
