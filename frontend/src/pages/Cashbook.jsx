@@ -1178,12 +1178,16 @@ const Cashbook = () => {
                 <Label>Invoice Amount (₹) *</Label>
                 <Input type="number" value={newCashIn.invoice_amount} onChange={(e) => {
                   const amount = e.target.value;
-                  setNewCashIn({...newCashIn, invoice_amount: amount});
+                  let updates = { invoice_amount: amount };
                   // Auto-calculate GST if percentage exists
                   if (newCashIn.gst_percentage) {
-                    const gstAmt = (parseFloat(amount) * parseFloat(newCashIn.gst_percentage)) / 100;
-                    setNewCashIn(prev => ({...prev, invoice_amount: amount, gst_amount: gstAmt.toFixed(2)}));
+                    updates.gst_amount = ((parseFloat(amount) * parseFloat(newCashIn.gst_percentage)) / 100).toFixed(2);
                   }
+                  // Auto-calculate TDS if percentage exists
+                  if (newCashIn.tds_percentage) {
+                    updates.tds_amount = ((parseFloat(amount) * parseFloat(newCashIn.tds_percentage)) / 100).toFixed(2);
+                  }
+                  setNewCashIn(prev => ({...prev, ...updates}));
                 }} />
               </div>
             </div>
