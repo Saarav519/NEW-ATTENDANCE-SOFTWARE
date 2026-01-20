@@ -2904,12 +2904,12 @@ async def approve_audit_expense(expense_id: str, approved_by: str, approved_amou
     )
     
     # Auto-create Cash Out entry for approved audit expense
-    # Use the expense submitted_on date (month it was raised), not approval date
+    # Use the trip_start_date (the month the expense belongs to), not submission or approval date
     if payment_amount > 0:
-        # Get the month from when the expense was raised
-        expense_date = expense.get("submitted_on", get_utc_now_str()[:10])
-        if isinstance(expense_date, str) and len(expense_date) >= 10:
-            cash_out_date = expense_date[:10]  # Use expense submission date
+        # Get the month from the trip start date (when expense was incurred)
+        trip_date = expense.get("trip_start_date", expense.get("submitted_on", get_utc_now_str()[:10]))
+        if isinstance(trip_date, str) and len(trip_date) >= 10:
+            cash_out_date = trip_date[:10]  # Use trip start date
         else:
             cash_out_date = get_utc_now_str()[:10]
         
@@ -2917,7 +2917,7 @@ async def approve_audit_expense(expense_id: str, approved_by: str, approved_amou
             category="audit_expenses",
             description=f"Audit Expense - {expense.get('emp_name', '')} ({expense.get('trip_purpose', '')})",
             amount=payment_amount,
-            date=cash_out_date,  # Use expense submission date, not approval date
+            date=cash_out_date,  # Use trip start date, not approval date
             reference_id=expense_id,
             reference_type="audit_expense"
         )
