@@ -746,13 +746,13 @@ async def mark_attendance(
     # Determine attendance status and daily duty based on status
     if status == 'present' or status == 'full_day':
         attendance_status = "full_day"
-        daily_duty = round(daily_rate, 4)  # Keep more precision
+        daily_duty = round(daily_rate, 2)  # Round to 2 decimal places
         punch_in = "10:00"
         punch_out = "19:00"
         work_hours = 9.0
     elif status == 'half_day':
         attendance_status = "half_day"
-        daily_duty = round(daily_rate * 0.5, 4)  # Keep more precision
+        daily_duty = round(daily_rate * 0.5, 2)  # Round to 2 decimal places
         punch_in = "10:00"
         punch_out = "14:00"
         work_hours = 4.0
