@@ -234,7 +234,7 @@ const EmployeeAttendance = () => {
   const leaveDays = attendance.filter(a => a.attendance_status === 'leave').length;
   const absentDays = attendance.filter(a => a.attendance_status === 'absent').length;
   const totalConveyance = attendance.reduce((sum, a) => sum + (a.conveyance_amount || 0), 0);
-  const totalDuty = attendance.reduce((sum, a) => sum + (a.daily_duty_amount || 0), 0);
+  const totalDuty = Math.round(attendance.reduce((sum, a) => sum + (a.daily_duty_amount || 0), 0));
 
   if (loading) {
     return <div className="flex items-center justify-center h-64"><Loader2 className="animate-spin" size={32} /></div>;
