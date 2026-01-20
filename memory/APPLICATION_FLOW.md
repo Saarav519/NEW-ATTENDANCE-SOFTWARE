@@ -574,8 +574,12 @@ DAILY DUTY AMOUNT:
 HALF DAY DUTY:
   = Daily Duty Amount × 0.5
 
+AUTO LEAVE ACCRUAL:
+  = 1 leave added after every 24 working days
+
 TOTAL DUTY EARNED:
-  = Sum of all daily_duty_amount for present days
+  = Sum of daily_duty_amount for (Present days + Approved Leave days)
+  (Leaves are PAID - employee gets full day amount)
 
 NET PAY:
   = Total Duty Earned 
