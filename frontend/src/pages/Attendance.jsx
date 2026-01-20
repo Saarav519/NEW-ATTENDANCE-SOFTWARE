@@ -353,11 +353,13 @@ const Attendance = () => {
                       <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ml-2 ${
                         emp.attendance.attendanceStatus === 'full_day' ? 'bg-green-100 text-green-700' :
                         emp.attendance.attendanceStatus === 'half_day' ? 'bg-yellow-100 text-yellow-700' :
+                        emp.attendance.attendanceStatus === 'leave' ? 'bg-blue-100 text-blue-700' :
                         emp.attendance.attendanceStatus === 'absent' ? 'bg-red-100 text-red-700' :
                         'bg-gray-100 text-gray-500'
                       }`}>
                         {emp.attendance.status === 'not-marked' ? 'Not Marked' : 
                          emp.attendance.attendanceStatus === 'half_day' ? 'Half' :
+                         emp.attendance.attendanceStatus === 'leave' ? 'Leave' :
                          emp.attendance.attendanceStatus === 'absent' ? 'Absent' : 'Full'}
                       </span>
                     </div>
