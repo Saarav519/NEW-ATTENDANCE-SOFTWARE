@@ -318,7 +318,7 @@ const AttendanceDetails = () => {
                         <div className="flex items-center gap-1 text-blue-600 font-semibold justify-end">
                           <span className="text-xs text-gray-500 mr-1">Duty:</span>
                           <IndianRupee size={14} />
-                          <span>₹{(record.daily_duty_amount || 0).toLocaleString('en-IN')}</span>
+                          <span>₹{Math.round(record.daily_duty_amount || 0).toLocaleString('en-IN')}</span>
                         </div>
                         {/* Conveyance Amount */}
                         <div className="flex items-center gap-1 mt-1 text-green-600 font-semibold justify-end">
