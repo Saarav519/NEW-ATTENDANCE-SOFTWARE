@@ -4301,7 +4301,7 @@ async def export_cashbook(month: Optional[str] = None, year: Optional[int] = Non
 
 @router.get("/export/invoices")
 async def export_invoices(month: Optional[str] = None, year: Optional[int] = None):
-    """Export invoice details to CSV"""
+    """Export invoice details to CSV with GST and TDS"""
     query = {}
     if month:
         query["month"] = month
@@ -4313,23 +4313,48 @@ async def export_invoices(month: Optional[str] = None, year: Optional[int] = Non
     output = io.StringIO()
     writer = csv.writer(output)
     
+    # Header with GST and TDS columns
     writer.writerow([
         "Invoice Date", "Client Name", "Invoice Number", "Invoice Amount",
+        "GST %", "GST Amount", "TDS %", "TDS Amount",
         "Payment Status", "Amount Received", "Pending Balance", "Has PDF", "Notes"
     ])
     
+    total_invoice = 0
+    total_gst = 0
+    total_tds = 0
+    total_received = 0
+    
     for inv in invoices:
+        gst_amount = inv.get("gst_amount", 0) or 0
+        tds_amount = inv.get("tds_amount", 0) or 0
         writer.writerow([
             inv.get("invoice_date", ""),
             inv.get("client_name", ""),
             inv.get("invoice_number", ""),
             inv.get("invoice_amount", 0),
+            inv.get("gst_percentage", "") or "",
+            gst_amount,
+            inv.get("tds_percentage", "") or "",
+            tds_amount,
             inv.get("payment_status", ""),
             inv.get("amount_received", 0),
             inv.get("pending_balance", 0),
             "Yes" if inv.get("invoice_pdf_url") else "No",
             inv.get("notes", "")
         ])
+        total_invoice += inv.get("invoice_amount", 0)
+        total_gst += gst_amount
+        total_tds += tds_amount
+        total_received += inv.get("amount_received", 0)
+    
+    # Add totals row
+    writer.writerow([])
+    writer.writerow([
+        "TOTALS", "", "", total_invoice,
+        "", total_gst, "", total_tds,
+        "", total_received, "", "", ""
+    ])
     
     output.seek(0)
     period = f"{month}_{year}" if month else f"Year_{year}"
