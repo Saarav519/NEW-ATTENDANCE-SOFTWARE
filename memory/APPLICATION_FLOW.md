@@ -238,24 +238,54 @@ Employee submits advance request
 ```
 Admin approves advance request
 → Advance status = "approved"
-→ Cash Out entry created (category: "advance")
+→ Cash Out entry created (category: "advance", type: "Advance Given")
+→ Amount recorded: ₹5,000 given to employee
 → Notification sent to: Employee
 → Advance marked for deduction in specified month
 → Reflected in:
-  - Cashbook (Cash Out - Advance given)
+  - Cashbook (Cash Out - Advance Given)
   - Employee's approved advances
 ```
 
 ### 5.3 Advance Deducted from Salary
 ```
-When payslip generated for deduction month
-→ System finds approved advances for that month
+When payslip is GENERATED for the deduction month:
+→ System finds approved advances for that month (is_deducted = false)
 → Advance amount deducted from Net Pay
-→ Advance marked as "is_deducted = true"
+→ Advance IDs stored in payslip for tracking
+
+When payslip is SETTLED:
+→ Advances marked as "is_deducted = true"
+→ Deduction completed
+
 → Reflected in:
   - Payslip breakdown (Advance Deduction line)
-  - Payroll calculation
-→ Formula: Net Pay = Earned Salary + Conveyance + Bills - Advance
+  - Payroll calculation (Net Pay reduced)
+  
+→ Formula: Net Pay = Earned Salary + Conveyance + Bills + Audit - Advance
+```
+
+### 5.4 Advance Flow Summary
+```
+ADVANCE APPROVAL:
+─────────────────
+1. Employee requests ₹5,000 advance
+2. Admin approves
+3. Cash Out created: "Advance Given - ₹5,000"
+4. Money given to employee immediately
+
+ADVANCE DEDUCTION (in specified month):
+───────────────────────────────────────
+1. Admin generates payslip for deduction month
+2. System finds approved advances (not yet deducted)
+3. ₹5,000 deducted from Net Pay
+4. When settled: advance marked as "is_deducted = true"
+
+🔑 KEY RULES:
+- Advance is NOT deducted immediately on approval
+- Deduction happens ONLY when payslip is generated
+- Cash Out (Advance Given) recorded at approval time
+- Salary Cash Out is reduced by advance amount
 ```
 
 ---
