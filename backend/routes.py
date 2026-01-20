@@ -1502,6 +1502,9 @@ async def generate_payslip_final(payslip_id: str):
         attendance_conveyance += record.get("conveyance_amount", 0)
         total_duty_earned += record.get("daily_duty_amount", 0)
     
+    # Round total_duty_earned to avoid decimal issues (e.g., 49999.9 -> 50000)
+    total_duty_earned = round(total_duty_earned, 0)
+    
     # Get approved bills for this month
     # Include both 'approved' and 'revalidation' status bills (revalidation bills have partial approved_amount)
     approved_bills = await db.bills.find({
