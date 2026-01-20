@@ -511,5 +511,31 @@ Build a clone of SuperManage application - a staff attendance and payroll manage
 
 ---
 
+## Changelog
+
+### January 20, 2026 (Session 4)
+
+- **CRITICAL BUG FIX**: Payslip Preview Calculation
+  - **Issue**: Preview payslips were showing full salary (₹50,000) even when employee had 0 attendance
+  - **Root Cause**: `generate_payslip()` was calculating Basic/HRA/Special from full salary instead of `total_duty_earned`
+  - **Fix**: Updated calculation to use `total_duty_earned * percentage` for proportional distribution
+  - **Impact**: January 2026 payslip now correctly shows ₹0 Net Pay when employee has 0 attendance
+
+- **VERIFIED**: Payroll Month Mismatch Bug - RESOLVED
+  - December 2025 attendance correctly excluded from January 2026 payslip
+  - Date filtering in attendance queries working correctly
+
+- **VERIFIED**: All Core Financial Features
+  - Leave Accrual: 1 leave per 24 working days ✅
+  - Bill Partial Approval with Revalidation ✅
+  - Advance Approval with Cash Out ✅
+  - Half-Day Attendance Calculation (50% duty) ✅
+  - Cashbook No Double-Counting ✅
+
+- **Testing**: Comprehensive regression test completed (19/19 tests passed)
+  - Test report: `/app/test_reports/iteration_5.json`
+
+---
+
 ## Last Updated
-January 19, 2026 (Session 2)
+January 20, 2026 (Session 4)
