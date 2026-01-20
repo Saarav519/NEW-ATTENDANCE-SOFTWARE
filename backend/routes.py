@@ -888,7 +888,7 @@ async def approve_leave(leave_id: str, approved_by: str):
     days_in_month = monthrange(start_date.year, start_date.month)[1]
     daily_rate = emp_salary / days_in_month  # Daily rate based on actual days in month
     full_day_duty = round(daily_rate, 2)
-    full_conveyance = 200  # Default full day conveyance
+    leave_conveyance = 0  # NO conveyance on leave days - only duty amount
     
     # Update all attendance records within the leave date range
     current_date = start_date
@@ -908,7 +908,7 @@ async def approve_leave(leave_id: str, approved_by: str):
                 {"$set": {
                     "status": "leave",
                     "attendance_status": "leave",
-                    "conveyance_amount": full_conveyance,
+                    "conveyance_amount": leave_conveyance,  # No conveyance on leave
                     "daily_duty_amount": full_day_duty
                 }}
             )
@@ -925,7 +925,7 @@ async def approve_leave(leave_id: str, approved_by: str):
                 "work_hours": 0,
                 "qr_code_id": None,
                 "location": None,
-                "conveyance_amount": full_conveyance,
+                "conveyance_amount": leave_conveyance,  # No conveyance on leave
                 "daily_duty_amount": full_day_duty,
                 "shift_type": "day",
                 "shift_start": "10:00",
