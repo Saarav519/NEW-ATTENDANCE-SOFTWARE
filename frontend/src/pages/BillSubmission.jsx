@@ -692,7 +692,7 @@ const BillSubmission = () => {
                                 setAdditionalAmount(bill.remaining_balance || 0);
                               }}
                             >
-                              <RefreshCw size={14} className="mr-1" /> Revalidate
+                              <RefreshCw size={14} className="mr-1" /> Approve Remaining
                             </Button>
                             <Button
                               size="sm"
@@ -702,6 +702,27 @@ const BillSubmission = () => {
                             >
                               <X size={14} className="mr-1" /> Reject Remaining
                             </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Employee view of Revalidation Bills */}
+                      {!isAdmin && bill.status === 'revalidation' && bill.emp_id === user?.id && (
+                        <div className="mt-3 pt-3 border-t">
+                          <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                            <div className="flex items-center gap-2 text-orange-700 font-medium mb-2">
+                              <AlertCircle size={16} />
+                              <span>Revalidation Required</span>
+                            </div>
+                            <p className="text-sm text-orange-600">
+                              ₹{bill.approved_amount?.toLocaleString()} has been approved and added to your payslip.
+                            </p>
+                            <p className="text-sm text-orange-600 mt-1">
+                              Remaining ₹{bill.remaining_balance?.toLocaleString()} is pending admin review for final approval.
+                            </p>
+                            <p className="text-xs text-gray-500 mt-2">
+                              Contact admin if you have additional documents or justification for the remaining amount.
+                            </p>
                           </div>
                         </div>
                       )}
