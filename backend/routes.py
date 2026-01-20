@@ -4502,9 +4502,6 @@ async def create_historical_emi_entries(
     Calculates all EMI dates from loan start to today and creates entries for each.
     Returns the number of historical EMIs created.
     """
-    from datetime import datetime
-    from dateutil.relativedelta import relativedelta
-    
     # Parse loan start date
     try:
         start_date = datetime.strptime(loan_start_date, "%Y-%m-%d")
