@@ -38,7 +38,7 @@ function App() {
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="employees" element={<Employees />} />
-            <Route path="attendance/:empId" element={<EmployeeAttendance />} />
+            <Route path="employee-attendance/:empId" element={<EmployeeAttendance />} />
             <Route path="attendance" element={<Attendance />} />
             <Route path="my-attendance" element={<MyAttendance />} />
             <Route path="attendance-details" element={<AttendanceDetails />} />
