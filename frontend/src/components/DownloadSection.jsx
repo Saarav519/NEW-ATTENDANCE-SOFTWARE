@@ -9,7 +9,7 @@ const DownloadSection = () => {
           {/* Text Content */}
           <div className="flex-1 text-center lg:text-left">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Download SuperManage Today!
+              Download Audix Solutions Today!
             </h2>
             <p className="text-xl text-gray-600 mb-8">
               Smart management for your business.
