@@ -25,7 +25,6 @@ import Reports from "./pages/Reports";
 import Profile from "./pages/Profile";
 import ShiftTemplates from "./pages/ShiftTemplates";
 import AuditExpenses from "./pages/AuditExpenses";
-
 import EmployeeAttendance from "./pages/EmployeeAttendance";
 
 function App() {
@@ -34,13 +33,13 @@ function App() {
       <NotificationProvider>
         <Toaster />
         <Routes>
-          <Route path="/login" element={<Login />} />
+          <Route path="login" element={<Login />} />
           <Route path="/" element={<MainLayout />}>
-            <Route index element={<Navigate to="/attendance/dashboard" replace />} />
+            <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="employees" element={<Employees />} />
             <Route path="attendance/:empId" element={<EmployeeAttendance />} />
-            <Route path="attendance" element={<Attendance />} />
+            <Route path="attendance-tracking" element={<Attendance />} />
             <Route path="my-attendance" element={<MyAttendance />} />
             <Route path="attendance-details" element={<AttendanceDetails />} />
             <Route path="team" element={<Team />} />
@@ -58,7 +57,6 @@ function App() {
             <Route path="profile" element={<Profile />} />
             <Route path="shift-templates" element={<ShiftTemplates />} />
           </Route>
-          <Route path="*" element={<Navigate to="/attendance/dashboard" replace />} />
         </Routes>
       </NotificationProvider>
     </AuthProvider>
