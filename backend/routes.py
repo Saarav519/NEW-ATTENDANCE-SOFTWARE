@@ -1379,6 +1379,20 @@ async def get_settled_payslips(emp_id: str):
 
 @router.post("/payslips/generate", response_model=PayslipResponse)
 async def generate_payslip(data: PayslipCreate):
+    # Check for bills in revalidation status - Block payslip generation
+    revalidation_bills = await db.bills.find({
+        "emp_id": data.emp_id,
+        "month": data.month,
+        "year": data.year,
+        "status": "revalidation"
+    }).to_list(100)
+    
+    if revalidation_bills:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Revalidation Pending: Cannot generate payslip. Employee has {len(revalidation_bills)} bill(s) pending revalidation for {data.month} {data.year}. Please resolve all revalidation requests before generating payslip."
+        )
+    
     # Get user details
     user = await db.users.find_one({"id": data.emp_id}, {"_id": 0})
     if not user:
