@@ -240,7 +240,7 @@ const Team = () => {
                       <Button 
                         size="sm" 
                         variant="outline" 
-                        onClick={() => navigate(`/attendance/${member.id}`)}
+                        onClick={() => navigate(`/attendance/employee-attendance/${member.id}`)}
                         className="text-blue-600 border-blue-200 hover:bg-blue-50 flex-shrink-0 text-xs"
                       >
                         <Calendar size={14} className="mr-1" /> View
@@ -248,7 +248,7 @@ const Team = () => {
                       <Button 
                         size="sm" 
                         variant="outline" 
-                        onClick={() => navigate(`/payslip/${member.id}`)}
+                        onClick={() => navigate(`/attendance/payslip/${member.id}`)}
                         className="text-green-600 border-green-200 hover:bg-green-50 flex-shrink-0 text-xs"
                       >
                         <IndianRupee size={14} className="mr-1" /> Payslip
@@ -268,21 +268,21 @@ const Team = () => {
           <h3 className="font-semibold text-gray-800 mb-3">Quick Actions</h3>
           <div className="space-y-2">
             <button
-              onClick={() => navigate('/team-attendance')}
+              onClick={() => navigate('/attendance/team-attendance')}
               className="w-full flex items-center justify-between p-3 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
             >
               <span className="font-medium text-blue-700">View Team Attendance</span>
               <ChevronRight size={18} className="text-blue-500" />
             </button>
             <button
-              onClick={() => navigate('/leaves')}
+              onClick={() => navigate('/attendance/leaves')}
               className="w-full flex items-center justify-between p-3 bg-orange-50 rounded-xl hover:bg-orange-100 transition-colors"
             >
               <span className="font-medium text-orange-700">Manage Leave Requests</span>
               <ChevronRight size={18} className="text-orange-500" />
             </button>
             <button
-              onClick={() => navigate('/bills')}
+              onClick={() => navigate('/attendance/bills')}
               className="w-full flex items-center justify-between p-3 bg-purple-50 rounded-xl hover:bg-purple-100 transition-colors"
             >
               <span className="font-medium text-purple-700">Review Bill Submissions</span>
