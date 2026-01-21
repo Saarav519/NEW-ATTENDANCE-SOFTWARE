@@ -16,7 +16,7 @@ const Login = () => {
   const navigate = useNavigate();
 
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/attendance/dashboard" replace />;
   }
 
   const handleSubmit = async (e) => {
@@ -27,7 +27,7 @@ const Login = () => {
     const result = await login(userId, password);
     
     if (result.success) {
-      navigate('/dashboard');
+      navigate('/attendance/dashboard', { replace: true });
     } else {
       setError(result.error);
     }
