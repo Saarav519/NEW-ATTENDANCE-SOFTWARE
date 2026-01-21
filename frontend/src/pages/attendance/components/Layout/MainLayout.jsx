@@ -47,7 +47,7 @@ const MainLayout = () => {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/attendance/login" replace />;
   }
 
   const handleLogout = () => {
