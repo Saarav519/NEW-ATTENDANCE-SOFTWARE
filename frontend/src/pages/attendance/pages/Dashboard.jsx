@@ -322,7 +322,7 @@ const EmployeeDashboard = ({ user }) => {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-3 gap-3">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/my-attendance')}>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/attendance/my-attendance')}>
           <CardContent className="p-3 text-center">
             <div className="w-10 h-10 mx-auto mb-2 bg-blue-100 rounded-xl flex items-center justify-center">
               <Calendar size={20} className="text-blue-600" />
@@ -331,7 +331,7 @@ const EmployeeDashboard = ({ user }) => {
             <p className="text-[10px] text-gray-500">Present Days</p>
           </CardContent>
         </Card>
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/leaves')}>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/attendance/leaves')}>
           <CardContent className="p-3 text-center">
             <div className="w-10 h-10 mx-auto mb-2 bg-orange-100 rounded-xl flex items-center justify-center">
               <CalendarOff size={20} className="text-orange-600" />
@@ -340,7 +340,7 @@ const EmployeeDashboard = ({ user }) => {
             <p className="text-[10px] text-gray-500">Pending Leaves</p>
           </CardContent>
         </Card>
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/bills')}>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/attendance/bills')}>
           <CardContent className="p-3 text-center">
             <div className="w-10 h-10 mx-auto mb-2 bg-purple-100 rounded-xl flex items-center justify-center">
               <Receipt size={20} className="text-purple-600" />
@@ -356,7 +356,7 @@ const EmployeeDashboard = ({ user }) => {
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-800">Attendance Details</h3>
-            <button onClick={() => navigate('/attendance-details')} className="text-xs text-[#1E2A5E] flex items-center">
+            <button onClick={() => navigate('/attendance/attendance-details')} className="text-xs text-[#1E2A5E] flex items-center">
               View All <ChevronRight size={14} />
             </button>
           </div>
