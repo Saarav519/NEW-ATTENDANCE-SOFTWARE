@@ -1288,13 +1288,26 @@ async def generate_payslip(data: PayslipCreate):
     if not user:
         raise HTTPException(status_code=404, detail="Employee not found")
     
-    # Calculate salary breakdown
-    # Salary = Basic + HRA + Special Allowance (total = 100% of salary)
+    # Get salary type (daily or monthly)
+    salary_type = user.get("salary_type", "monthly")
     total_salary = user.get("salary", 0)
-    basic = round(total_salary * 0.60, 2)  # 60% of salary
-    hra = round(total_salary * 0.24, 2)  # 24% of salary  
-    special_allowance = round(total_salary * 0.16, 2)  # 16% of salary  
-    # Note: basic + hra + special_allowance = 100% of salary = ₹50,000
+    
+    # Calculate salary breakdown based on salary type
+    if salary_type == "daily":
+        # For daily wage employees:
+        # - salary field is the daily rate
+        # - No breakdown into Basic/HRA/Special - just daily rate * days worked
+        daily_rate = total_salary
+        basic = 0  # Not applicable for daily wage
+        hra = 0
+        special_allowance = 0
+    else:
+        # For monthly employees:
+        # Salary = Basic + HRA + Special Allowance (total = 100% of salary)
+        basic = round(total_salary * 0.60, 2)  # 60% of salary
+        hra = round(total_salary * 0.24, 2)  # 24% of salary  
+        special_allowance = round(total_salary * 0.16, 2)  # 16% of salary  
+        # Note: basic + hra + special_allowance = 100% of salary = ₹50,000
     
     # Get approved bills for this month (Extra Conveyance / Reimbursements)
     # Include both 'approved' and 'revalidation' status bills (revalidation bills have partial approved_amount)
