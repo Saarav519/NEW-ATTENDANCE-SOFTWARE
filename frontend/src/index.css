@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import attendance system styles */
+@import './pages/attendance/index.css';
+
 body {
     margin: 0;
     font-family:
