@@ -1126,10 +1126,55 @@ async def get_bills(
     bills = await db.bills.find(query, {"_id": 0}).to_list(1000)
     return bills
 
+@router.put("/bills/{bill_id}/tl-approve")
+async def team_lead_approve_bill(bill_id: str, approved_by: str):
+    """
+    Team Leader pre-approval for bill.
+    Bill still needs final Admin approval to move to Cash Out.
+    """
+    bill = await db.bills.find_one({"id": bill_id}, {"_id": 0})
+    if not bill:
+        raise HTTPException(status_code=404, detail="Bill not found")
+    
+    if bill.get("status") != "pending":
+        raise HTTPException(status_code=400, detail="Only pending bills can be pre-approved")
+    
+    result = await db.bills.update_one(
+        {"id": bill_id},
+        {"$set": {
+            "status": "tl_approved",
+            "tl_approved_by": approved_by,
+            "tl_approved_on": get_utc_now_str()[:10]
+        }}
+    )
+    
+    # Notify admins about TL approval
+    await create_notification(
+        recipient_id="",
+        recipient_role="admin",
+        title="Bill Pre-Approved by Team Leader",
+        message=f"Bill of ₹{bill.get('total_amount', 0)} for {bill.get('emp_name', '')} has been pre-approved by Team Leader. Awaiting final Admin approval.",
+        notification_type="bill",
+        related_id=bill_id,
+        data={"action": "tl_approved", "tl_approved_by": approved_by}
+    )
+    
+    # Notify employee
+    await create_notification(
+        recipient_id=bill["emp_id"],
+        title="Bill Pre-Approved by Team Leader",
+        message=f"Your bill of ₹{bill.get('total_amount', 0)} has been pre-approved by your Team Leader. Awaiting final Admin approval.",
+        notification_type="bill",
+        related_id=bill_id,
+        data={"action": "tl_approved"}
+    )
+    
+    return {"message": "Bill pre-approved by Team Leader. Awaiting Admin approval.", "status": "tl_approved"}
+
 @router.put("/bills/{bill_id}/approve")
 async def approve_bill(bill_id: str, approved_by: str, approved_amount: float, send_to_revalidation: bool = False):
     """
-    Approve bill with partial amount support.
+    Approve bill with partial amount support (Admin only).
     If approved_amount < total_amount and send_to_revalidation=True, 
     bill goes to 'revalidation' status for remaining amount.
     Cash Out is ALWAYS created for approved amount.
@@ -1149,6 +1194,12 @@ async def approve_bill(bill_id: str, approved_by: str, approved_amount: float, s
         new_status = BillStatus.APPROVED
         message = f"Bill approved for ₹{approved_amount}"
     
+    # Include TL approval info if present
+    tl_info = {}
+    if bill.get("tl_approved_by"):
+        tl_info["tl_approved_by"] = bill.get("tl_approved_by")
+        tl_info["tl_approved_on"] = bill.get("tl_approved_on")
+    
     result = await db.bills.update_one(
         {"id": bill_id},
         {"$set": {
@@ -1156,15 +1207,17 @@ async def approve_bill(bill_id: str, approved_by: str, approved_amount: float, s
             "approved_by": approved_by,
             "approved_amount": approved_amount,
             "remaining_balance": remaining_balance,
-            "approved_on": get_utc_now_str()[:10]
+            "approved_on": get_utc_now_str()[:10],
+            **tl_info
         }}
     )
     
     # Notify employee
+    tl_note = f" (Pre-approved by Team Leader: {bill.get('tl_approved_by', '')})" if bill.get("tl_approved_by") else ""
     await create_notification(
         recipient_id=bill["emp_id"],
         title="Bill Partially Approved" if send_to_revalidation else "Bill Approved",
-        message=f"Your bill of ₹{total_amount} for {bill['month']} has been approved (₹{approved_amount})" + 
+        message=f"Your bill of ₹{total_amount} for {bill['month']} has been approved (₹{approved_amount}){tl_note}" + 
                 (f". Remaining ₹{remaining_balance} needs revalidation." if send_to_revalidation else ""),
         notification_type="bill",
         related_id=bill_id,
