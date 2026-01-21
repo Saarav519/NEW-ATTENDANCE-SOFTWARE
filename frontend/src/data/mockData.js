@@ -1,10 +1,10 @@
-// Mock Data for SuperManage App
+// Mock Data for Audix Solutions App
 
 // Business Info
 export const businessInfo = {
   id: "1",
-  name: "Audix Solutions & Co.",
-  type: "Information Technology",
+  name: "Audix Solutions",
+  type: "Staff Management",
   email: "admin@audixsolutions.com",
   phone: "+91 98765 43210",
   address: "Bangalore, India",
