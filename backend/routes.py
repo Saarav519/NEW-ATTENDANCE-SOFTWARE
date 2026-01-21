@@ -2078,55 +2078,237 @@ async def settle_payslip(payslip_id: str):
 
 @router.get("/payslips/{payslip_id}/download")
 async def download_payslip(payslip_id: str):
-    """Generate and download payslip as PDF"""
+    """Generate and download payslip as PDF with company branding"""
     from fastapi.responses import Response
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.units import inch, cm
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
+    import io
     
     payslip = await db.payslips.find_one({"id": payslip_id}, {"_id": 0})
     if not payslip:
         raise HTTPException(status_code=404, detail="Payslip not found")
     
-    # Generate PDF content (simple text-based PDF)
-    # In production, use a proper PDF library like reportlab
     breakdown = payslip.get("breakdown", {})
     
-    pdf_content = f"""
-    PAYSLIP - {payslip['month']} {payslip['year']}
-    =========================================
+    # Create PDF buffer
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=0.5*inch, bottomMargin=0.5*inch)
     
-    Employee: {payslip['emp_name']}
-    Employee ID: {payslip['emp_id']}
+    styles = getSampleStyleSheet()
     
-    EARNINGS:
-    ---------
-    Basic Salary:      ₹{breakdown.get('basic', 0):,.2f}
-    HRA:               ₹{breakdown.get('hra', 0):,.2f}
-    Special Allowance: ₹{breakdown.get('special_allowance', 0):,.2f}
-    Conveyance:        ₹{breakdown.get('conveyance', 0):,.2f}
-    Extra Conveyance:  ₹{breakdown.get('extra_conveyance', 0):,.2f}
+    # Custom styles
+    company_style = ParagraphStyle(
+        'CompanyName',
+        parent=styles['Heading1'],
+        fontSize=24,
+        alignment=TA_CENTER,
+        textColor=colors.HexColor('#1E2A5E'),
+        spaceAfter=6
+    )
     
-    ADJUSTMENTS:
-    ------------
-    Leave Adjustment:  ₹{breakdown.get('leave_adjustment', 0):,.2f}
+    title_style = ParagraphStyle(
+        'PayslipTitle',
+        parent=styles['Heading2'],
+        fontSize=16,
+        alignment=TA_CENTER,
+        textColor=colors.HexColor('#333333'),
+        spaceAfter=20
+    )
     
-    DEDUCTIONS:
-    -----------
-    PF & Tax:          ₹{breakdown.get('deductions', 0):,.2f}
+    section_style = ParagraphStyle(
+        'Section',
+        parent=styles['Heading3'],
+        fontSize=12,
+        textColor=colors.HexColor('#1E2A5E'),
+        spaceBefore=15,
+        spaceAfter=8
+    )
     
-    =========================================
-    NET PAY:           ₹{breakdown.get('net_pay', 0):,.2f}
-    =========================================
+    normal_style = ParagraphStyle(
+        'Normal',
+        parent=styles['Normal'],
+        fontSize=10,
+        spaceAfter=4
+    )
     
-    Status: {payslip['status']}
-    Generated: {payslip.get('created_on', '')}
+    signature_style = ParagraphStyle(
+        'Signature',
+        parent=styles['Normal'],
+        fontSize=10,
+        alignment=TA_RIGHT,
+        spaceBefore=30
+    )
     
-    Audix Solutions & Co.
-    """
+    elements = []
+    
+    # Company Logo (if exists)
+    logo_path = "/app/backend/uploads/company_logo.png"
+    if os.path.exists(logo_path):
+        try:
+            logo = Image(logo_path, width=1.5*inch, height=1.5*inch)
+            logo.hAlign = 'CENTER'
+            elements.append(logo)
+            elements.append(Spacer(1, 10))
+        except:
+            pass
+    
+    # Company Name
+    elements.append(Paragraph("AUDIX SOLUTIONS & CO.", company_style))
+    elements.append(Paragraph("Chartered Accountants", styles['Normal']))
+    elements.append(Spacer(1, 10))
+    
+    # Payslip Title with Month and Year
+    elements.append(Paragraph(f"Payslip – {payslip['month']} – {payslip['year']}", title_style))
+    
+    # Employee Details Table
+    emp_data = [
+        ['Employee Name:', payslip['emp_name'], 'Employee ID:', payslip['emp_id']],
+        ['Department:', payslip.get('department', 'Operations'), 'Designation:', payslip.get('designation', 'Staff')],
+    ]
+    
+    emp_table = Table(emp_data, colWidths=[1.5*inch, 2*inch, 1.5*inch, 2*inch])
+    emp_table.setStyle(TableStyle([
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (2, 0), (2, -1), 'Helvetica-Bold'),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#1E2A5E')),
+        ('TEXTCOLOR', (2, 0), (2, -1), colors.HexColor('#1E2A5E')),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(emp_table)
+    elements.append(Spacer(1, 20))
+    
+    # Earnings and Deductions Table
+    earnings_data = [
+        ['EARNINGS', '', 'DEDUCTIONS', ''],
+        ['Basic Salary', f"₹{breakdown.get('basic', 0):,.2f}", 'PF & Tax', f"₹{breakdown.get('deductions', 0):,.2f}"],
+        ['HRA', f"₹{breakdown.get('hra', 0):,.2f}", '', ''],
+        ['Special Allowance', f"₹{breakdown.get('special_allowance', 0):,.2f}", '', ''],
+        ['Conveyance', f"₹{breakdown.get('conveyance', 0):,.2f}", '', ''],
+        ['Extra Conveyance (Bills)', f"₹{breakdown.get('extra_conveyance', 0):,.2f}", '', ''],
+    ]
+    
+    # Add leave adjustment if exists
+    leave_adj = breakdown.get('leave_adjustment', 0)
+    if leave_adj != 0:
+        earnings_data.append(['Leave Adjustment', f"₹{leave_adj:,.2f}", '', ''])
+    
+    # Add advance deduction if exists
+    advance_ded = breakdown.get('advance_deduction', 0)
+    if advance_ded > 0:
+        earnings_data[1][2] = 'PF & Tax'
+        earnings_data[1][3] = f"₹{breakdown.get('deductions', 0):,.2f}"
+        earnings_data.append(['', '', 'Advance Deduction', f"₹{advance_ded:,.2f}"])
+    
+    fin_table = Table(earnings_data, colWidths=[2*inch, 1.5*inch, 2*inch, 1.5*inch])
+    fin_table.setStyle(TableStyle([
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('BACKGROUND', (0, 0), (1, 0), colors.HexColor('#E8F4E8')),
+        ('BACKGROUND', (2, 0), (3, 0), colors.HexColor('#FEE8E8')),
+        ('TEXTCOLOR', (0, 0), (1, 0), colors.HexColor('#2E7D32')),
+        ('TEXTCOLOR', (2, 0), (3, 0), colors.HexColor('#C62828')),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+        ('ALIGN', (3, 0), (3, -1), 'RIGHT'),
+    ]))
+    elements.append(fin_table)
+    elements.append(Spacer(1, 20))
+    
+    # Net Pay
+    net_pay_data = [
+        ['NET PAY', f"₹{breakdown.get('net_pay', 0):,.2f}"]
+    ]
+    net_table = Table(net_pay_data, colWidths=[5.5*inch, 1.5*inch])
+    net_table.setStyle(TableStyle([
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 14),
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#1E2A5E')),
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.white),
+        ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+        ('TOPPADDING', (0, 0), (-1, -1), 12),
+    ]))
+    elements.append(net_table)
+    elements.append(Spacer(1, 30))
+    
+    # Attendance Summary
+    elements.append(Paragraph("Attendance Summary", section_style))
+    att_data = [
+        ['Full Days', str(breakdown.get('full_days', 0)), 'Half Days', str(breakdown.get('half_days', 0))],
+        ['Leave Days', str(breakdown.get('leave_days', 0)), 'Absent Days', str(breakdown.get('absent_days', 0))],
+    ]
+    att_table = Table(att_data, colWidths=[1.5*inch, 1.5*inch, 1.5*inch, 1.5*inch])
+    att_table.setStyle(TableStyle([
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (2, 0), (2, -1), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+    ]))
+    elements.append(att_table)
+    elements.append(Spacer(1, 40))
+    
+    # Signature Section
+    sig_data = [
+        ['', 'For Audix Solutions & Co.'],
+        ['', ''],
+        ['', ''],
+    ]
+    
+    # Add accountant signature if exists
+    sign_path = "/app/backend/uploads/accountant_sign.png"
+    if os.path.exists(sign_path):
+        try:
+            sig_img = Image(sign_path, width=1.5*inch, height=0.8*inch)
+            sig_data[1] = ['', sig_img]
+        except:
+            pass
+    
+    sig_data.append(['', 'Authorized Signatory'])
+    
+    sig_table = Table(sig_data, colWidths=[4*inch, 3*inch])
+    sig_table.setStyle(TableStyle([
+        ('ALIGN', (1, 0), (1, -1), 'CENTER'),
+        ('FONTNAME', (1, 0), (1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (1, -1), (1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+    ]))
+    elements.append(sig_table)
+    
+    # Footer
+    elements.append(Spacer(1, 20))
+    footer_style = ParagraphStyle(
+        'Footer',
+        parent=styles['Normal'],
+        fontSize=8,
+        alignment=TA_CENTER,
+        textColor=colors.grey
+    )
+    elements.append(Paragraph("This is a computer-generated payslip. No signature required.", footer_style))
+    elements.append(Paragraph(f"Generated on: {payslip.get('created_on', '')}", footer_style))
+    
+    # Build PDF
+    doc.build(elements)
+    buffer.seek(0)
     
     return Response(
-        content=pdf_content.encode(),
-        media_type="text/plain",
+        content=buffer.getvalue(),
+        media_type="application/pdf",
         headers={
-            "Content-Disposition": f"attachment; filename=payslip_{payslip['emp_id']}_{payslip['month']}_{payslip['year']}.txt"
+            "Content-Disposition": f"attachment; filename=payslip_{payslip['emp_id']}_{payslip['month']}_{payslip['year']}.pdf"
         }
     )
 
