@@ -33,7 +33,7 @@ const DownloadSection = () => {
               </a>
 
               <a
-                href="https://apps.apple.com/in/app/SuperManage-attendance-manager/id6475690882"
+                href="https://apps.apple.com/in/app/audix-solutions-attendance/id6475690882"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-3 bg-black text-white px-6 py-3 rounded-xl hover:bg-gray-800 transition-all hover:scale-105 shadow-lg"
