@@ -1014,7 +1014,7 @@ const AdminDashboard = ({ user }) => {
           <CardContent className="p-4 lg:p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">Today&apos;s Attendance</h3>
-              <button onClick={() => navigate('/attendance')} className="text-sm text-[#1E2A5E] flex items-center">
+              <button onClick={() => navigate('/attendance/attendance')} className="text-sm text-[#1E2A5E] flex items-center">
                 View All <ArrowRight size={14} className="ml-1" />
               </button>
             </div>
@@ -1051,7 +1051,7 @@ const AdminDashboard = ({ user }) => {
             <h3 className="text-lg font-semibold mb-4">Pending Approvals</h3>
             <div className="space-y-3">
               <div 
-                onClick={() => navigate('/leaves')}
+                onClick={() => navigate('/attendance/leaves')}
                 className="flex items-center justify-between p-4 bg-yellow-50 rounded-xl cursor-pointer hover:bg-yellow-100 transition-colors"
               >
                 <div className="flex items-center gap-3">
@@ -1063,7 +1063,7 @@ const AdminDashboard = ({ user }) => {
                 <span className="bg-yellow-500 text-white text-sm px-3 py-1 rounded-full font-bold">{stats.pendingLeaves}</span>
               </div>
               <div 
-                onClick={() => navigate('/bills')}
+                onClick={() => navigate('/attendance/bills')}
                 className="flex items-center justify-between p-4 bg-blue-50 rounded-xl cursor-pointer hover:bg-blue-100 transition-colors"
               >
                 <div className="flex items-center gap-3">
@@ -1075,7 +1075,7 @@ const AdminDashboard = ({ user }) => {
                 <span className="bg-blue-500 text-white text-sm px-3 py-1 rounded-full font-bold">{stats.pendingBills}</span>
               </div>
               <div 
-                onClick={() => navigate('/advances')}
+                onClick={() => navigate('/attendance/advances')}
                 className="flex items-center justify-between p-4 bg-purple-50 rounded-xl cursor-pointer hover:bg-purple-100 transition-colors"
               >
                 <div className="flex items-center gap-3">
