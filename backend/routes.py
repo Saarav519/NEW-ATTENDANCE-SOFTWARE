@@ -1652,6 +1652,20 @@ async def generate_payslip_final(payslip_id: str):
     month = payslip.get("month")
     year = payslip.get("year")
     
+    # Check for bills in revalidation status - Block payslip generation
+    revalidation_bills = await db.bills.find({
+        "emp_id": emp_id,
+        "month": month,
+        "year": year,
+        "status": "revalidation"
+    }).to_list(100)
+    
+    if revalidation_bills:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Revalidation Pending: Cannot generate payslip. Employee has {len(revalidation_bills)} bill(s) pending revalidation for {month} {year}. Please resolve all revalidation requests before generating payslip."
+        )
+    
     # Get user details
     user = await db.users.find_one({"id": emp_id}, {"_id": 0})
     if not user:
