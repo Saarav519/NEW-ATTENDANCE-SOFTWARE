@@ -449,7 +449,7 @@ const EmployeeDashboard = ({ user }) => {
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-gray-800">Upcoming Holidays</h3>
-            <button onClick={() => navigate('/holidays')} className="text-xs text-[#1E2A5E] flex items-center">
+            <button onClick={() => navigate('/attendance/holidays')} className="text-xs text-[#1E2A5E] flex items-center">
               View All <ChevronRight size={14} />
             </button>
           </div>
@@ -864,7 +864,7 @@ const TeamLeadDashboard = ({ user }) => {
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-gray-800">Upcoming Holidays</h3>
-            <button onClick={() => navigate('/holidays')} className="text-xs text-[#1E2A5E] flex items-center">
+            <button onClick={() => navigate('/attendance/holidays')} className="text-xs text-[#1E2A5E] flex items-center">
               View All <ChevronRight size={14} />
             </button>
           </div>
