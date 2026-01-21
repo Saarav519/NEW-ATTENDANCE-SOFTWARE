@@ -1,0 +1,98 @@
+.App-logo {
+    height: 40vmin;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .App-logo {
+        animation: App-logo-spin infinite 20s linear;
+    }
+}
+
+.App-header {
+    background-color: #0f0f10;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(10px + 2vmin);
+    color: white;
+}
+
+.App-link {
+    color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Hide Emergent badge on inner pages (when logged in) */
+/* The badge should only show on login page */
+body.hide-emergent-badge #emergent-badge {
+    display: none !important;
+}
+
+/* Mobile View Fixes for Team Leader & Employee */
+@media (max-width: 640px) {
+    /* Attendance card mobile fixes */
+    .attendance-mobile-card {
+        padding: 12px !important;
+    }
+    
+    /* Fix button overflow in attendance cards */
+    .attendance-buttons-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    
+    .attendance-buttons-row button {
+        flex: 1 1 auto;
+        min-width: 50px;
+        padding: 6px 8px !important;
+        font-size: 11px !important;
+    }
+    
+    /* Fix remarks and input box overlap */
+    .mobile-input-container {
+        width: 100%;
+    }
+    
+    .mobile-input-container input,
+    .mobile-input-container textarea {
+        width: 100% !important;
+        font-size: 14px !important;
+    }
+    
+    /* Fix dialog/modal sizing on mobile */
+    [role="dialog"] {
+        max-width: 95vw !important;
+        margin: 8px !important;
+        max-height: 90vh !important;
+        overflow-y: auto !important;
+    }
+    
+    /* Fix select dropdowns on mobile */
+    [role="listbox"] {
+        max-height: 200px !important;
+        overflow-y: auto !important;
+    }
+    
+    /* Compact stats cards on mobile */
+    .stats-grid-mobile {
+        gap: 8px !important;
+    }
+    
+    /* Fix table header overlap on mobile */
+    .mobile-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
