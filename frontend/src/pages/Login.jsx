@@ -150,7 +150,7 @@ const Login = () => {
         </div>
 
         <p className="text-center text-gray-400 text-xs mt-4">
-          © 2025 SuperManage. All rights reserved.
+          © 2025 Audix Solutions. All rights reserved.
         </p>
       </div>
     </div>
