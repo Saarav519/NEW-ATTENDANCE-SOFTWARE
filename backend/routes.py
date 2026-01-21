@@ -2114,151 +2114,15 @@ async def seed_database():
     
     # Seed holidays
     holidays = [
-        {"id": "HOL001", "name": "New Year", "date": "2025-01-01", "type": "National"},
-        {"id": "HOL002", "name": "Republic Day", "date": "2025-01-26", "type": "National"},
-        {"id": "HOL003", "name": "Holi", "date": "2025-03-14", "type": "Festival"},
-        {"id": "HOL004", "name": "Independence Day", "date": "2025-08-15", "type": "National"},
-        {"id": "HOL005", "name": "Diwali", "date": "2025-10-20", "type": "Festival"},
-        {"id": "HOL006", "name": "Christmas", "date": "2025-12-25", "type": "Festival"},
+        {"id": "HOL001", "name": "New Year", "date": "2026-01-01", "type": "National"},
+        {"id": "HOL002", "name": "Republic Day", "date": "2026-01-26", "type": "National"},
+        {"id": "HOL003", "name": "Holi", "date": "2026-03-14", "type": "Festival"},
+        {"id": "HOL004", "name": "Independence Day", "date": "2026-08-15", "type": "National"},
+        {"id": "HOL005", "name": "Diwali", "date": "2026-10-20", "type": "Festival"},
+        {"id": "HOL006", "name": "Christmas", "date": "2026-12-25", "type": "Festival"},
     ]
     
     await db.holidays.insert_many(holidays)
-    
-    # Seed some settled payslips for demo (Employees and Team Leads)
-    settled_payslips = [
-        # Employee payslips
-        {
-            "id": "PAY001",
-            "emp_id": "EMP001",
-            "emp_name": "Rahul Kumar",
-            "month": "November",
-            "year": 2025,
-            "breakdown": {
-                "basic": 50000,
-                "hra": 20000,
-                "special_allowance": 7500,
-                "conveyance": 1600,
-                "leave_adjustment": 0,
-                "extra_conveyance": 2000,
-                "previous_pending_allowances": 0,
-                "gross_pay": 81100,
-                "deductions": 0,
-                "net_pay": 81100
-            },
-            "status": "settled",
-            "created_on": "2025-11-30",
-            "paid_on": "2025-12-01",
-            "settled_on": "2025-12-01"
-        },
-        {
-            "id": "PAY002",
-            "emp_id": "EMP001",
-            "emp_name": "Rahul Kumar",
-            "month": "October",
-            "year": 2025,
-            "breakdown": {
-                "basic": 50000,
-                "hra": 20000,
-                "special_allowance": 7500,
-                "conveyance": 1600,
-                "leave_adjustment": -1666.67,
-                "extra_conveyance": 1500,
-                "previous_pending_allowances": 0,
-                "gross_pay": 80600,
-                "deductions": 0,
-                "net_pay": 78933.33
-            },
-            "status": "settled",
-            "created_on": "2025-10-31",
-            "paid_on": "2025-11-01",
-            "settled_on": "2025-11-01"
-        },
-        # Team Lead TL001 payslips
-        {
-            "id": "PAY003",
-            "emp_id": "TL001",
-            "emp_name": "Rajesh Verma",
-            "month": "November",
-            "year": 2025,
-            "breakdown": {
-                "basic": 85000,
-                "hra": 34000,
-                "special_allowance": 12750,
-                "conveyance": 2400,
-                "leave_adjustment": 0,
-                "extra_conveyance": 1000,
-                "previous_pending_allowances": 0,
-                "full_days": 22,
-                "half_days": 0,
-                "absent_days": 0,
-                "attendance_adjustment": 0,
-                "gross_pay": 135150,
-                "deductions": 0,
-                "net_pay": 135150
-            },
-            "status": "settled",
-            "created_on": "2025-11-30",
-            "paid_on": "2025-12-01",
-            "settled_on": "2025-12-01"
-        },
-        {
-            "id": "PAY004",
-            "emp_id": "TL001",
-            "emp_name": "Rajesh Verma",
-            "month": "October",
-            "year": 2025,
-            "breakdown": {
-                "basic": 85000,
-                "hra": 34000,
-                "special_allowance": 12750,
-                "conveyance": 2200,
-                "leave_adjustment": -2833.33,
-                "extra_conveyance": 800,
-                "previous_pending_allowances": 0,
-                "full_days": 20,
-                "half_days": 1,
-                "absent_days": 1,
-                "attendance_adjustment": -4250,
-                "gross_pay": 131916.67,
-                "deductions": 0,
-                "net_pay": 127666.67
-            },
-            "status": "settled",
-            "created_on": "2025-10-31",
-            "paid_on": "2025-11-01",
-            "settled_on": "2025-11-01"
-        },
-        # Team Lead TL002 payslips
-        {
-            "id": "PAY005",
-            "emp_id": "TL002",
-            "emp_name": "Meera Joshi",
-            "month": "November",
-            "year": 2025,
-            "breakdown": {
-                "basic": 80000,
-                "hra": 32000,
-                "special_allowance": 12000,
-                "conveyance": 2200,
-                "leave_adjustment": 0,
-                "extra_conveyance": 500,
-                "previous_pending_allowances": 0,
-                "full_days": 22,
-                "half_days": 0,
-                "absent_days": 0,
-                "attendance_adjustment": 0,
-                "gross_pay": 126700,
-                "deductions": 0,
-                "net_pay": 126700
-            },
-            "status": "settled",
-            "created_on": "2025-11-30",
-            "paid_on": "2025-12-01",
-            "settled_on": "2025-12-01"
-        }
-    ]
-    
-    await db.payslips.insert_many(settled_payslips)
     
     # Seed default shift templates
     shift_templates = [
@@ -2306,7 +2170,7 @@ async def seed_database():
     await db.shift_templates.delete_many({})
     await db.shift_templates.insert_many(shift_templates)
     
-    # Seed leave balances for employees and team leads
+    # Seed leave balances for the 3 users only
     leave_balances = [
         {
             "emp_id": "EMP001",
@@ -2314,29 +2178,9 @@ async def seed_database():
             "casual_leave": 12,
             "sick_leave": 6,
             "vacation": 15,
-            "casual_used": 2,
-            "sick_used": 1,
-            "vacation_used": 0
-        },
-        {
-            "emp_id": "EMP002",
-            "year": 2026,
-            "casual_leave": 12,
-            "sick_leave": 6,
-            "vacation": 15,
-            "casual_used": 3,
-            "sick_used": 0,
-            "vacation_used": 5
-        },
-        {
-            "emp_id": "EMP003",
-            "year": 2026,
-            "casual_leave": 12,
-            "sick_leave": 6,
-            "vacation": 15,
             "casual_used": 0,
-            "sick_used": 2,
-            "vacation_used": 3
+            "sick_used": 0,
+            "vacation_used": 0
         },
         {
             "emp_id": "TL001",
@@ -2344,18 +2188,8 @@ async def seed_database():
             "casual_leave": 15,
             "sick_leave": 8,
             "vacation": 18,
-            "casual_used": 1,
+            "casual_used": 0,
             "sick_used": 0,
-            "vacation_used": 2
-        },
-        {
-            "emp_id": "TL002",
-            "year": 2026,
-            "casual_leave": 15,
-            "sick_leave": 8,
-            "vacation": 18,
-            "casual_used": 2,
-            "sick_used": 1,
             "vacation_used": 0
         }
     ]
