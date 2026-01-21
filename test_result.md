@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the complete Attendance Management System at http://localhost:3000/attendance/ with login credentials ADMIN001/admin123. Test all pages including Dashboard, Employees, Attendance Tracking, Leaves, Bills & Advances, Payroll, Reports, and Profile."
+user_problem_statement: "Test the complete Attendance Management System at http://localhost:3000/attendance/ with login credentials ADMIN001/admin123. Test all pages including Dashboard, Employees, Attendance Tracking, Leaves, Bills & Advances, Payroll, Reports, and Profile. Additionally, test backend APIs and verify all calculations are working correctly."
 
 frontend:
   - task: "Login Page"
