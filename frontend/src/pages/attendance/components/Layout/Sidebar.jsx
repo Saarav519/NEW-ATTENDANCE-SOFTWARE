@@ -20,7 +20,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/attendance/login');
   };
 
   // Get nav items based on role
