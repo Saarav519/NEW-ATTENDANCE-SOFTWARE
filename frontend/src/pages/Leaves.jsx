@@ -199,21 +199,21 @@ const Leaves = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Leave Management</h1>
-          <p className="text-gray-500">{(isAdmin || isTeamLead) ? 'Manage employee leaves' : 'Apply for leave'}</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Leave Management</h1>
+          <p className="text-sm text-gray-500">{(isAdmin || isTeamLead) ? 'Manage employee leaves' : 'Apply for leave'}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => loadLeaves(true)} disabled={refreshing}>
-            <RefreshCw size={18} className={refreshing ? 'animate-spin' : ''} />
+          <Button variant="outline" size="icon" className="h-9 w-9 sm:h-10 sm:w-10" onClick={() => loadLeaves(true)} disabled={refreshing}>
+            <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
           </Button>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-[#1E2A5E] hover:bg-[#2D3A8C]">
-                <Plus size={18} className="mr-2" /> Apply Leave
+              <Button className="bg-[#1E2A5E] hover:bg-[#2D3A8C] h-9 sm:h-10 text-sm sm:text-base px-3 sm:px-4">
+                <Plus size={16} className="mr-1 sm:mr-2" /> Apply Leave
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
