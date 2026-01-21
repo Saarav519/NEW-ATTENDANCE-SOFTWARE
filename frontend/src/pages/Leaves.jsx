@@ -305,14 +305,14 @@ const Leaves = () => {
       {/* Leave Balance Card - For Employee/TL (their own balance) */}
       {!isAdmin && leaveBalance && (
         <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                <CalendarDays size={20} className="text-blue-600" />
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 flex items-center gap-2">
+                <CalendarDays size={18} className="text-blue-600" />
                 My Leave Balance
               </h3>
               <Select value={String(selectedYear)} onValueChange={(v) => setSelectedYear(parseInt(v))}>
-                <SelectTrigger className="w-24">
+                <SelectTrigger className="w-20 sm:w-24 h-8 sm:h-10 text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -320,30 +320,30 @@ const Leaves = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="text-center p-3 bg-white rounded-lg shadow-sm">
-                <Briefcase size={20} className="mx-auto text-blue-500 mb-1" />
-                <p className="text-2xl font-bold text-blue-600">{leaveBalance.working_days_count}</p>
-                <p className="text-xs text-gray-500">Working Days</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+              <div className="text-center p-2 sm:p-3 bg-white rounded-lg shadow-sm">
+                <Briefcase size={16} className="mx-auto text-blue-500 mb-1" />
+                <p className="text-xl sm:text-2xl font-bold text-blue-600">{leaveBalance.working_days_count}</p>
+                <p className="text-[10px] sm:text-xs text-gray-500">Working Days</p>
               </div>
-              <div className="text-center p-3 bg-white rounded-lg shadow-sm">
-                <CalendarCheck size={20} className="mx-auto text-green-500 mb-1" />
-                <p className="text-2xl font-bold text-green-600">{leaveBalance.total_leave}</p>
-                <p className="text-xs text-gray-500">Total Leaves</p>
-                <p className="text-xs text-gray-400">(1 per 24 days)</p>
+              <div className="text-center p-2 sm:p-3 bg-white rounded-lg shadow-sm">
+                <CalendarCheck size={16} className="mx-auto text-green-500 mb-1" />
+                <p className="text-xl sm:text-2xl font-bold text-green-600">{leaveBalance.total_leave}</p>
+                <p className="text-[10px] sm:text-xs text-gray-500">Total Leaves</p>
+                <p className="text-[9px] sm:text-xs text-gray-400">(1 per 24 days)</p>
               </div>
-              <div className="text-center p-3 bg-white rounded-lg shadow-sm">
-                <CalendarOff size={20} className="mx-auto text-orange-500 mb-1" />
-                <p className="text-2xl font-bold text-orange-600">{leaveBalance.total_used}</p>
-                <p className="text-xs text-gray-500">Used Leaves</p>
+              <div className="text-center p-2 sm:p-3 bg-white rounded-lg shadow-sm">
+                <CalendarOff size={16} className="mx-auto text-orange-500 mb-1" />
+                <p className="text-xl sm:text-2xl font-bold text-orange-600">{leaveBalance.total_used}</p>
+                <p className="text-[10px] sm:text-xs text-gray-500">Used Leaves</p>
               </div>
-              <div className="text-center p-3 bg-white rounded-lg shadow-sm border-2 border-green-200">
-                <Calendar size={20} className="mx-auto text-emerald-500 mb-1" />
-                <p className="text-2xl font-bold text-emerald-600">{leaveBalance.total_leave - leaveBalance.total_used}</p>
-                <p className="text-xs text-gray-500">Available</p>
+              <div className="text-center p-2 sm:p-3 bg-white rounded-lg shadow-sm border-2 border-green-200">
+                <Calendar size={16} className="mx-auto text-emerald-500 mb-1" />
+                <p className="text-xl sm:text-2xl font-bold text-emerald-600">{leaveBalance.total_leave - leaveBalance.total_used}</p>
+                <p className="text-[10px] sm:text-xs text-gray-500">Available</p>
               </div>
             </div>
-            <p className="text-xs text-gray-500 mt-3 text-center">
+            <p className="text-[10px] sm:text-xs text-gray-500 mt-2 sm:mt-3 text-center">
               Auto Leave Accrual: 1 leave is earned for every 24 full working days
             </p>
           </CardContent>
