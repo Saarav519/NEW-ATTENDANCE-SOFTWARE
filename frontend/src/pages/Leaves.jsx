@@ -281,20 +281,21 @@ const Leaves = () => {
                 <Check size={16} className="sm:hidden text-green-600" />
                 <Check size={24} className="hidden sm:block text-green-600" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">{approvedCount}</p>
-                <p className="text-sm text-gray-500">Approved</p>
+              <div className="min-w-0">
+                <p className="text-lg sm:text-2xl font-bold">{approvedCount}</p>
+                <p className="text-xs sm:text-sm text-gray-500 truncate">Approved</p>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                <X size={24} className="text-red-600" />
+            <CardContent className="p-2 sm:p-4 flex items-center gap-2 sm:gap-4">
+              <div className="w-8 h-8 sm:w-12 sm:h-12 bg-red-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+                <X size={16} className="sm:hidden text-red-600" />
+                <X size={24} className="hidden sm:block text-red-600" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">{rejectedCount}</p>
-                <p className="text-sm text-gray-500">Rejected</p>
+              <div className="min-w-0">
+                <p className="text-lg sm:text-2xl font-bold">{rejectedCount}</p>
+                <p className="text-xs sm:text-sm text-gray-500 truncate">Rejected</p>
               </div>
             </CardContent>
           </Card>
