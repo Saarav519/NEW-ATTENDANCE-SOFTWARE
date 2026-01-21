@@ -858,6 +858,49 @@ async def mark_attendance(
 
 @router.post("/leaves", response_model=LeaveResponse)
 async def create_leave(leave: LeaveCreate):
+    # Check leave balance before allowing application
+    year = int(leave.from_date[:4])
+    
+    # Calculate available leave balance
+    total_accrued = 0
+    total_leave_days_from_attendance = 0
+    
+    for month in range(1, 13):
+        month_str = f"{year}-{month:02d}"
+        attendance_records = await db.attendance.find({
+            "emp_id": leave.emp_id,
+            "date": {"$regex": f"^{month_str}"}
+        }).to_list(100)
+        
+        working_days_in_month = sum(1 for a in attendance_records 
+                                    if a.get("attendance_status") == "full_day")
+        leave_days_in_month = sum(1 for a in attendance_records 
+                                   if a.get("attendance_status") == "leave")
+        
+        total_leave_days_from_attendance += leave_days_in_month
+        
+        if working_days_in_month >= 24:
+            total_accrued += 1
+    
+    # Get already approved and pending leaves for this year
+    existing_leaves = await db.leaves.find({
+        "emp_id": leave.emp_id,
+        "status": {"$in": ["approved", "pending"]},
+        "from_date": {"$gte": f"{year}-01-01", "$lte": f"{year}-12-31"}
+    }).to_list(100)
+    
+    leaves_from_requests = sum(l.get("days", 0) for l in existing_leaves)
+    total_used = max(leaves_from_requests, total_leave_days_from_attendance)
+    
+    available_balance = total_accrued - total_used
+    
+    # Check if employee has enough balance
+    if leave.days > available_balance:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Insufficient leave balance. Available: {available_balance} days, Requested: {leave.days} days. Leave cannot go into negative balance."
+        )
+    
     leave_doc = leave.model_dump()
     leave_doc["id"] = generate_id()
     leave_doc["status"] = LeaveStatus.PENDING
