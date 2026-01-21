@@ -36,8 +36,8 @@ const Login = () => {
 
   const demoCredentials = [
     { role: 'Admin', id: 'ADMIN001', pass: 'admin123', icon: Shield, color: 'bg-red-500' },
-    { role: 'Team Lead', id: 'TL001', pass: 'tl001', icon: Users, color: 'bg-blue-500' },
-    { role: 'Employee', id: 'EMP001', pass: 'emp001', icon: UserCircle, color: 'bg-green-500' },
+    { role: 'Team Lead', id: 'TL001', pass: 'tl123', icon: Users, color: 'bg-blue-500' },
+    { role: 'Employee', id: 'EMP001', pass: 'emp123', icon: UserCircle, color: 'bg-green-500' },
   ];
 
   const quickLogin = (id, pass) => {
