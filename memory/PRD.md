@@ -1,6 +1,42 @@
 # SuperManage - Staff Attendance & Payroll Management App
 ## Product Requirements Document
 
+---
+
+## 🔒 FEATURE FREEZE NOTICE - January 20, 2026
+
+### ⛔ LOCKED (No Changes Allowed)
+| Category | Status |
+|----------|--------|
+| All Calculations | 🔒 FROZEN |
+| Business Logic | 🔒 FROZEN |
+| Features | 🔒 FROZEN |
+| Import/Export | 🔒 FROZEN |
+| Data Flow | 🔒 FROZEN |
+| API Endpoints | 🔒 FROZEN |
+| Database Schema | 🔒 FROZEN |
+
+### ✅ ALLOWED Changes (Mobile UI/UX Only)
+- Layout adjustments
+- Spacing modifications
+- Responsiveness improvements
+- Element sizes
+- Mobile view optimizations
+- CSS/styling changes
+- Component arrangement
+
+### ⚠️ CRITICAL RULES
+1. **NO** modification to any calculation formula
+2. **NO** changes to payroll logic (`salary / days_in_month`)
+3. **NO** changes to leave balance calculations
+4. **NO** changes to bill/advance approval workflows
+5. **NO** changes to cashbook entries logic
+6. **NO** changes to export CSV content/filters
+7. **NO** changes to attendance status logic
+8. **NO** new features or feature modifications
+
+---
+
 ### Original Problem Statement
 Build a clone of SuperManage application - a staff attendance and payroll management tool for **Audix Solutions & Co.** with three user roles:
 - **Admin**: Desktop-oriented view, manages entire system
