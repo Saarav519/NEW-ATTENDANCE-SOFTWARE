@@ -69,6 +69,7 @@ Build a professional company profile webpage for "AudiX Solutions & Co." (an aud
 
 #### ✅ Bug Fixes (January 21, 2026)
 - **Fixed Quick Login passwords** - Corrected Team Lead (tl001→tl123) and Employee (emp001→emp123) demo credentials in Login.jsx
+- **Fixed Employee Attendance page blank issue** - Changed route from `attendance/:empId` to `employee-attendance/:empId` and updated navigation path in Employees.jsx
 - Fixed React Router nested routing issues
 - Fixed payroll calculation bugs
 - Fixed footer logo visibility
