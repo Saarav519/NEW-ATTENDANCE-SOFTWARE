@@ -910,8 +910,9 @@ async def approve_leave(leave_id: str, approved_by: str):
     # Get employee salary for daily duty calculation
     user = await db.users.find_one({"id": emp_id}, {"_id": 0})
     emp_salary = user.get("salary", 0) if user else 0
+    salary_type = user.get("salary_type", "monthly") if user else "monthly"
     
-    # Calculate daily rate based on actual days in month of leave start date
+    # Calculate daily rate based on salary type and leave start date
     from calendar import monthrange
     from datetime import datetime, timedelta
     start_date = datetime.strptime(from_date, "%Y-%m-%d")
@@ -919,7 +920,14 @@ async def approve_leave(leave_id: str, approved_by: str):
     
     # Use first day of leave to determine month's days
     days_in_month = monthrange(start_date.year, start_date.month)[1]
-    daily_rate = emp_salary / days_in_month  # Daily rate based on actual days in month
+    
+    # For daily wage employees, use salary directly as daily rate
+    # For monthly employees, divide by days in month
+    if salary_type == "daily":
+        daily_rate = emp_salary  # Use salary directly as daily rate
+    else:
+        daily_rate = emp_salary / days_in_month  # Monthly: divide by days in month
+    
     full_day_duty = round(daily_rate, 2)
     leave_conveyance = 0  # NO conveyance on leave days - only duty amount
     
