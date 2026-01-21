@@ -643,7 +643,7 @@ const EmployeeList = ({ employees, onView, onToggle, canResetPassword, canManage
                 <Button size="sm" variant="outline" onClick={() => onView(emp)} className="flex-shrink-0 text-xs sm:text-sm" data-testid={`view-employee-${emp.id}`}>
                   <Eye size={14} className="sm:mr-1" /> <span className="hidden sm:inline">View</span>
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => navigate(`/attendance/${emp.id}`)} className="flex-shrink-0 text-blue-600 border-blue-200 text-xs sm:text-sm">
+                <Button size="sm" variant="outline" onClick={() => navigate(`/attendance/employee-attendance/${emp.id}`)} className="flex-shrink-0 text-blue-600 border-blue-200 text-xs sm:text-sm">
                   <Calendar size={14} className="sm:mr-1" /> <span className="hidden sm:inline">Attend</span>
                 </Button>
                 {canManageEmployees && emp.role === 'employee' && (
