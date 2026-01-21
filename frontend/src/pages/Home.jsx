@@ -139,6 +139,7 @@ const Home = () => {
               <a href="#about" className="text-slate-700 hover:text-blue-600 transition-colors font-semibold text-lg">About</a>
               <a href="#team" className="text-slate-700 hover:text-blue-600 transition-colors font-semibold text-lg">Team</a>
               <a href="#contact" className="text-slate-700 hover:text-blue-600 transition-colors font-semibold text-lg">Contact</a>
+              <a href="/attendance" className="text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 px-4 py-2 rounded-lg font-semibold text-lg transition-all shadow-md hover:shadow-lg">Staff Portal</a>
               <Button onClick={handleCall} variant="default" size="lg" className="bg-blue-600 hover:bg-blue-700 shadow-lg">
                 <Phone className="h-5 w-5 mr-2" />
                 Call Us
