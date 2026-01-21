@@ -132,7 +132,7 @@ const HeroSection = () => {
                     </div>
                     <div className="flex-1 bg-gradient-to-r from-orange-400 to-yellow-400 rounded-xl p-3 text-white">
                       <p className="text-xs font-semibold">SUMMER BIG SALE</p>
-                      <p className="text-[10px]">Enhance your Productivity with SuperManage</p>
+                      <p className="text-[10px]">Enhance your Productivity with Audix</p>
                       <p className="text-xs font-bold mt-1">Get Extra 10% OFF</p>
                     </div>
                   </div>
