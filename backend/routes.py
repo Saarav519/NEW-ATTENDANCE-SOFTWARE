@@ -1353,16 +1353,27 @@ async def generate_payslip(data: PayslipCreate):
     # Round total_duty_earned to avoid decimal issues (e.g., 49999.9 -> 50000)
     total_duty_earned = round(total_duty_earned, 0)
     
-    # Calculate attendance adjustment (deductions for half days and absents ONLY)
-    # Leave days are NOT deducted as they are approved
-    # Use actual days in month for calculation
+    # Calculate attendance adjustment based on salary type
     from calendar import monthrange
     days_in_month = monthrange(data.year, month_num)[1]
-    daily_rate = basic / days_in_month
     
-    # Half day = 0.5 day deduction, Absent = 1 day deduction, Leave = NO deduction
-    attendance_adjustment = -((half_days * 0.5 * daily_rate) + (absent_days * daily_rate))
-    attendance_adjustment = round(attendance_adjustment, 2)
+    if salary_type == "daily":
+        # For daily wage employees:
+        # - No attendance adjustment needed (they only get paid for days worked)
+        # - total_duty_earned already has the correct amount
+        attendance_adjustment = 0
+        # Override basic, hra, special with actual earnings
+        basic = total_duty_earned  # All earnings go to "basic" for simplicity
+        hra = 0
+        special_allowance = 0
+    else:
+        # For monthly employees:
+        # Calculate attendance adjustment (deductions for half days and absents ONLY)
+        # Leave days are NOT deducted as they are approved
+        daily_rate = basic / days_in_month
+        # Half day = 0.5 day deduction, Absent = 1 day deduction, Leave = NO deduction
+        attendance_adjustment = -((half_days * 0.5 * daily_rate) + (absent_days * daily_rate))
+        attendance_adjustment = round(attendance_adjustment, 2)
     
     # Get approved audit expenses for this month
     start_date = f"{data.year}-{month_num:02d}-01"
