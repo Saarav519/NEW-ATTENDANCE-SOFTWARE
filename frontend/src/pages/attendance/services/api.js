@@ -153,6 +153,8 @@ export const billAPI = {
     if (year) params.append('year', year);
     return apiCall(`/bills?${params}`);
   },
+  tlApprove: (billId, approvedBy) => 
+    apiCall(`/bills/${billId}/tl-approve?approved_by=${approvedBy}`, { method: 'PUT' }),
   approve: (billId, approvedBy, approvedAmount, sendToRevalidation = false) => {
     const params = new URLSearchParams();
     params.append('approved_by', approvedBy);
