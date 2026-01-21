@@ -2198,8 +2198,8 @@ async def seed_database():
                 "extra_conveyance": 2000,
                 "previous_pending_allowances": 0,
                 "gross_pay": 81100,
-                "deductions": 8110,
-                "net_pay": 72990
+                "deductions": 0,
+                "net_pay": 81100
             },
             "status": "settled",
             "created_on": "2025-11-30",
