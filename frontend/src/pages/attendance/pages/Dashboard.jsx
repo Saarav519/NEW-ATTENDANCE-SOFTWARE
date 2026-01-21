@@ -966,7 +966,7 @@ const AdminDashboard = ({ user }) => {
             </div>
           </CardContent>
         </Card>
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/attendance')}>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/attendance/attendance')}>
           <CardContent className="p-4 lg:p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -979,7 +979,7 @@ const AdminDashboard = ({ user }) => {
             </div>
           </CardContent>
         </Card>
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/leaves')}>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/attendance/leaves')}>
           <CardContent className="p-4 lg:p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -992,7 +992,7 @@ const AdminDashboard = ({ user }) => {
             </div>
           </CardContent>
         </Card>
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/leaves')}>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/attendance/leaves')}>
           <CardContent className="p-4 lg:p-6">
             <div className="flex items-center justify-between">
               <div>
