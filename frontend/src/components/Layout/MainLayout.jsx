@@ -90,8 +90,8 @@ const MainLayout = () => {
               A
             </div>
             <div>
-              <h1 className="text-sm font-bold text-gray-800">SuperManage</h1>
-              <p className="text-[10px] text-gray-500">Audix Solutions</p>
+              <h1 className="text-sm font-bold text-gray-800">Audix Solutions</h1>
+              <p className="text-[10px] text-gray-500">Staff Management</p>
             </div>
           </div>
 
