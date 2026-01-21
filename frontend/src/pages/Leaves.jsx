@@ -262,22 +262,24 @@ const Leaves = () => {
 
       {/* Stats - Admin/TL only */}
       {(isAdmin || isTeamLead) && (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
           <Card>
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                <Clock size={24} className="text-yellow-600" />
+            <CardContent className="p-2 sm:p-4 flex items-center gap-2 sm:gap-4">
+              <div className="w-8 h-8 sm:w-12 sm:h-12 bg-yellow-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+                <Clock size={16} className="sm:hidden text-yellow-600" />
+                <Clock size={24} className="hidden sm:block text-yellow-600" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">{totalPendingCount}</p>
-                <p className="text-sm text-gray-500">Pending</p>
+              <div className="min-w-0">
+                <p className="text-lg sm:text-2xl font-bold">{totalPendingCount}</p>
+                <p className="text-xs sm:text-sm text-gray-500 truncate">Pending</p>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                <Check size={24} className="text-green-600" />
+            <CardContent className="p-2 sm:p-4 flex items-center gap-2 sm:gap-4">
+              <div className="w-8 h-8 sm:w-12 sm:h-12 bg-green-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+                <Check size={16} className="sm:hidden text-green-600" />
+                <Check size={24} className="hidden sm:block text-green-600" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{approvedCount}</p>
