@@ -18,7 +18,7 @@ const Footer = () => {
                   </div>
                 </div>
               </div>
-              <span className="text-xl font-bold">SuperManage</span>
+              <span className="text-xl font-bold">Audix Solutions</span>
             </div>
             <p className="text-gray-400 text-sm mb-4">
               Smart management solution for your business. Track attendance, manage payroll, and automate HR tasks effortlessly.

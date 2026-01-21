@@ -20,7 +20,7 @@ const Header = () => {
                 </div>
               </div>
             </div>
-            <span className="text-xl font-bold text-gray-900">SuperManage</span>
+            <span className="text-xl font-bold text-gray-900">Audix Solutions</span>
           </div>
 
           {/* Desktop Navigation */}
