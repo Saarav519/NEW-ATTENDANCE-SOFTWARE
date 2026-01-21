@@ -475,12 +475,19 @@ async def punch_in(data: AttendanceCreate, emp_id: str):
     # Get employee salary for daily duty calculation
     user = await db.users.find_one({"id": emp_id}, {"_id": 0})
     emp_salary = user.get("salary", 0) if user else 0
+    salary_type = user.get("salary_type", "monthly") if user else "monthly"
     
-    # Calculate daily rate based on actual days in the month
+    # Calculate daily rate based on salary type
     from calendar import monthrange
     today_date = datetime.now()
     days_in_month = monthrange(today_date.year, today_date.month)[1]
-    daily_rate = emp_salary / days_in_month  # Daily rate based on actual days in month
+    
+    # For daily wage employees, use salary directly as daily rate
+    # For monthly employees, divide by days in month
+    if salary_type == "daily":
+        daily_rate = emp_salary  # Use salary directly as daily rate
+    else:
+        daily_rate = emp_salary / days_in_month  # Monthly: divide by days in month
     
     # Calculate daily duty based on attendance status
     if attendance_status == "full_day":
