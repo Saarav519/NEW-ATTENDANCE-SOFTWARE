@@ -1377,6 +1377,22 @@ async def get_settled_payslips(emp_id: str):
     ).to_list(100)
     return payslips
 
+@router.get("/payslips/check-revalidation/{emp_id}")
+async def check_revalidation_status(emp_id: str, month: str, year: int):
+    """Check if employee has bills in revalidation status that would block payslip generation"""
+    revalidation_bills = await db.bills.find({
+        "emp_id": emp_id,
+        "month": month,
+        "year": year,
+        "status": "revalidation"
+    }).to_list(100)
+    
+    return {
+        "has_revalidation_pending": len(revalidation_bills) > 0,
+        "revalidation_count": len(revalidation_bills),
+        "message": f"Revalidation Pending: {len(revalidation_bills)} bill(s) pending for {month} {year}" if revalidation_bills else "No pending revalidations"
+    }
+
 @router.post("/payslips/generate", response_model=PayslipResponse)
 async def generate_payslip(data: PayslipCreate):
     # Check for bills in revalidation status - Block payslip generation
