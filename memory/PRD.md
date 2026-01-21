@@ -70,6 +70,10 @@ Build a professional company profile webpage for "AudiX Solutions & Co." (an aud
 #### ✅ Bug Fixes (January 21, 2026)
 - **Fixed Quick Login passwords** - Corrected Team Lead (tl001→tl123) and Employee (emp001→emp123) demo credentials in Login.jsx
 - **Fixed Employee Attendance page blank issue** - Changed route from `attendance/:empId` to `employee-attendance/:empId` and updated navigation path in Employees.jsx
+- **Fixed Team Leader Navigation** - All quick action links (View Team Attendance, Manage Leave Requests, Review Bill Submissions) now correctly include `/attendance` prefix
+- **Added Leave Balance Validation** - System now prevents leave applications when balance is insufficient (no negative leave balance allowed)
+- **Added Team Leader Bill Pre-Approval** - Two-step approval process where TL pre-approves, then Admin gives final approval. Admin can see "Approved by Team Leader" status
+- **Added Revalidation Block for Payslips** - Payslip generation blocked when employee has bills in revalidation status. Shows "Revalidation Pending" error message
 - Fixed React Router nested routing issues
 - Fixed payroll calculation bugs
 - Fixed footer logo visibility
