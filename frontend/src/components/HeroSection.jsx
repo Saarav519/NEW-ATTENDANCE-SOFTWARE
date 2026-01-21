@@ -50,7 +50,7 @@ const HeroSection = () => {
                   <div className="w-4 h-4 bg-[#2D3A8C] rounded-full flex items-center justify-center">
                     <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                   </div>
-                  <span className="text-sm text-gray-600">SuperManage</span>
+                  <span className="text-sm text-gray-600">Audix Solutions</span>
                 </div>
               </div>
               <button className="bg-orange-500 text-white text-xs px-3 py-1 rounded-full hover:bg-orange-600 transition-colors">
