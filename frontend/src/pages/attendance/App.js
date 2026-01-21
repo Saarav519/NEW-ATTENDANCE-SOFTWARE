@@ -1,6 +1,6 @@
 import React from "react";
 import "./App.css";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { Toaster } from "./components/ui/toaster";
@@ -32,36 +32,34 @@ function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
-        <BrowserRouter>
-          <Toaster />
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={<MainLayout />}>
-              <Route index element={<Navigate to="/dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="employees" element={<Employees />} />
-              <Route path="attendance/:empId" element={<EmployeeAttendance />} />
-              <Route path="attendance" element={<Attendance />} />
-              <Route path="my-attendance" element={<MyAttendance />} />
-              <Route path="attendance-details" element={<AttendanceDetails />} />
-              <Route path="team" element={<Team />} />
-              <Route path="team-attendance" element={<TeamAttendance />} />
-              <Route path="leaves" element={<Leaves />} />
-              <Route path="bills" element={<BillSubmission />} />
-              <Route path="audit-expenses" element={<AuditExpenses />} />
-              <Route path="advances" element={<Advances />} />
-              <Route path="payroll" element={<Payroll />} />
-              <Route path="payslip" element={<Payslip />} />
-              <Route path="cashbook" element={<Cashbook />} />
-              <Route path="vehicles" element={<Vehicles />} />
-              <Route path="holidays" element={<Holidays />} />
-              <Route path="reports" element={<Reports />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="shift-templates" element={<ShiftTemplates />} />
-            </Route>
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </BrowserRouter>
+        <Toaster />
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<MainLayout />}>
+            <Route index element={<Navigate to="/attendance/dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="employees" element={<Employees />} />
+            <Route path="attendance/:empId" element={<EmployeeAttendance />} />
+            <Route path="attendance" element={<Attendance />} />
+            <Route path="my-attendance" element={<MyAttendance />} />
+            <Route path="attendance-details" element={<AttendanceDetails />} />
+            <Route path="team" element={<Team />} />
+            <Route path="team-attendance" element={<TeamAttendance />} />
+            <Route path="leaves" element={<Leaves />} />
+            <Route path="bills" element={<BillSubmission />} />
+            <Route path="audit-expenses" element={<AuditExpenses />} />
+            <Route path="advances" element={<Advances />} />
+            <Route path="payroll" element={<Payroll />} />
+            <Route path="payslip" element={<Payslip />} />
+            <Route path="cashbook" element={<Cashbook />} />
+            <Route path="vehicles" element={<Vehicles />} />
+            <Route path="holidays" element={<Holidays />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="shift-templates" element={<ShiftTemplates />} />
+          </Route>
+          <Route path="*" element={<Navigate to="/attendance/dashboard" replace />} />
+        </Routes>
       </NotificationProvider>
     </AuthProvider>
   );
