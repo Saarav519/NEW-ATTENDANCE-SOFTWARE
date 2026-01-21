@@ -2304,8 +2304,8 @@ async def seed_database():
                 "absent_days": 0,
                 "attendance_adjustment": 0,
                 "gross_pay": 126700,
-                "deductions": 12670,
-                "net_pay": 114030
+                "deductions": 0,
+                "net_pay": 126700
             },
             "status": "settled",
             "created_on": "2025-11-30",
