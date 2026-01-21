@@ -245,7 +245,7 @@ const EmployeeAttendance = () => {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={() => navigate('/employees')}>
+          <Button variant="outline" onClick={() => navigate('/attendance/employees')}>
             <ArrowLeft size={18} className="mr-2" /> Back
           </Button>
           <div>
