@@ -775,7 +775,7 @@ const TeamLeadDashboard = ({ user }) => {
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-gray-800">My Team</h3>
-            <button onClick={() => navigate('/team')} className="text-xs text-[#1E2A5E] flex items-center">
+            <button onClick={() => navigate('/attendance/team')} className="text-xs text-[#1E2A5E] flex items-center">
               View All <ChevronRight size={14} />
             </button>
           </div>
@@ -953,7 +953,7 @@ const AdminDashboard = ({ user }) => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/employees')}>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/attendance/employees')}>
           <CardContent className="p-4 lg:p-6">
             <div className="flex items-center justify-between">
               <div>
