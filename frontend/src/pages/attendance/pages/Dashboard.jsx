@@ -805,7 +805,7 @@ const TeamLeadDashboard = ({ user }) => {
           <h3 className="font-semibold text-gray-800 mb-3">Pending Approvals</h3>
           <div className="space-y-2">
             <div 
-              onClick={() => navigate('/leaves')}
+              onClick={() => navigate('/attendance/leaves')}
               className="flex items-center justify-between p-3 bg-yellow-50 rounded-xl cursor-pointer hover:bg-yellow-100 transition-colors"
             >
               <div className="flex items-center gap-3">
@@ -818,7 +818,7 @@ const TeamLeadDashboard = ({ user }) => {
               </div>
             </div>
             <div 
-              onClick={() => navigate('/bills')}
+              onClick={() => navigate('/attendance/bills')}
               className="flex items-center justify-between p-3 bg-blue-50 rounded-xl cursor-pointer hover:bg-blue-100 transition-colors"
             >
               <div className="flex items-center gap-3">
