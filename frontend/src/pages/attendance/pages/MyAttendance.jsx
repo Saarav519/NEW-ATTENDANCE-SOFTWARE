@@ -55,9 +55,16 @@ const MyAttendance = () => {
     
     const record = monthlyAttendance.find(a => a.date === dateStr);
     if (record) {
-      return record.status;
+      // Handle both status and attendance_status fields
+      const status = record.attendance_status || record.status;
+      // Normalize status names
+      if (status === 'full_day' || status === 'present') return 'present';
+      if (status === 'half_day') return 'half_day';
+      if (status === 'leave') return 'leave';
+      if (status === 'absent') return 'absent';
+      return status;
     }
-    return 'absent';
+    return null; // No record for this day
   };
 
   const prevMonth = () => setCurrentMonth(new Date(year, month - 1, 1));
