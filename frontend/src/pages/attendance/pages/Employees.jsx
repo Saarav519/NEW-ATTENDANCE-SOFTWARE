@@ -551,30 +551,117 @@ const Employees = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Employee Dialog (Team Leader Change) */}
+      {/* Edit Employee Dialog (Full Profile Edit) */}
       <Dialog open={editDialog.open} onOpenChange={(open) => setEditDialog({ open, employee: null })}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Employee - {editDialog.employee?.name}</DialogTitle>
+            <DialogTitle>Edit Employee - {editDialog.employee?.name} ({editDialog.employee?.id})</DialogTitle>
           </DialogHeader>
           {editDialog.employee && (
             <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Assign Team Leader</Label>
-                <Select value={editEmployee.team_lead_id || 'none'} onValueChange={(v) => setEditEmployee({...editEmployee, team_lead_id: v === 'none' ? '' : v})}>
-                  <SelectTrigger data-testid="edit-employee-team-leader"><SelectValue placeholder="Select Team Leader" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No Team Leader</SelectItem>
-                    {teamLeaders.map(tl => (
-                      <SelectItem key={tl.id} value={tl.id}>{tl.name} ({tl.id})</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-gray-500">Current: {getTeamLeaderName(editDialog.employee.team_lead_id)}</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Full Name *</Label>
+                  <Input value={editEmployee.name}
+                    onChange={(e) => setEditEmployee({...editEmployee, name: e.target.value})}
+                    data-testid="edit-employee-name" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input type="email" value={editEmployee.email}
+                    onChange={(e) => setEditEmployee({...editEmployee, email: e.target.value})}
+                    data-testid="edit-employee-email" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Phone</Label>
+                  <Input value={editEmployee.phone}
+                    onChange={(e) => setEditEmployee({...editEmployee, phone: e.target.value})}
+                    data-testid="edit-employee-phone" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Department</Label>
+                  <Input value={editEmployee.department}
+                    onChange={(e) => setEditEmployee({...editEmployee, department: e.target.value})}
+                    data-testid="edit-employee-department" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Designation</Label>
+                  <Input value={editEmployee.designation}
+                    onChange={(e) => setEditEmployee({...editEmployee, designation: e.target.value})}
+                    data-testid="edit-employee-designation" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Role</Label>
+                  <Select value={editEmployee.role} onValueChange={(v) => setEditEmployee({...editEmployee, role: v})}>
+                    <SelectTrigger data-testid="edit-employee-role"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="employee">Employee</SelectItem>
+                      <SelectItem value="teamlead">Team Leader</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Salary (₹)</Label>
+                  <Input type="number" value={editEmployee.salary}
+                    onChange={(e) => setEditEmployee({...editEmployee, salary: e.target.value})}
+                    data-testid="edit-employee-salary" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Salary Type</Label>
+                  <Select value={editEmployee.salary_type} onValueChange={(v) => setEditEmployee({...editEmployee, salary_type: v})}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="daily">Daily</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+              
+              <div className="border-t pt-4">
+                <h4 className="font-medium mb-3 flex items-center gap-2"><Landmark size={16} /> Bank Details</h4>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>Bank Name</Label>
+                    <Input value={editEmployee.bank_name}
+                      onChange={(e) => setEditEmployee({...editEmployee, bank_name: e.target.value})}
+                      data-testid="edit-employee-bank-name" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Account Number</Label>
+                    <Input value={editEmployee.bank_account_number}
+                      onChange={(e) => setEditEmployee({...editEmployee, bank_account_number: e.target.value})}
+                      data-testid="edit-employee-bank-account" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>IFSC Code</Label>
+                    <Input value={editEmployee.bank_ifsc}
+                      onChange={(e) => setEditEmployee({...editEmployee, bank_ifsc: e.target.value})}
+                      data-testid="edit-employee-bank-ifsc" />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border-t pt-4">
+                <h4 className="font-medium mb-3">Team Assignment</h4>
+                <div className="space-y-2">
+                  <Label>Assign Team Leader</Label>
+                  <Select value={editEmployee.team_lead_id || 'none'} onValueChange={(v) => setEditEmployee({...editEmployee, team_lead_id: v === 'none' ? '' : v})}>
+                    <SelectTrigger data-testid="edit-employee-team-leader"><SelectValue placeholder="Select Team Leader" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Team Leader</SelectItem>
+                      {teamLeaders.map(tl => (
+                        <SelectItem key={tl.id} value={tl.id}>{tl.name} ({tl.id})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500">Current: {getTeamLeaderName(editDialog.employee.team_lead_id)}</p>
+                </div>
+              </div>
+              
               <div className="space-y-2">
                 <Label>Reason for Change (Optional)</Label>
-                <Input placeholder="e.g., Team restructuring" value={editEmployee.change_reason}
+                <Input placeholder="e.g., Profile update, Team restructuring" value={editEmployee.change_reason}
                   onChange={(e) => setEditEmployee({...editEmployee, change_reason: e.target.value})}
                   data-testid="edit-employee-change-reason" />
               </div>
@@ -584,7 +671,7 @@ const Employees = () => {
             <Button variant="outline" onClick={() => setEditDialog({ open: false, employee: null })}>Cancel</Button>
             <Button onClick={handleEditEmployee} disabled={submitting} className="bg-[#1E2A5E]" data-testid="edit-employee-submit">
               {submitting ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
-              Update
+              Update Employee
             </Button>
           </DialogFooter>
         </DialogContent>
