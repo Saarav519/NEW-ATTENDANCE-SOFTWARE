@@ -818,8 +818,8 @@ const AuditExpenses = () => {
                 </div>
               )}
 
-              {/* Team Lead Delete (only for pending) */}
-              {!isAdmin && selectedExpense.status === 'pending' && (
+              {/* Team Lead/Employee Delete (only for pending/revalidation, own expenses only) */}
+              {!isAdmin && selectedExpense.emp_id === user?.id && (selectedExpense.status === 'pending' || selectedExpense.status === 'revalidation') && (
                 <Button variant="outline" className="w-full text-red-600 border-red-200 hover:bg-red-50" onClick={() => { handleDelete(selectedExpense.id); setShowDetailDialog(false); }}>
                   <Trash2 size={16} className="mr-2" /> Delete Expense
                 </Button>
