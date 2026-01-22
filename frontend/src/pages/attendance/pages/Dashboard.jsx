@@ -111,39 +111,47 @@ const EmployeeDashboard = ({ user }) => {
   const initScanner = () => {
     setTimeout(async () => {
       try {
-        const html5QrCode = new Html5Qrcode("qr-reader", {
-          // Use verbose mode for debugging if needed
-          verbose: false,
-          // Prefer native BarcodeDetector for faster scanning
-          useBarCodeDetectorIfSupported: true
-        });
+        // Create scanner with simpler config for better mobile compatibility
+        const html5QrCode = new Html5Qrcode("qr-reader");
         scannerRef.current = html5QrCode;
         
-        // Optimized camera config for fast QR scanning
-        const cameraConfig = {
-          facingMode: "environment",
-          advanced: [
-            { width: { min: 640, ideal: 1280, max: 1920 } },
-            { height: { min: 480, ideal: 720, max: 1080 } },
-            { focusMode: "continuous" },
-            { exposureMode: "continuous" },
-            { whiteBalanceMode: "continuous" }
-          ]
+        // Get available cameras and prefer back camera
+        const cameras = await Html5Qrcode.getCameras();
+        let cameraId = { facingMode: "environment" };
+        
+        // If cameras are available, try to find the back camera
+        if (cameras && cameras.length > 0) {
+          const backCamera = cameras.find(camera => 
+            camera.label.toLowerCase().includes('back') || 
+            camera.label.toLowerCase().includes('rear') ||
+            camera.label.toLowerCase().includes('environment')
+          );
+          if (backCamera) {
+            cameraId = backCamera.id;
+          } else {
+            // Use the last camera (usually back camera on phones)
+            cameraId = cameras[cameras.length - 1].id;
+          }
+        }
+        
+        // Scanner config optimized for mobile QR scanning
+        const scannerConfig = {
+          fps: 20,
+          qrbox: function(viewfinderWidth, viewfinderHeight) {
+            // Dynamic QR box size based on viewfinder
+            const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+            const qrboxSize = Math.floor(minEdge * 0.7);
+            return { width: qrboxSize, height: qrboxSize };
+          },
+          aspectRatio: 1.0,
+          showTorchButtonIfSupported: true,
+          showZoomSliderIfSupported: true,
+          defaultZoomValueIfSupported: 2
         };
         
         await html5QrCode.start(
-          cameraConfig,
-          {
-            fps: 30, // Maximum FPS for fastest scanning
-            qrbox: { width: 250, height: 250 }, // Optimal size for speed
-            aspectRatio: 1.0,
-            disableFlip: false,
-            // Optimizations for faster detection
-            formatsToSupport: [ 0 ], // 0 = QR_CODE only (faster than scanning all formats)
-            experimentalFeatures: {
-              useBarCodeDetectorIfSupported: true
-            }
-          },
+          cameraId,
+          scannerConfig,
           async (decodedText) => {
             // Prevent duplicate processing
             if (isProcessingQR) return;
@@ -154,7 +162,14 @@ const EmployeeDashboard = ({ user }) => {
               navigator.vibrate(100);
             }
             
-            // Success callback - stop scanner and mark as not running
+            // Play success sound (optional)
+            try {
+              const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Onp6CaGFteYKPmJqOg3V1fYSLkpWTi4F6eoCGjJGTkYuFf3+ChYmMjIqHhIKBg4WIiYmIhoSCgoOFh4iIh4WEgoKDhIaHh4aFhIOCg4SFhoaGhYSDg4ODhIWFhYWEg4ODg4SEhYWFhISDg4ODhISEhISEg4ODg4OEhISEhIODg4ODg4SEhISDg4ODg4ODhISEg4ODg4ODg4OEhISDg4ODg4ODg4SEhIODg4ODg4ODg4SDg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg==');
+              audio.volume = 0.3;
+              audio.play().catch(() => {});
+            } catch (e) {}
+            
+            // Success callback - stop scanner
             if (isScannerRunning.current) {
               isScannerRunning.current = false;
               try {
@@ -173,21 +188,20 @@ const EmployeeDashboard = ({ user }) => {
         // Mark scanner as running after successful start
         isScannerRunning.current = true;
       } catch (err) {
-        console.error('Scanner error:', err);
+        console.error('Scanner init error:', err);
         isScannerRunning.current = false;
-        // Fallback to basic camera config if advanced fails
+        
+        // Fallback with simplest possible config
         try {
-          const html5QrCode = new Html5Qrcode("qr-reader", {
-            useBarCodeDetectorIfSupported: true
-          });
+          const html5QrCode = new Html5Qrcode("qr-reader");
           scannerRef.current = html5QrCode;
+          
           await html5QrCode.start(
             { facingMode: "environment" },
             { 
-              fps: 30, 
-              qrbox: { width: 250, height: 250 }, 
-              aspectRatio: 1.0,
-              formatsToSupport: [ 0 ]
+              fps: 15, 
+              qrbox: 250,
+              aspectRatio: 1.0
             },
             async (decodedText) => {
               if (isProcessingQR) return;
