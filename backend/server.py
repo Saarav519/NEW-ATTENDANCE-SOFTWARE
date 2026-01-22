@@ -20,9 +20,10 @@ app = FastAPI(title="Audix Solutions Staff Management API")
 
 # Root-level health check for Kubernetes (without /api prefix)
 @app.get("/health")
+@app.get("/healthz")
 async def health_check():
     """Health check endpoint for Kubernetes deployment"""
-    return {"status": "healthy"}
+    return {"status": "healthy", "service": "audix-backend"}
 
 # Import and include routes
 from routes import router as api_router
