@@ -520,7 +520,22 @@ const EmployeeAttendance = () => {
                             variant={dayInfo.hasRecord ? "outline" : "default"}
                             onClick={() => saveAttendance(dayInfo.dateStr)}
                             disabled={saving || !entry.status}
-                            className={dayInfo.hasRecord ? "border-green-500 text-green-600" : "bg-blue-600"}
+                            className={dayInfo.hasRecord ? (() => {
+                              const status = dayInfo.record?.attendance_status || dayInfo.record?.status;
+                              switch(status) {
+                                case 'full_day':
+                                case 'present':
+                                  return 'border-green-500 text-green-600';
+                                case 'half_day':
+                                  return 'border-yellow-500 text-yellow-600';
+                                case 'absent':
+                                  return 'border-red-500 text-red-600';
+                                case 'leave':
+                                  return 'border-orange-500 text-orange-600';
+                                default:
+                                  return 'border-gray-500 text-gray-600';
+                              }
+                            })() : "bg-blue-600"}
                           >
                             {dayInfo.hasRecord ? (
                               <><Edit2 size={14} className="mr-1" /> Update</>
