@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { usersAPI, qrCodeAPI } from '../services/api';
+import { usersAPI, qrCodeAPI, attendanceAPI } from '../services/api';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -20,6 +20,7 @@ const Team = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [teamMembers, setTeamMembers] = useState([]);
+  const [teamAttendanceStats, setTeamAttendanceStats] = useState({ present: 0, absent: 0, notMarked: 0 });
   const [loading, setLoading] = useState(true);
   const [showQRDialog, setShowQRDialog] = useState(false);
   const [qrGenerated, setQrGenerated] = useState(null);
