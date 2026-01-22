@@ -380,18 +380,18 @@ async def delete_user(user_id: str, deleted_by: str):
     if user.get("role") == "admin":
         raise HTTPException(status_code=400, detail="Cannot delete admin users")
     
+    # If deleting a team leader, unassign their team members first
+    if user.get("role") == "teamlead":
+        await db.users.update_many(
+            {"team_lead_id": user_id},
+            {"$set": {"team_lead_id": None}}
+        )
+    
     # Delete the user
     result = await db.users.delete_one({"id": user_id})
     
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
-    
-    # Also delete related data (optional - can be cleaned up separately)
-    # await db.attendance.delete_many({"emp_id": user_id})
-    # await db.leaves.delete_many({"emp_id": user_id})
-    # await db.bills.delete_many({"emp_id": user_id})
-    # await db.advances.delete_many({"emp_id": user_id})
-    # await db.payslips.delete_many({"emp_id": user_id})
     
     return {"message": f"User {user['name']} deleted successfully", "success": True}
 
