@@ -22,6 +22,19 @@ import toast from 'react-hot-toast';
 const Employees = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  
+  // Role-based access control - Only admins can access this page
+  useEffect(() => {
+    if (user && user.role !== 'admin') {
+      toast.error('Access denied. Admin privileges required.');
+      if (user.role === 'teamlead') {
+        navigate('/attendance/team');
+      } else {
+        navigate('/attendance/dashboard');
+      }
+    }
+  }, [user, navigate]);
+  
   const [employees, setEmployees] = useState([]);
   const [teamLeaders, setTeamLeaders] = useState([]);
   const [loading, setLoading] = useState(true);
