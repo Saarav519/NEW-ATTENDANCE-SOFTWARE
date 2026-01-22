@@ -136,6 +136,8 @@ const Home = () => {
                 <p className="text-xs md:text-sm text-slate-600 font-semibold">Where Audits Meet Exceptional X-ceptionalism</p>
               </div>
             </div>
+            
+            {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-6">
               <a href="#services" className="text-slate-700 hover:text-blue-600 transition-colors font-semibold text-lg">Services</a>
               <a href="#about" className="text-slate-700 hover:text-blue-600 transition-colors font-semibold text-lg">About</a>
@@ -147,7 +149,42 @@ const Home = () => {
                 Call Us
               </Button>
             </div>
+            
+            {/* Mobile Menu Button & Staff Portal */}
+            <div className="flex md:hidden items-center gap-2">
+              <a 
+                href="/attendance" 
+                className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-green-600 to-green-700 rounded-full shadow-lg"
+                title="Staff Portal"
+              >
+                <UserCircle className="h-5 w-5 text-white" />
+              </a>
+              <button 
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-2 text-slate-700 hover:text-blue-600"
+              >
+                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
+            </div>
           </div>
+          
+          {/* Mobile Menu Dropdown */}
+          {mobileMenuOpen && (
+            <div className="md:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg border-t border-slate-200 py-4 px-4 space-y-3">
+              <a href="#services" onClick={() => setMobileMenuOpen(false)} className="block text-slate-700 hover:text-blue-600 font-semibold py-2">Services</a>
+              <a href="#about" onClick={() => setMobileMenuOpen(false)} className="block text-slate-700 hover:text-blue-600 font-semibold py-2">About</a>
+              <a href="#team" onClick={() => setMobileMenuOpen(false)} className="block text-slate-700 hover:text-blue-600 font-semibold py-2">Team</a>
+              <a href="#contact" onClick={() => setMobileMenuOpen(false)} className="block text-slate-700 hover:text-blue-600 font-semibold py-2">Contact</a>
+              <a href="/attendance" className="block text-white bg-gradient-to-r from-green-600 to-green-700 px-4 py-3 rounded-lg font-semibold text-center shadow-md">
+                <UserCircle className="h-5 w-5 inline mr-2" />
+                Staff Portal
+              </a>
+              <Button onClick={handleCall} className="w-full bg-blue-600 hover:bg-blue-700">
+                <Phone className="h-5 w-5 mr-2" />
+                Call Us
+              </Button>
+            </div>
+          )}
         </div>
       </header>
 
