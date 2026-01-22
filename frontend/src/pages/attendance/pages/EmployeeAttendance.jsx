@@ -14,6 +14,7 @@ import {
   MapPin, IndianRupee, Save, CheckSquare, Edit2, Plus
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { exportAttendanceToExcel } from '../utils/exportUtils';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
