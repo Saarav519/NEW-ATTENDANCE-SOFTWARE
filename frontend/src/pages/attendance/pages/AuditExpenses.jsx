@@ -292,13 +292,13 @@ const AuditExpenses = () => {
   const handleDelete = async (expenseId) => {
     if (!window.confirm('Are you sure you want to delete this expense?')) return;
     try {
-      await auditExpenseAPI.delete(expenseId);
+      await auditExpenseAPI.delete(expenseId, user.id);
       toast.success('Expense deleted');
       setShowDetailDialog(false);
       loadExpenses();
     } catch (error) {
       console.error('Error deleting expense:', error);
-      toast.error('Failed to delete expense');
+      toast.error(error.message || 'Failed to delete expense');
     }
   };
 
