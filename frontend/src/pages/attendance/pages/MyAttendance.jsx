@@ -166,11 +166,12 @@ const MyAttendance = () => {
                   className={`aspect-square flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${
                     isToday ? 'ring-2 ring-[#1E2A5E]' : ''
                   } ${
-                    status === 'present' ? 'bg-green-100 text-green-700' :
-                    status === 'absent' ? 'bg-red-100 text-red-700' :
-                    status === 'leave' ? 'bg-orange-100 text-orange-700' :
-                    status === 'holiday' ? 'bg-gray-100 text-gray-400' :
-                    'text-gray-400'
+                    status === 'present' ? 'bg-green-500 text-white' :
+                    status === 'half_day' ? 'bg-yellow-500 text-white' :
+                    status === 'absent' ? 'bg-red-500 text-white' :
+                    status === 'leave' ? 'bg-orange-500 text-white' :
+                    status === 'holiday' ? 'bg-blue-100 text-blue-500' :
+                    'bg-gray-50 text-gray-400'
                   }`}
                 >
                   {day}
@@ -180,18 +181,26 @@ const MyAttendance = () => {
           </div>
 
           {/* Legend */}
-          <div className="flex items-center justify-center gap-4 mt-4 pt-4 border-t">
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-4 pt-4 border-t">
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 bg-green-100 rounded"></div>
+              <div className="w-3 h-3 bg-green-500 rounded"></div>
               <span className="text-xs text-gray-600">Present</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 bg-red-100 rounded"></div>
+              <div className="w-3 h-3 bg-yellow-500 rounded"></div>
+              <span className="text-xs text-gray-600">Half Day</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 bg-red-500 rounded"></div>
               <span className="text-xs text-gray-600">Absent</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 bg-orange-100 rounded"></div>
+              <div className="w-3 h-3 bg-orange-500 rounded"></div>
               <span className="text-xs text-gray-600">Leave</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 bg-blue-100 rounded"></div>
+              <span className="text-xs text-gray-600">Sunday</span>
             </div>
           </div>
         </CardContent>
