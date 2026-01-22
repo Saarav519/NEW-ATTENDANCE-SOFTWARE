@@ -412,15 +412,21 @@ const Team = () => {
             <div className="space-y-4 py-4">
               {/* QR Code Display */}
               <div className="flex flex-col items-center">
-                <div className="p-4 bg-white border-2 border-gray-200 rounded-xl">
+                <div className="p-6 bg-white border-2 border-gray-200 rounded-xl shadow-sm">
                   <QRCodeSVG 
                     id="qr-code-svg"
                     value={qrGenerated.qr_data}
-                    size={200}
+                    size={280}
                     level="H"
                     includeMargin={true}
+                    imageSettings={{
+                      excavate: true,
+                    }}
                   />
                 </div>
+                <p className="text-xs text-green-600 mt-2 font-medium">
+                  ✓ High resolution QR for easy scanning
+                </p>
               </div>
               
               {/* QR Details */}
