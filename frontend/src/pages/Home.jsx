@@ -1,10 +1,12 @@
-import React from 'react';
-import { Phone, Mail, MessageCircle, CheckCircle, Building2, Package, FileCheck, ClipboardList, Warehouse, Shield, Users, Target, Award, Briefcase, TrendingUp } from 'lucide-react';
+import React, { useState } from 'react';
+import { Phone, Mail, MessageCircle, CheckCircle, Building2, Package, FileCheck, ClipboardList, Warehouse, Shield, Users, Target, Award, Briefcase, TrendingUp, Menu, X, UserCircle } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 
 const Home = () => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
   const handleCall = () => {
     window.location.href = 'tel:9205514887';
   };
