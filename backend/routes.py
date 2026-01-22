@@ -2420,7 +2420,7 @@ async def clear_all_data():
 async def seed_database():
     """Seed the database with initial data"""
     
-    # Clear existing data
+    # Clear ALL existing data
     await db.users.delete_many({})
     await db.holidays.delete_many({})
     await db.qr_codes.delete_many({})
@@ -2428,6 +2428,12 @@ async def seed_database():
     await db.leaves.delete_many({})
     await db.bills.delete_many({})
     await db.payslips.delete_many({})
+    await db.notifications.delete_many({})
+    await db.advances.delete_many({})
+    await db.cashbook.delete_many({})
+    await db.invoices.delete_many({})
+    await db.loans.delete_many({})
+    await db.audit_expenses.delete_many({})
     
     # Seed users
     users = [
