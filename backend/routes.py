@@ -44,6 +44,28 @@ async def health_check():
     """Health check endpoint for monitoring"""
     return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
 
+# Serve uploaded files (images, pdfs, etc.)
+@router.get("/uploads/{filename}")
+async def get_upload_file(filename: str):
+    """Serve files from the uploads directory"""
+    file_path = f"/app/backend/uploads/{filename}"
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    # Determine content type based on file extension
+    ext = filename.lower().split('.')[-1] if '.' in filename else ''
+    content_types = {
+        'png': 'image/png',
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'gif': 'image/gif',
+        'pdf': 'application/pdf',
+        'webp': 'image/webp'
+    }
+    media_type = content_types.get(ext, 'application/octet-stream')
+    
+    return FileResponse(file_path, media_type=media_type)
+
 # Get DB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
