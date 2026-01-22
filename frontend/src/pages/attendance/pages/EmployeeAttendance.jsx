@@ -276,7 +276,7 @@ const EmployeeAttendance = () => {
               <CheckSquare size={18} className="mr-2" /> Mark Selected ({selectedDates.length})
             </Button>
           )}
-          <Button variant="outline" onClick={() => toast.success('Export feature coming soon')}>
+          <Button variant="outline" onClick={handleExport} disabled={attendance.length === 0}>
             <Download size={18} className="mr-2" /> Export
           </Button>
         </div>
