@@ -120,19 +120,23 @@ const Team = () => {
     const img = new Image();
     
     img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
+      // Generate high resolution image (3x scale for better quality)
+      const scale = 3;
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
       ctx.fillStyle = 'white';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.scale(scale, scale);
       ctx.drawImage(img, 0, 0);
       
       const link = document.createElement('a');
       link.download = `QR_${qrForm.location}_${qrForm.date}.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.href = canvas.toDataURL('image/png', 1.0); // Maximum quality
       link.click();
+      toast.success('High resolution QR downloaded!');
     };
     
-    img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
   };
 
   const resetQRDialog = () => {
