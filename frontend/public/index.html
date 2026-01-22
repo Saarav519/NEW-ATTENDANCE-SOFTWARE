@@ -81,6 +81,27 @@
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
         <div id="root"></div>
+        
+        <!-- Suppress ResizeObserver loop error -->
+        <script>
+            // Suppress ResizeObserver loop error - this is a harmless browser warning
+            const resizeObserverErr = window.onerror;
+            window.onerror = function(message, source, lineno, colno, error) {
+                if (message && message.includes && message.includes('ResizeObserver loop')) {
+                    return true;
+                }
+                return resizeObserverErr ? resizeObserverErr(message, source, lineno, colno, error) : false;
+            };
+            
+            // Also handle unhandled promise rejections for ResizeObserver
+            window.addEventListener('error', function(e) {
+                if (e.message && e.message.includes('ResizeObserver loop')) {
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return true;
+                }
+            });
+        </script>
         <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
