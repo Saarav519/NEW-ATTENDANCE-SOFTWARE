@@ -111,29 +111,35 @@ const EmployeeDashboard = ({ user }) => {
   const initScanner = () => {
     setTimeout(async () => {
       try {
-        const html5QrCode = new Html5Qrcode("qr-reader");
+        const html5QrCode = new Html5Qrcode("qr-reader", {
+          // Use verbose mode for debugging if needed
+          verbose: false,
+          // Prefer native BarcodeDetector for faster scanning
+          useBarCodeDetectorIfSupported: true
+        });
         scannerRef.current = html5QrCode;
         
-        // Configure camera with higher resolution for better QR scanning
+        // Optimized camera config for fast QR scanning
         const cameraConfig = {
           facingMode: "environment",
-          // Request higher resolution for clearer image
           advanced: [
-            { width: { min: 1280, ideal: 1920, max: 2560 } },
-            { height: { min: 720, ideal: 1080, max: 1440 } },
+            { width: { min: 640, ideal: 1280, max: 1920 } },
+            { height: { min: 480, ideal: 720, max: 1080 } },
             { focusMode: "continuous" },
-            { exposureMode: "continuous" }
+            { exposureMode: "continuous" },
+            { whiteBalanceMode: "continuous" }
           ]
         };
         
         await html5QrCode.start(
           cameraConfig,
           {
-            fps: 15, // Increased FPS for better scanning
-            qrbox: { width: 280, height: 280 }, // Slightly larger scan area
+            fps: 30, // Maximum FPS for fastest scanning
+            qrbox: { width: 250, height: 250 }, // Optimal size for speed
             aspectRatio: 1.0,
             disableFlip: false,
-            // Higher resolution scanning
+            // Optimizations for faster detection
+            formatsToSupport: [ 0 ], // 0 = QR_CODE only (faster than scanning all formats)
             experimentalFeatures: {
               useBarCodeDetectorIfSupported: true
             }
@@ -142,6 +148,11 @@ const EmployeeDashboard = ({ user }) => {
             // Prevent duplicate processing
             if (isProcessingQR) return;
             setIsProcessingQR(true);
+            
+            // Vibrate on successful scan for feedback
+            if (navigator.vibrate) {
+              navigator.vibrate(100);
+            }
             
             // Success callback - stop scanner and mark as not running
             if (isScannerRunning.current) {
@@ -156,7 +167,7 @@ const EmployeeDashboard = ({ user }) => {
             setIsProcessingQR(false);
           },
           (errorMessage) => {
-            // Error callback - ignore scan errors
+            // Error callback - ignore scan errors (normal during scanning)
           }
         );
         // Mark scanner as running after successful start
@@ -166,14 +177,22 @@ const EmployeeDashboard = ({ user }) => {
         isScannerRunning.current = false;
         // Fallback to basic camera config if advanced fails
         try {
-          const html5QrCode = new Html5Qrcode("qr-reader");
+          const html5QrCode = new Html5Qrcode("qr-reader", {
+            useBarCodeDetectorIfSupported: true
+          });
           scannerRef.current = html5QrCode;
           await html5QrCode.start(
             { facingMode: "environment" },
-            { fps: 15, qrbox: { width: 280, height: 280 }, aspectRatio: 1.0 },
+            { 
+              fps: 30, 
+              qrbox: { width: 250, height: 250 }, 
+              aspectRatio: 1.0,
+              formatsToSupport: [ 0 ]
+            },
             async (decodedText) => {
               if (isProcessingQR) return;
               setIsProcessingQR(true);
+              if (navigator.vibrate) navigator.vibrate(100);
               if (isScannerRunning.current) {
                 isScannerRunning.current = false;
                 try { await html5QrCode.stop(); } catch (e) {}
