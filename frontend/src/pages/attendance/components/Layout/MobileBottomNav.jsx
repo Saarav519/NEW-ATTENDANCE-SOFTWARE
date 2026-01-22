@@ -67,7 +67,7 @@ const MobileBottomNav = () => {
   const navItems = getNavItems();
 
   // Check if current path is in more menu
-  const isMoreActive = navItems.more.some(item => location.pathname === item.path);
+  const isMoreActive = navItems.more.some(item => location.pathname === item.path || location.pathname.startsWith(item.path + '/'));
 
   return (
     <>
