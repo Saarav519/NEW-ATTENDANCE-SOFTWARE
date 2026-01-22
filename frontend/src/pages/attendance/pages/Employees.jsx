@@ -137,15 +137,30 @@ const Employees = () => {
     setSubmitting(true);
     try {
       const updates = {
+        name: editEmployee.name,
+        email: editEmployee.email,
+        phone: editEmployee.phone,
+        department: editEmployee.department,
+        designation: editEmployee.designation,
+        salary: parseFloat(editEmployee.salary) || 0,
+        salary_type: editEmployee.salary_type,
+        role: editEmployee.role,
         team_lead_id: editEmployee.team_lead_id || null,
+        bank_name: editEmployee.bank_name,
+        bank_account_number: editEmployee.bank_account_number,
+        bank_ifsc: editEmployee.bank_ifsc,
         changed_by: user.id,
-        change_reason: editEmployee.change_reason || 'Team Leader reassignment'
+        change_reason: editEmployee.change_reason || 'Profile update'
       };
       
       await usersAPI.update(editDialog.employee.id, updates);
       toast.success('Employee updated successfully');
       setEditDialog({ open: false, employee: null });
-      setEditEmployee({ team_lead_id: '', change_reason: '' });
+      setEditEmployee({
+        name: '', email: '', phone: '', department: '', designation: '',
+        salary: '', salary_type: 'monthly', role: 'employee', team_lead_id: '',
+        bank_name: '', bank_account_number: '', bank_ifsc: '', change_reason: ''
+      });
       loadEmployees();
     } catch (error) {
       toast.error(error.message || 'Failed to update employee');
@@ -156,10 +171,35 @@ const Employees = () => {
 
   const openEditDialog = (emp) => {
     setEditEmployee({
+      name: emp.name || '',
+      email: emp.email || '',
+      phone: emp.phone || '',
+      department: emp.department || '',
+      designation: emp.designation || '',
+      salary: emp.salary?.toString() || '',
+      salary_type: emp.salary_type || 'monthly',
+      role: emp.role || 'employee',
       team_lead_id: emp.team_lead_id || '',
+      bank_name: emp.bank_name || '',
+      bank_account_number: emp.bank_account_number || '',
+      bank_ifsc: emp.bank_ifsc || '',
       change_reason: ''
     });
     setEditDialog({ open: true, employee: emp });
+  };
+
+  const handleDeleteEmployee = async (emp) => {
+    if (!window.confirm(`Are you sure you want to delete ${emp.name}? This action cannot be undone.`)) {
+      return;
+    }
+    
+    try {
+      await usersAPI.delete(emp.id, user.id);
+      toast.success(`${emp.name} has been deleted`);
+      loadEmployees();
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete employee');
+    }
   };
 
   const openHistoryDialog = async (emp) => {
