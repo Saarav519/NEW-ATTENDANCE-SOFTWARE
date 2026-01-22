@@ -304,25 +304,65 @@ const Attendance = () => {
                 ))}
                 {monthDates.map((date, idx) => {
                   const day = idx + 1;
-                  const hasAttendance = attendanceRecords.some(r => r.date === date);
+                  const dayRecord = attendanceRecords.find(r => r.date === date);
+                  const hasAttendance = !!dayRecord;
                   const isSelected = date === selectedDate;
                   const isToday = date === todayStr;
+                  const isSunday = new Date(date).getDay() === 0;
+                  
+                  // Get attendance status for coloring
+                  const getCalendarColor = () => {
+                    if (isSelected) return 'bg-blue-600 text-white';
+                    if (isToday) return 'ring-2 ring-blue-600';
+                    if (isSunday) return 'bg-blue-50 text-blue-500';
+                    if (!hasAttendance) return 'hover:bg-gray-100 text-gray-400';
+                    
+                    const status = dayRecord?.attendance_status || dayRecord?.status;
+                    switch(status) {
+                      case 'full_day':
+                      case 'present':
+                        return 'bg-green-500 text-white';
+                      case 'half_day':
+                        return 'bg-yellow-500 text-white';
+                      case 'absent':
+                        return 'bg-red-500 text-white';
+                      case 'leave':
+                        return 'bg-orange-500 text-white';
+                      default:
+                        return 'bg-gray-100 text-gray-600';
+                    }
+                  };
                   
                   return (
                     <button
                       key={date}
                       onClick={() => setSelectedDate(date)}
-                      className={`p-1 sm:p-2 text-xs sm:text-sm rounded-lg transition-all ${
-                        isSelected ? 'bg-blue-600 text-white' 
-                        : isToday ? 'bg-blue-100 text-blue-600 font-bold'
-                        : hasAttendance ? 'bg-green-50 text-green-700 hover:bg-green-100'
-                        : 'hover:bg-gray-100'
-                      }`}
+                      className={`p-1 sm:p-2 text-xs sm:text-sm rounded-lg transition-all ${getCalendarColor()}`}
                     >
                       {day}
                     </button>
                   );
                 })}
+              </div>
+              
+              {/* Calendar Legend */}
+              <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t text-[10px]">
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-green-500 rounded"></div>
+                  <span>Present</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-yellow-500 rounded"></div>
+                  <span>Half</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-red-500 rounded"></div>
+                  <span>Absent</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-orange-500 rounded"></div>
+                  <span>Leave</span>
+                </div>
               </div>
             </CardContent>
           </Card>
