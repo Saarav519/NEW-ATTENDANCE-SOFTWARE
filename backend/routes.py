@@ -1397,6 +1397,28 @@ async def reject_bill(bill_id: str, rejected_by: str):
     
     return {"message": "Bill rejected"}
 
+# Delete bill (only pending or revalidation status, by owner)
+@router.delete("/bills/{bill_id}")
+async def delete_bill(bill_id: str, emp_id: str):
+    """Delete a bill submission - only allowed for pending/revalidation bills by the owner"""
+    bill = await db.bills.find_one({"id": bill_id}, {"_id": 0})
+    if not bill:
+        raise HTTPException(status_code=404, detail="Bill not found")
+    
+    # Check ownership
+    if bill["emp_id"] != emp_id:
+        raise HTTPException(status_code=403, detail="You can only delete your own bills")
+    
+    # Check status - can only delete pending or revalidation bills
+    if bill["status"] not in [BillStatus.PENDING, BillStatus.REVALIDATION]:
+        raise HTTPException(status_code=400, detail="Cannot delete approved or rejected bills")
+    
+    result = await db.bills.delete_one({"id": bill_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Bill not found")
+    
+    return {"message": "Bill deleted successfully"}
+
 # File upload for bill attachments
 @router.post("/bills/upload-attachment")
 async def upload_attachment(file: UploadFile = File(...)):
