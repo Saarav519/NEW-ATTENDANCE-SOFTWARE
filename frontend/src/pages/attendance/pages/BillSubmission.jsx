@@ -1079,6 +1079,21 @@ const BillSubmission = () => {
                           </Button>
                         </div>
                       )}
+                      
+                      {/* Delete button for employee's own pending advances */}
+                      {!isAdmin && adv.emp_id === user?.id && adv.status === 'pending' && (
+                        <div className="flex justify-end mt-3 pt-3 border-t">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-red-500 border-red-200 hover:bg-red-50"
+                            onClick={() => handleDeleteAdvance(adv.id)}
+                            data-testid={`delete-advance-btn-${adv.id}`}
+                          >
+                            <Trash2 size={14} className="mr-1" /> Delete
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
