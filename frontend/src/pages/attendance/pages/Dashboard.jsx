@@ -641,6 +641,7 @@ const TeamLeadDashboard = ({ user }) => {
   const [punchInTime, setPunchInTime] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [teamMembers, setTeamMembers] = useState([]);
+  const [teamAttendanceStats, setTeamAttendanceStats] = useState({ present: 0, absent: 0, notMarked: 0 });
   const [pendingLeaves, setPendingLeaves] = useState(0);
   const [pendingBills, setPendingBills] = useState(0);
   const [holidays, setHolidays] = useState([]);
