@@ -824,6 +824,21 @@ const BillSubmission = () => {
                         </div>
                       )}
 
+                      {/* Delete button for employee's own pending/revalidation bills */}
+                      {!isAdmin && bill.emp_id === user?.id && (bill.status === 'pending' || bill.status === 'revalidation') && (
+                        <div className="mt-3 pt-3 border-t flex justify-end">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-red-500 border-red-200 hover:bg-red-50"
+                            onClick={() => handleDeleteBill(bill.id)}
+                            data-testid={`delete-bill-btn-${bill.id}`}
+                          >
+                            <Trash2 size={14} className="mr-1" /> Delete Bill
+                          </Button>
+                        </div>
+                      )}
+
                       {/* Approved Info */}
                       {bill.status === 'approved' && (
                         <div className="mt-2 pt-2 border-t text-sm text-green-600">
