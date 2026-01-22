@@ -939,21 +939,26 @@ const TeamLeadDashboard = ({ user }) => {
               View All <ChevronRight size={14} />
             </button>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-4 gap-2">
             <div className="text-center p-3 bg-blue-50 rounded-xl">
-              <Users size={20} className="mx-auto text-blue-600 mb-1" />
+              <Users size={18} className="mx-auto text-blue-600 mb-1" />
               <p className="text-lg font-bold text-gray-800">{teamMembers.length}</p>
               <p className="text-[10px] text-gray-500">Members</p>
             </div>
             <div className="text-center p-3 bg-green-50 rounded-xl">
-              <UserCheck size={20} className="mx-auto text-green-600 mb-1" />
-              <p className="text-lg font-bold text-gray-800">{Math.max(0, teamMembers.length - 1)}</p>
+              <UserCheck size={18} className="mx-auto text-green-600 mb-1" />
+              <p className="text-lg font-bold text-green-600">{teamAttendanceStats.present}</p>
               <p className="text-[10px] text-gray-500">Present</p>
             </div>
-            <div className="text-center p-3 bg-orange-50 rounded-xl">
-              <UserX size={20} className="mx-auto text-orange-600 mb-1" />
-              <p className="text-lg font-bold text-gray-800">{Math.min(1, teamMembers.length)}</p>
+            <div className="text-center p-3 bg-red-50 rounded-xl">
+              <UserX size={18} className="mx-auto text-red-600 mb-1" />
+              <p className="text-lg font-bold text-red-600">{teamAttendanceStats.absent}</p>
               <p className="text-[10px] text-gray-500">Absent</p>
+            </div>
+            <div className="text-center p-3 bg-gray-50 rounded-xl">
+              <Clock size={18} className="mx-auto text-gray-600 mb-1" />
+              <p className="text-lg font-bold text-gray-600">{teamAttendanceStats.notMarked}</p>
+              <p className="text-[10px] text-gray-500">Not Marked</p>
             </div>
           </div>
         </CardContent>
