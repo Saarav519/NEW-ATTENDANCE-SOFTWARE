@@ -405,13 +405,51 @@ const EmployeeAttendance = () => {
                     const entry = entryData[dayInfo.dateStr] || {};
                     const isSelected = selectedDates.includes(dayInfo.dateStr);
                     
+                    // Determine border color based on attendance status
+                    const getRecordBorderColor = () => {
+                      if (!dayInfo.hasRecord || !dayInfo.record) return '';
+                      const status = dayInfo.record.attendance_status || dayInfo.record.status;
+                      switch(status) {
+                        case 'full_day':
+                        case 'present':
+                          return 'border-l-4 border-l-green-500';
+                        case 'half_day':
+                          return 'border-l-4 border-l-yellow-500';
+                        case 'absent':
+                          return 'border-l-4 border-l-red-500';
+                        case 'leave':
+                          return 'border-l-4 border-l-orange-500';
+                        default:
+                          return 'border-l-4 border-l-gray-400';
+                      }
+                    };
+                    
+                    // Get row background color based on status
+                    const getRowBgColor = () => {
+                      if (!dayInfo.hasRecord || !dayInfo.record) return '';
+                      const status = dayInfo.record.attendance_status || dayInfo.record.status;
+                      switch(status) {
+                        case 'full_day':
+                        case 'present':
+                          return 'bg-green-50';
+                        case 'half_day':
+                          return 'bg-yellow-50';
+                        case 'absent':
+                          return 'bg-red-50';
+                        case 'leave':
+                          return 'bg-orange-50';
+                        default:
+                          return '';
+                      }
+                    };
+                    
                     return (
                       <tr 
                         key={dayInfo.dateStr} 
                         className={`
-                          ${dayInfo.isSunday ? 'bg-blue-50' : 'hover:bg-gray-50'}
+                          ${dayInfo.isSunday ? 'bg-blue-50' : (dayInfo.hasRecord ? getRowBgColor() : 'hover:bg-gray-50')}
                           ${isSelected ? 'bg-blue-100' : ''}
-                          ${dayInfo.hasRecord ? 'border-l-4 border-l-green-400' : ''}
+                          ${getRecordBorderColor()}
                         `}
                       >
                         <td className="p-2">
