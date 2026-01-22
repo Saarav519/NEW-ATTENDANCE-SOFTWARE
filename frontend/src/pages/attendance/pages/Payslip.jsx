@@ -47,293 +47,258 @@ const Payslip = () => {
     
     const breakdown = selectedPayslip.breakdown || {};
     const doc = new jsPDF();
+    const API_URL = process.env.REACT_APP_BACKEND_URL || '';
     
-    // Company Logo (placeholder - would need to be loaded from server)
-    // For now, we'll use text-based header
+    // Load images
+    let logoImg = null;
+    let stampImg = null;
+    
+    try {
+      // Load company logo
+      const logoResponse = await fetch(`${API_URL}/api/uploads/company_logo.png`);
+      if (logoResponse.ok) {
+        const logoBlob = await logoResponse.blob();
+        logoImg = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(logoBlob);
+        });
+      }
+    } catch (e) {
+      console.log('Could not load logo');
+    }
+    
+    try {
+      // Load company stamp/signature
+      const stampResponse = await fetch(`${API_URL}/api/uploads/company_stamp.png`);
+      if (stampResponse.ok) {
+        const stampBlob = await stampResponse.blob();
+        stampImg = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(stampBlob);
+        });
+      }
+    } catch (e) {
+      console.log('Could not load stamp');
+    }
+    
+    let y = 15;
+    
+    // === HEADER SECTION ===
+    // Company Logo (centered at top)
+    if (logoImg) {
+      doc.addImage(logoImg, 'PNG', 65, y, 80, 25);
+      y += 30;
+    }
     
     // Company Name Header
-    doc.setFontSize(24);
+    doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(30, 42, 94); // #1E2A5E
-    doc.text('AUDIX SOLUTIONS & CO.', 105, 25, { align: 'center' });
+    doc.text('AUDIX SOLUTIONS & CO.', 105, y, { align: 'center' });
+    y += 7;
     
-    doc.setFontSize(11);
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 100, 100);
-    doc.text('Chartered Accountants', 105, 33, { align: 'center' });
+    doc.text('Chartered Accountants', 105, y, { align: 'center' });
+    y += 10;
     
     // Payslip Title with Month and Year
-    doc.setFontSize(16);
+    doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(51, 51, 51);
-    doc.text(`Payslip - ${selectedPayslip.month} - ${selectedPayslip.year}`, 105, 45, { align: 'center' });
+    doc.text(`PAYSLIP - ${selectedPayslip.month.toUpperCase()} - ${selectedPayslip.year}`, 105, y, { align: 'center' });
+    y += 8;
     
     // Separator line
     doc.setDrawColor(30, 42, 94);
     doc.setLineWidth(0.5);
-    doc.line(20, 50, 190, 50);
+    doc.line(20, y, 190, y);
+    y += 10;
     
-    // Employee Info Section
-    doc.setFontSize(10);
+    // === EMPLOYEE INFO SECTION ===
+    doc.setFontSize(9);
     doc.setTextColor(0, 0, 0);
     
     // Left column
     doc.setFont('helvetica', 'bold');
-    doc.text('Employee Name:', 20, 60);
+    doc.text('Employee Name:', 20, y);
     doc.setFont('helvetica', 'normal');
-    doc.text(selectedPayslip.emp_name, 55, 60);
-    
-    doc.setFont('helvetica', 'bold');
-    doc.text('Employee ID:', 20, 67);
-    doc.setFont('helvetica', 'normal');
-    doc.text(selectedPayslip.emp_id, 55, 67);
-    
-    doc.setFont('helvetica', 'bold');
-    doc.text('Department:', 20, 74);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Operations', 55, 74);
+    doc.text(selectedPayslip.emp_name || 'N/A', 55, y);
     
     // Right column
     doc.setFont('helvetica', 'bold');
-    doc.text('Status:', 120, 60);
+    doc.text('Status:', 120, y);
     doc.setFont('helvetica', 'normal');
-    doc.text(selectedPayslip.status.toUpperCase(), 145, 60);
+    doc.text(selectedPayslip.status?.toUpperCase() || 'N/A', 145, y);
+    y += 6;
     
     doc.setFont('helvetica', 'bold');
-    doc.text('Paid On:', 120, 67);
+    doc.text('Employee ID:', 20, y);
     doc.setFont('helvetica', 'normal');
-    doc.text(selectedPayslip.paid_on || new Date().toLocaleDateString(), 145, 67);
+    doc.text(selectedPayslip.emp_id || 'N/A', 55, y);
     
-    // Bank Details
+    doc.setFont('helvetica', 'bold');
+    doc.text('Paid On:', 120, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(selectedPayslip.paid_on || new Date().toLocaleDateString(), 145, y);
+    y += 6;
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('Department:', 20, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Operations', 55, y);
+    
+    // Bank Details on right
     if (user?.bank_name || user?.bank_account_number) {
       doc.setFont('helvetica', 'bold');
-      doc.text('Bank Details:', 120, 74);
+      doc.text('Bank:', 120, y);
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.text(`${user?.bank_name || 'N/A'} | A/C: ${user?.bank_account_number || 'N/A'}`, 120, 80);
+      doc.text(`${user?.bank_name || 'N/A'}`, 145, y);
     }
+    y += 8;
     
     // Separator
     doc.setLineWidth(0.3);
     doc.setDrawColor(200, 200, 200);
-    doc.line(20, 85, 190, 85);
+    doc.line(20, y, 190, y);
+    y += 8;
     
-    let y = 95;
-    const lineHeight = 7;
+    const lineHeight = 6;
     
-    // ATTENDANCE SUMMARY Section
-    doc.setFontSize(11);
+    // === ATTENDANCE SUMMARY ===
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(30, 42, 94);
     doc.text('ATTENDANCE SUMMARY', 20, y);
-    y += lineHeight;
+    y += 6;
     
-    doc.setFontSize(9);
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(0, 0, 0);
     doc.text(`Full Days: ${breakdown.full_days || 0}  |  Half Days: ${breakdown.half_days || 0}  |  Leave: ${breakdown.leave_days || 0}  |  Absent: ${breakdown.absent_days || 0}`, 20, y);
-    y += lineHeight;
+    y += 5;
     doc.text(`Total Duty Earned: Rs. ${(breakdown.total_duty_earned || 0).toLocaleString()}`, 20, y);
-    y += lineHeight + 5;
+    y += 10;
     
-    // EARNINGS Section
-    doc.setFillColor(232, 244, 232); // Light green
-    doc.rect(20, y - 3, 80, 8, 'F');
-    doc.setFontSize(11);
+    // === EARNINGS & DEDUCTIONS SIDE BY SIDE ===
+    const startY = y;
+    
+    // EARNINGS Section (Left side)
+    doc.setFillColor(232, 244, 232);
+    doc.rect(20, y - 2, 80, 7, 'F');
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(46, 125, 50);
-    doc.text('EARNINGS', 25, y + 2);
-    y += lineHeight + 5;
+    doc.text('EARNINGS', 25, y + 3);
+    y += 10;
     
-    doc.setFontSize(10);
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(0, 0, 0);
     
-    // Earnings items
     const earnings = [
       ['Basic Salary', breakdown.basic || 0],
       ['HRA', breakdown.hra || 0],
       ['Special Allowance', breakdown.special_allowance || 0],
       ['Conveyance', breakdown.conveyance || 0],
       ['Bills / Extra Conveyance', breakdown.extra_conveyance || 0],
+      ['Previous Pending Allowances', breakdown.previous_pending_allowances || 0],
     ];
     
+    let totalEarnings = 0;
     earnings.forEach(([label, amount]) => {
-      doc.text(label, 25, y);
-      doc.text(`Rs. ${amount.toLocaleString()}`, 95, y, { align: 'right' });
-      y += lineHeight;
+      if (amount > 0) {
+        doc.text(label, 22, y);
+        doc.text(`Rs. ${amount.toLocaleString()}`, 95, y, { align: 'right' });
+        totalEarnings += amount;
+        y += lineHeight;
+      }
     });
     
-    y += 5;
+    // Add total earnings
+    y += 2;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Total Earnings', 22, y);
+    doc.text(`Rs. ${totalEarnings.toLocaleString()}`, 95, y, { align: 'right' });
     
-    // DEDUCTIONS Section
-    doc.setFillColor(254, 232, 232); // Light red
-    doc.rect(110, y - 65, 80, 8, 'F');
-    doc.setFontSize(11);
+    // DEDUCTIONS Section (Right side)
+    let dedY = startY;
+    doc.setFillColor(254, 232, 232);
+    doc.rect(110, dedY - 2, 80, 7, 'F');
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(198, 40, 40);
-    doc.text('DEDUCTIONS', 115, y - 60);
+    doc.text('DEDUCTIONS', 115, dedY + 3);
+    dedY += 10;
     
-    doc.setFontSize(10);
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(0, 0, 0);
     
-    let dedY = y - 52;
     const deductions = [
       ['PF & Tax', breakdown.deductions || 0],
       ['Salary Advance', breakdown.advance_deduction || 0],
+      ['Attendance Adjustment', Math.abs(breakdown.attendance_adjustment || 0)],
+      ['Leave Adjustment', Math.abs(breakdown.leave_adjustment || 0)],
     ];
     
+    let totalDeductions = 0;
     deductions.forEach(([label, amount]) => {
-      doc.text(label, 115, dedY);
-      doc.text(`Rs. ${amount.toLocaleString()}`, 185, dedY, { align: 'right' });
-      dedY += lineHeight;
+      if (amount > 0) {
+        doc.text(label, 112, dedY);
+        doc.text(`Rs. ${amount.toLocaleString()}`, 185, dedY, { align: 'right' });
+        totalDeductions += amount;
+        dedY += lineHeight;
+      }
     });
     
-    // NET PAY Section
-    y += 10;
+    // Add total deductions
+    dedY += 2;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Total Deductions', 112, dedY);
+    doc.text(`Rs. ${totalDeductions.toLocaleString()}`, 185, dedY, { align: 'right' });
+    
+    // Move to after the tables
+    y = Math.max(y, dedY) + 15;
+    
+    // === NET PAY SECTION ===
     doc.setFillColor(30, 42, 94);
     doc.rect(20, y, 170, 12, 'F');
-    doc.setFontSize(14);
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(255, 255, 255);
     doc.text('NET PAY', 25, y + 8);
     doc.text(`Rs. ${(breakdown.net_pay || 0).toLocaleString()}`, 185, y + 8, { align: 'right' });
-    
     y += 25;
     
-    // Signature Section
+    // === SIGNATURE SECTION ===
     doc.setTextColor(0, 0, 0);
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.text('For Audix Solutions & Co.', 140, y);
+    y += 5;
     
-    // Signature line
-    y += 20;
-    doc.setDrawColor(0, 0, 0);
-    doc.line(130, y, 185, y);
-    doc.text('Authorized Signatory', 145, y + 5);
+    // Add stamp/signature image
+    if (stampImg) {
+      doc.addImage(stampImg, 'PNG', 140, y, 45, 45);
+      y += 50;
+    } else {
+      // Fallback signature line
+      y += 15;
+      doc.setDrawColor(0, 0, 0);
+      doc.line(130, y, 185, y);
+      y += 5;
+    }
     
-    // Footer
     doc.setFontSize(8);
+    doc.text('Authorized Signatory', 152, y);
+    
+    // === FOOTER ===
+    doc.setFontSize(7);
     doc.setTextColor(128, 128, 128);
-    doc.text('This is a computer-generated payslip.', 105, 280, { align: 'center' });
-    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 285, { align: 'center' });
-    
-    // Save PDF
-    doc.save(`Payslip_${selectedPayslip.emp_id}_${selectedPayslip.month}_${selectedPayslip.year}.pdf`);
-  };
-    
-    // Attendance Summary
-    let y = 90;
-    if (breakdown.full_days || breakdown.half_days || breakdown.absent_days) {
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('ATTENDANCE SUMMARY', 20, y);
-      y += 10;
-      
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Full Days: ${breakdown.full_days || 0}  |  Half Days: ${breakdown.half_days || 0}  |  Absent: ${breakdown.absent_days || 0}`, 20, y);
-      y += 7;
-      
-      // Total Duty Earned
-      if (breakdown.total_duty_earned && breakdown.total_duty_earned > 0) {
-        doc.text(`Total Duty Earned: Rs. ${Math.round(breakdown.total_duty_earned).toLocaleString()}`, 20, y);
-        y += 10;
-      }
-    }
-    
-    // Earnings Section
-    y += 5;
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text('EARNINGS', 20, y);
-    
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    
-    y += 10;
-    const lineHeight = 8;
-    
-    const earnings = [
-      ['Basic Salary', breakdown.basic || 0],
-      ['HRA', breakdown.hra || 0],
-      ['Special Allowance', breakdown.special_allowance || 0],
-      ['Conveyance', breakdown.conveyance || 0],
-      ['Bills / Previous Pending Approved', breakdown.extra_conveyance || 0],
-      ['Previous Pending Allowances', breakdown.previous_pending_allowances || 0],
-    ];
-    
-    earnings.forEach(([label, amount]) => {
-      doc.text(label, 25, y);
-      doc.text(`Rs. ${amount.toLocaleString()}`, 170, y, { align: 'right' });
-      y += lineHeight;
-    });
-    
-    // Adjustments
-    y += 5;
-    doc.setFont('helvetica', 'bold');
-    doc.text('ADJUSTMENTS', 20, y);
-    y += 10;
-    
-    doc.setFont('helvetica', 'normal');
-    
-    const attendanceAdj = breakdown.attendance_adjustment || 0;
-    if (attendanceAdj !== 0) {
-      doc.text(`Attendance Adjustment (Half/Absent Days)`, 25, y);
-      doc.text(`Rs. ${attendanceAdj.toLocaleString()}`, 170, y, { align: 'right' });
-      y += lineHeight;
-    }
-    
-    const leaveAdj = breakdown.leave_adjustment || 0;
-    doc.text('Leave Adjustment', 25, y);
-    doc.text(`Rs. ${leaveAdj.toLocaleString()}`, 170, y, { align: 'right' });
-    y += lineHeight;
-    
-    // Deductions
-    y += 5;
-    doc.setFont('helvetica', 'bold');
-    doc.text('DEDUCTIONS', 20, y);
-    y += 10;
-    
-    doc.setFont('helvetica', 'normal');
-    doc.text('PF & Tax', 25, y);
-    doc.text(`Rs. ${(breakdown.deductions || 0).toLocaleString()}`, 170, y, { align: 'right' });
-    y += lineHeight;
-    
-    // Salary Advance Deduction
-    doc.text('Salary Advance', 25, y);
-    doc.text(`Rs. ${(breakdown.advance_deduction || 0).toLocaleString()}`, 170, y, { align: 'right' });
-    y += lineHeight;
-    
-    // Separator
-    y += 5;
-    doc.setLineWidth(0.5);
-    doc.line(20, y, 190, y);
-    y += 10;
-    
-    // Total Deductions
-    const totalDeductions = (breakdown.deductions || 0) + (breakdown.advance_deduction || 0) + Math.abs(breakdown.attendance_adjustment || 0);
-    doc.setFont('helvetica', 'bold');
-    doc.text('TOTAL DEDUCTIONS', 25, y);
-    doc.text(`Rs. ${totalDeductions.toLocaleString()}`, 170, y, { align: 'right' });
-    y += lineHeight + 5;
-    
-    // Separator
-    doc.setLineWidth(0.5);
-    doc.line(20, y, 190, y);
-    y += 10;
-    
-    // Net Pay
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('NET PAY', 25, y);
-    doc.text(`Rs. ${(breakdown.net_pay || 0).toLocaleString()}`, 170, y, { align: 'right' });
-    
-    // Footer
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
     doc.text('This is a computer-generated payslip.', 105, 280, { align: 'center' });
     doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 285, { align: 'center' });
     
