@@ -19,46 +19,46 @@ const MobileBottomNav = () => {
     if (role === 'admin') {
       return {
         main: [
-          { path: '/dashboard', icon: Home, label: 'Home' },
-          { path: '/attendance', icon: Calendar, label: 'Attendance' },
-          { path: '/payroll', icon: DollarSign, label: 'Payroll' },
-          { path: '/cashbook', icon: CreditCard, label: 'Cashbook' },
+          { path: '/attendance/dashboard', icon: Home, label: 'Home' },
+          { path: '/attendance/attendance', icon: Calendar, label: 'Attendance' },
+          { path: '/attendance/payroll', icon: DollarSign, label: 'Payroll' },
+          { path: '/attendance/cashbook', icon: CreditCard, label: 'Cashbook' },
         ],
         more: [
-          { path: '/employees', icon: Users, label: 'Employees' },
-          { path: '/leaves', icon: CalendarOff, label: 'Leaves' },
-          { path: '/bills', icon: Receipt, label: 'Bills' },
-          { path: '/reports', icon: BarChart3, label: 'Reports' },
-          { path: '/profile', icon: User, label: 'Profile' },
+          { path: '/attendance/employees', icon: Users, label: 'Employees' },
+          { path: '/attendance/leaves', icon: CalendarOff, label: 'Leaves' },
+          { path: '/attendance/bills', icon: Receipt, label: 'Bills' },
+          { path: '/attendance/reports', icon: BarChart3, label: 'Reports' },
+          { path: '/attendance/profile', icon: User, label: 'Profile' },
         ]
       };
     } else if (role === 'teamlead') {
       return {
         main: [
-          { path: '/dashboard', icon: Home, label: 'Home' },
-          { path: '/attendance', icon: Calendar, label: 'Attendance' },
-          { path: '/leaves', icon: CalendarOff, label: 'Leaves' },
-          { path: '/bills', icon: Receipt, label: 'Bills' },
+          { path: '/attendance/dashboard', icon: Home, label: 'Home' },
+          { path: '/attendance/team-attendance', icon: Calendar, label: 'Attendance' },
+          { path: '/attendance/leaves', icon: CalendarOff, label: 'Leaves' },
+          { path: '/attendance/bills', icon: Receipt, label: 'Bills' },
         ],
         more: [
-          { path: '/my-attendance', icon: Clock, label: 'My Attendance' },
-          { path: '/payslip', icon: DollarSign, label: 'Payslip' },
-          { path: '/team', icon: Users, label: 'Team' },
-          { path: '/profile', icon: User, label: 'Profile' },
+          { path: '/attendance/my-attendance', icon: Clock, label: 'My Attendance' },
+          { path: '/attendance/payslip', icon: DollarSign, label: 'Payslip' },
+          { path: '/attendance/team', icon: Users, label: 'Team' },
+          { path: '/attendance/profile', icon: User, label: 'Profile' },
         ]
       };
     } else {
       // Employee
       return {
         main: [
-          { path: '/dashboard', icon: Home, label: 'Home' },
-          { path: '/my-attendance', icon: Calendar, label: 'Attendance' },
-          { path: '/leaves', icon: CalendarOff, label: 'Leaves' },
-          { path: '/bills', icon: Receipt, label: 'Bills' },
+          { path: '/attendance/dashboard', icon: Home, label: 'Home' },
+          { path: '/attendance/attendance-details', icon: Calendar, label: 'Attendance' },
+          { path: '/attendance/leaves', icon: CalendarOff, label: 'Leaves' },
+          { path: '/attendance/bills', icon: Receipt, label: 'Bills' },
         ],
         more: [
-          { path: '/payslip', icon: DollarSign, label: 'Payslip' },
-          { path: '/profile', icon: User, label: 'Profile' },
+          { path: '/attendance/payslip', icon: DollarSign, label: 'Payslip' },
+          { path: '/attendance/profile', icon: User, label: 'Profile' },
         ]
       };
     }
