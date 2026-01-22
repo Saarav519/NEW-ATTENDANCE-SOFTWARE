@@ -705,6 +705,40 @@ const TeamLeadDashboard = ({ user }) => {
       
       setPendingLeaves(teamPendingLeaves);
       setPendingBills(teamPendingBills);
+      
+      // Calculate actual team attendance for today
+      if (members && members.length > 0) {
+        try {
+          const teamAttendancePromises = members.map(m => 
+            attendanceAPI.getAll(m.id, today).catch(() => [])
+          );
+          const teamAttendanceResults = await Promise.all(teamAttendancePromises);
+          
+          let presentCount = 0;
+          let absentCount = 0;
+          let notMarkedCount = 0;
+          
+          teamAttendanceResults.forEach((attendance, idx) => {
+            if (attendance && attendance.length > 0) {
+              const record = attendance[0];
+              if (record.status === 'present' || record.attendance_status === 'full_day' || record.attendance_status === 'half_day') {
+                presentCount++;
+              } else if (record.status === 'absent' || record.attendance_status === 'absent') {
+                absentCount++;
+              } else {
+                notMarkedCount++;
+              }
+            } else {
+              notMarkedCount++;
+            }
+          });
+          
+          setTeamAttendanceStats({ present: presentCount, absent: absentCount, notMarked: notMarkedCount });
+        } catch (err) {
+          console.error('Error loading team attendance:', err);
+          setTeamAttendanceStats({ present: 0, absent: 0, notMarked: members.length });
+        }
+      }
     } catch (error) {
       console.error('Error loading team data:', error);
     } finally {
