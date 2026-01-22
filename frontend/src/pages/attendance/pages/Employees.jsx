@@ -650,7 +650,7 @@ const Employees = () => {
   );
 };
 
-const EmployeeList = ({ employees, onView, onToggle, canResetPassword, canManageEmployees, onResetPassword, onEdit, onViewHistory, getTeamLeaderName, navigate }) => {
+const EmployeeList = ({ employees, onView, onToggle, canResetPassword, canManageEmployees, onResetPassword, onEdit, onDelete, onViewHistory, getTeamLeaderName, navigate }) => {
   if (employees.length === 0) {
     return (
       <Card>
