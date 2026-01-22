@@ -385,7 +385,7 @@ export const auditExpenseAPI = {
 
 // Notification API
 export const notificationAPI = {
-  getAll: (userId, unreadOnly = false, limit = 50) => {
+  getAll: (userId, unreadOnly = false, limit = 15) => {
     const params = new URLSearchParams();
     params.append('user_id', userId);
     if (unreadOnly) params.append('unread_only', 'true');
