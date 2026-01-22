@@ -170,6 +170,8 @@ export const billAPI = {
   },
   reject: (billId, rejectedBy) => 
     apiCall(`/bills/${billId}/reject?rejected_by=${rejectedBy}`, { method: 'PUT' }),
+  delete: (billId, empId) => 
+    apiCall(`/bills/${billId}?emp_id=${empId}`, { method: 'DELETE' }),
   uploadAttachment: async (file) => {
     const formData = new FormData();
     formData.append('file', file);
