@@ -23,6 +23,18 @@ const EmployeeAttendance = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
+  const isTeamLead = user?.role === 'teamlead';
+  
+  // Determine back navigation based on user role
+  const handleBack = () => {
+    if (isTeamLead) {
+      navigate('/attendance/team');
+    } else if (isAdmin) {
+      navigate('/attendance/employees');
+    } else {
+      navigate('/attendance/dashboard');
+    }
+  };
   
   const [employee, setEmployee] = useState(null);
   const [attendance, setAttendance] = useState([]);
