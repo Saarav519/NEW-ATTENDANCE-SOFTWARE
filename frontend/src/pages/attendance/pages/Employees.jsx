@@ -788,7 +788,7 @@ const EmployeeList = ({ employees, onView, onToggle, canResetPassword, canManage
                 <Button size="sm" variant="outline" onClick={() => navigate(`/attendance/employee-attendance/${emp.id}`)} className="flex-shrink-0 text-blue-600 border-blue-200 text-xs sm:text-sm">
                   <Calendar size={14} className="sm:mr-1" /> <span className="hidden sm:inline">Attend</span>
                 </Button>
-                {canManageEmployees && emp.role === 'employee' && (
+                {canManageEmployees && (emp.role === 'employee' || emp.role === 'teamlead') && (
                   <>
                     <Button size="sm" variant="outline" onClick={() => onEdit(emp)} className="flex-shrink-0 text-purple-600 border-purple-200" data-testid={`edit-employee-${emp.id}`}>
                       <Edit size={14} />
