@@ -709,6 +709,9 @@ const EmployeeList = ({ employees, onView, onToggle, canResetPassword, canManage
                     <Button size="sm" variant="outline" onClick={() => onViewHistory(emp)} className="flex-shrink-0 text-gray-600 border-gray-200" data-testid={`history-employee-${emp.id}`}>
                       <History size={14} />
                     </Button>
+                    <Button size="sm" variant="outline" onClick={() => onDelete(emp)} className="flex-shrink-0 text-red-600 border-red-200 hover:bg-red-50" data-testid={`delete-employee-${emp.id}`}>
+                      <Trash2 size={14} />
+                    </Button>
                   </>
                 )}
                 {canResetPassword && (
