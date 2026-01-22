@@ -53,6 +53,8 @@ export const usersAPI = {
       method: 'PUT',
       body: JSON.stringify(updates),
     }),
+  delete: (userId, deletedBy) => 
+    apiCall(`/users/${userId}?deleted_by=${deletedBy}`, { method: 'DELETE' }),
   getTeamMembers: (teamLeadId) => apiCall(`/users/team/${teamLeadId}`),
 };
 
