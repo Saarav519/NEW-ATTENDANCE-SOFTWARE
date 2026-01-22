@@ -85,7 +85,8 @@ Build a professional company profile webpage for "AudiX Solutions & Co." (an aud
   - Company Logo at top (loaded from `/api/uploads/company_logo.png`)
   - "AUDIX SOLUTIONS & CO." header with "Chartered Accountants"
   - "PAYSLIP - MONTH - YEAR" title
-  - Employee info section with name, ID, department, status, paid date
+  - Employee info section with name, ID, **designation**, **date of joining**, department, status, paid date
+  - **Full Bank Details**: Bank Name, Account Number, IFSC Code
   - Attendance summary (Full Days, Half Days, Leave, Absent)
   - Side-by-side Earnings and Deductions tables
   - NET PAY highlighted box
@@ -94,8 +95,19 @@ Build a professional company profile webpage for "AudiX Solutions & Co." (an aud
 - **Added static file endpoint** - `/api/uploads/{filename}` to serve logo and signature images
 - **Assets uploaded**: `company_logo.png` and `company_stamp.png` in `/app/backend/uploads/`
 
+#### ✅ Delete Functionality for Bills, Advances & Audit Expenses (January 22, 2026)
+- **Bills Delete**: Employees can delete their own pending/revalidation bills (not approved/rejected)
+  - Backend: `DELETE /api/bills/{bill_id}?emp_id={emp_id}`
+  - Frontend: Delete button added in BillSubmission.jsx for pending/revalidation bills
+- **Advances Delete**: Employees can delete their own pending advance requests (not approved/rejected)
+  - Backend: `DELETE /api/advances/{advance_id}?emp_id={emp_id}`
+  - Frontend: Delete button added in BillSubmission.jsx for pending advances
+- **Audit Expenses Delete**: Team Leaders/Employees can delete their own pending/revalidation expenses
+  - Backend: `DELETE /api/audit-expenses/{expense_id}?emp_id={emp_id}`
+  - Frontend: Delete button already existed in AuditExpenses.jsx, updated to check ownership and include revalidation status
+
 ## Current Status
-✅ **FULLY FUNCTIONAL** - All logins working, system operational, payslip PDF generation working
+✅ **FULLY FUNCTIONAL** - All logins working, system operational, payslip PDF generation working with full details
 
 ## Upcoming Tasks (P2-P3)
 1. **GoDaddy Hosting Discussion** - User's shared hosting incompatible with Python/MongoDB
