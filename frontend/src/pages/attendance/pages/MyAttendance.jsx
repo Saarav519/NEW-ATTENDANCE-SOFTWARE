@@ -72,9 +72,10 @@ const MyAttendance = () => {
   const monthName = currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
 
   // Calculate stats
-  const presentDays = monthlyAttendance.filter(a => a.status === 'present').length;
-  const absentDays = monthlyAttendance.filter(a => a.status === 'absent').length;
-  const leaveDays = monthlyAttendance.filter(a => a.status === 'leave').length;
+  const presentDays = monthlyAttendance.filter(a => (a.attendance_status || a.status) === 'full_day' || (a.attendance_status || a.status) === 'present').length;
+  const halfDays = monthlyAttendance.filter(a => (a.attendance_status || a.status) === 'half_day').length;
+  const absentDays = monthlyAttendance.filter(a => (a.attendance_status || a.status) === 'absent').length;
+  const leaveDays = monthlyAttendance.filter(a => (a.attendance_status || a.status) === 'leave').length;
   const totalWorkHours = monthlyAttendance.reduce((sum, a) => sum + (a.work_hours || 0), 0);
   const totalConveyance = monthlyAttendance.reduce((sum, a) => sum + (a.conveyance_amount || 0), 0);
 
