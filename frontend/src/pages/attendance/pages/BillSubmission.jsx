@@ -311,6 +311,34 @@ const BillSubmission = () => {
     }
   };
 
+  // Delete bill (only for pending/revalidation bills by owner)
+  const handleDeleteBill = async (billId) => {
+    if (!window.confirm('Are you sure you want to delete this bill?')) return;
+    
+    try {
+      await billAPI.delete(billId, user.id);
+      toast.success('Bill deleted successfully');
+      loadBills();
+    } catch (error) {
+      console.error('Error deleting bill:', error);
+      toast.error(error.message || 'Failed to delete bill');
+    }
+  };
+
+  // Delete advance (only for pending advances by owner)
+  const handleDeleteAdvance = async (advanceId) => {
+    if (!window.confirm('Are you sure you want to delete this advance request?')) return;
+    
+    try {
+      await advanceAPI.delete(advanceId, user.id);
+      toast.success('Advance deleted successfully');
+      loadAdvances();
+    } catch (error) {
+      console.error('Error deleting advance:', error);
+      toast.error(error.message || 'Failed to delete advance');
+    }
+  };
+
   const handleSubmitAdvance = async () => {
     if (!newAdvance.amount || !newAdvance.reason || !newAdvance.deductFromMonth || !newAdvance.deductFromYear) {
       toast.error('Please fill all required fields');
