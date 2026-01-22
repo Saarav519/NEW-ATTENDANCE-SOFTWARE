@@ -360,6 +360,41 @@ async def reset_password(user_id: str, new_password: str, reset_by: str):
     
     return {"message": f"Password reset successfully for {user['name']}", "success": True}
 
+@router.delete("/users/{user_id}")
+async def delete_user(user_id: str, deleted_by: str):
+    """Delete a user - Only Admin can delete users"""
+    # Verify the person deleting is Admin
+    admin_user = await db.users.find_one({"id": deleted_by}, {"_id": 0})
+    if not admin_user:
+        raise HTTPException(status_code=404, detail="Admin user not found")
+    
+    if admin_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Only Admin can delete users")
+    
+    # Find the user to delete
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Prevent deleting admin users
+    if user.get("role") == "admin":
+        raise HTTPException(status_code=400, detail="Cannot delete admin users")
+    
+    # Delete the user
+    result = await db.users.delete_one({"id": user_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Also delete related data (optional - can be cleaned up separately)
+    # await db.attendance.delete_many({"emp_id": user_id})
+    # await db.leaves.delete_many({"emp_id": user_id})
+    # await db.bills.delete_many({"emp_id": user_id})
+    # await db.advances.delete_many({"emp_id": user_id})
+    # await db.payslips.delete_many({"emp_id": user_id})
+    
+    return {"message": f"User {user['name']} deleted successfully", "success": True}
+
 @router.get("/users/team/{team_lead_id}", response_model=List[UserResponse])
 async def get_team_members(team_lead_id: str):
     """Get all employees assigned to a specific team leader"""
