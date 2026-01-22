@@ -88,11 +88,17 @@ const MyAttendance = () => {
       </div>
 
       {/* Monthly Stats */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-5 gap-2">
         <Card>
           <CardContent className="p-3 text-center">
             <p className="text-lg font-bold text-green-600">{presentDays}</p>
             <p className="text-[10px] text-gray-500">Present</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 text-center">
+            <p className="text-lg font-bold text-yellow-600">{halfDays}</p>
+            <p className="text-[10px] text-gray-500">Half Day</p>
           </CardContent>
         </Card>
         <Card>
