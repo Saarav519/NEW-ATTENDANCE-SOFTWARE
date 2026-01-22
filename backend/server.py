@@ -18,6 +18,12 @@ db = client[os.environ['DB_NAME']]
 # Create the main app
 app = FastAPI(title="Audix Solutions Staff Management API")
 
+# Root-level health check for Kubernetes (without /api prefix)
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Kubernetes deployment"""
+    return {"status": "healthy"}
+
 # Import and include routes
 from routes import router as api_router
 
