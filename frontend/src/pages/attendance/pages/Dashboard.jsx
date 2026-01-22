@@ -1027,15 +1027,17 @@ const AdminDashboard = ({ user }) => {
     presentToday: 0,
     onLeave: 0,
     pendingLeaves: 0,
-    pendingBills: 0
+    pendingBills: 0,
+    pendingAdvances: 0
   });
 
   const loadDashboardStats = async () => {
     try {
-      const [usersData, leavesData, billsData] = await Promise.all([
+      const [usersData, leavesData, billsData, advancesData] = await Promise.all([
         usersAPI.getAll(),
         leaveAPI.getAll(),
-        billAPI.getAll()
+        billAPI.getAll(),
+        advanceAPI.getAll()
       ]);
       
       const activeEmployees = (usersData || []).filter(u => u.role !== 'admin' && u.status === 'active');
@@ -1047,13 +1049,15 @@ const AdminDashboard = ({ user }) => {
         return l.status === 'approved' && l.from_date <= today && l.to_date >= today;
       }).length;
       const pendingBills = (billsData || []).filter(b => b.status === 'pending').length;
+      const pendingAdvances = (advancesData || []).filter(a => a.status === 'pending').length;
       
       setStats({
         totalEmployees: activeEmployees.length,
         presentToday: Math.max(0, activeEmployees.length - approvedLeavesToday),
         onLeave: approvedLeavesToday,
         pendingLeaves,
-        pendingBills
+        pendingBills,
+        pendingAdvances
       });
     } catch (error) {
       console.error('Error loading dashboard stats:', error);
