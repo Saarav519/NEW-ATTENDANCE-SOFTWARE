@@ -3475,8 +3475,8 @@ async def create_notification(
     return notification_doc
 
 @router.get("/notifications", response_model=List[NotificationResponse])
-async def get_notifications(user_id: str, unread_only: bool = False, limit: int = 50):
-    """Get notifications for a user"""
+async def get_notifications(user_id: str, unread_only: bool = False, limit: int = 15):
+    """Get notifications for a user (limited to 15 by default)"""
     query = {"$or": [{"recipient_id": user_id}, {"recipient_role": {"$exists": True}}]}
     if unread_only:
         query["is_read"] = False
