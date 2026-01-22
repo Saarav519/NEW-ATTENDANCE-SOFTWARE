@@ -54,7 +54,9 @@ const Employees = () => {
   });
 
   const [editEmployee, setEditEmployee] = useState({
-    team_lead_id: '', change_reason: ''
+    name: '', email: '', phone: '', department: '', designation: '',
+    salary: '', salary_type: 'monthly', role: 'employee', team_lead_id: '',
+    bank_name: '', bank_account_number: '', bank_ifsc: '', change_reason: ''
   });
   
   const [newPassword, setNewPassword] = useState('');
