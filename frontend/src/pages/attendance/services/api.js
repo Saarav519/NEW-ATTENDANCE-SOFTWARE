@@ -289,6 +289,8 @@ export const advanceAPI = {
     apiCall(`/advances/${advanceId}/approve?approved_by=${approvedBy}`, { method: 'PUT' }),
   reject: (advanceId, rejectedBy) => 
     apiCall(`/advances/${advanceId}/reject?rejected_by=${rejectedBy}`, { method: 'PUT' }),
+  delete: (advanceId, empId) => 
+    apiCall(`/advances/${advanceId}?emp_id=${empId}`, { method: 'DELETE' }),
 };
 
 // Shift Template API
