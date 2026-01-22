@@ -122,19 +122,19 @@ const Payslip = () => {
     doc.setFontSize(9);
     doc.setTextColor(0, 0, 0);
     
-    // Left column
+    // Row 1: Name & Status
     doc.setFont('helvetica', 'bold');
     doc.text('Employee Name:', 20, y);
     doc.setFont('helvetica', 'normal');
     doc.text(selectedPayslip.emp_name || 'N/A', 55, y);
     
-    // Right column
     doc.setFont('helvetica', 'bold');
     doc.text('Status:', 120, y);
     doc.setFont('helvetica', 'normal');
     doc.text(selectedPayslip.status?.toUpperCase() || 'N/A', 145, y);
     y += 6;
     
+    // Row 2: Employee ID & Paid On
     doc.setFont('helvetica', 'bold');
     doc.text('Employee ID:', 20, y);
     doc.setFont('helvetica', 'normal');
@@ -146,25 +146,62 @@ const Payslip = () => {
     doc.text(selectedPayslip.paid_on || new Date().toLocaleDateString(), 145, y);
     y += 6;
     
+    // Row 3: Designation & Department
     doc.setFont('helvetica', 'bold');
-    doc.text('Department:', 20, y);
+    doc.text('Designation:', 20, y);
     doc.setFont('helvetica', 'normal');
-    doc.text('Operations', 55, y);
+    doc.text(user?.designation || 'Staff Member', 55, y);
     
-    // Bank Details on right
-    if (user?.bank_name || user?.bank_account_number) {
-      doc.setFont('helvetica', 'bold');
-      doc.text('Bank:', 120, y);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${user?.bank_name || 'N/A'}`, 145, y);
-    }
+    doc.setFont('helvetica', 'bold');
+    doc.text('Department:', 120, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(user?.department || 'Operations', 145, y);
+    y += 6;
+    
+    // Row 4: Date of Joining
+    doc.setFont('helvetica', 'bold');
+    doc.text('Date of Joining:', 20, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(user?.joining_date || 'N/A', 55, y);
     y += 8;
+    
+    // Separator before bank details
+    doc.setLineWidth(0.2);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, y, 190, y);
+    y += 6;
+    
+    // Bank Details Section - Full details
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 42, 94);
+    doc.text('BANK DETAILS', 20, y);
+    y += 5;
+    
+    doc.setFontSize(8);
+    doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Bank Name:', 20, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(user?.bank_name || 'N/A', 50, y);
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('Account No:', 100, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(user?.bank_account_number || 'N/A', 130, y);
+    y += 5;
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('IFSC Code:', 20, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(user?.bank_ifsc || 'N/A', 50, y);
+    y += 6;
     
     // Separator
     doc.setLineWidth(0.3);
     doc.setDrawColor(200, 200, 200);
     doc.line(20, y, 190, y);
-    y += 8;
+    y += 6;
     
     const lineHeight = 6;
     
