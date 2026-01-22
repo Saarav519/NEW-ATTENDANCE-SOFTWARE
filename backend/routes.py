@@ -3308,14 +3308,18 @@ async def reject_audit_expense(expense_id: str, rejected_by: str, reason: Option
     return {"message": "Expense rejected"}
 
 @router.delete("/audit-expenses/{expense_id}")
-async def delete_audit_expense(expense_id: str):
-    """Delete an audit expense (only if pending)"""
+async def delete_audit_expense(expense_id: str, emp_id: str = None):
+    """Delete an audit expense (only if pending, by owner)"""
     expense = await db.audit_expenses.find_one({"id": expense_id}, {"_id": 0})
     if not expense:
         raise HTTPException(status_code=404, detail="Audit expense not found")
     
-    if expense.get("status") != "pending":
-        raise HTTPException(status_code=400, detail="Can only delete pending expenses")
+    # Check ownership if emp_id is provided
+    if emp_id and expense["emp_id"] != emp_id:
+        raise HTTPException(status_code=403, detail="You can only delete your own expenses")
+    
+    if expense.get("status") not in ["pending", "revalidation"]:
+        raise HTTPException(status_code=400, detail="Can only delete pending or revalidation expenses")
     
     await db.audit_expenses.delete_one({"id": expense_id})
     return {"message": "Expense deleted"}
