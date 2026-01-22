@@ -344,7 +344,7 @@ const Employees = () => {
           <EmployeeList employees={filteredEmployees} onView={(e) => setViewDialog({ open: true, employee: e })}
             onToggle={toggleStatus} canResetPassword={canResetPassword} canManageEmployees={canManageEmployees}
             onResetPassword={(e) => setPasswordDialog({ open: true, employee: e })} 
-            onEdit={openEditDialog} onViewHistory={openHistoryDialog}
+            onEdit={openEditDialog} onDelete={handleDeleteEmployee} onViewHistory={openHistoryDialog}
             getTeamLeaderName={getTeamLeaderName} navigate={navigate} />
         </TabsContent>
 
@@ -352,7 +352,7 @@ const Employees = () => {
           <EmployeeList employees={filteredEmployees} onView={(e) => setViewDialog({ open: true, employee: e })}
             onToggle={toggleStatus} canResetPassword={canResetPassword} canManageEmployees={canManageEmployees}
             onResetPassword={(e) => setPasswordDialog({ open: true, employee: e })} 
-            onEdit={openEditDialog} onViewHistory={openHistoryDialog}
+            onEdit={openEditDialog} onDelete={handleDeleteEmployee} onViewHistory={openHistoryDialog}
             getTeamLeaderName={getTeamLeaderName} navigate={navigate} />
         </TabsContent>
       </Tabs>
