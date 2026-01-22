@@ -376,8 +376,8 @@ export const auditExpenseAPI = {
       method: 'PUT',
       body: JSON.stringify(expenseData),
     }),
-  delete: (expenseId) => 
-    apiCall(`/audit-expenses/${expenseId}`, { method: 'DELETE' }),
+  delete: (expenseId, empId) => 
+    apiCall(`/audit-expenses/${expenseId}?emp_id=${empId}`, { method: 'DELETE' }),
   getSummary: (empId) => apiCall(`/audit-expenses/summary/${empId}`),
 };
 
