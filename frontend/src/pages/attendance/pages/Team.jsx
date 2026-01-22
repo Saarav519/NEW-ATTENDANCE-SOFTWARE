@@ -67,7 +67,37 @@ const Team = () => {
     setLoading(true);
     try {
       const members = await usersAPI.getTeamMembers(user.id);
-      setTeamMembers(members);
+      setTeamMembers(members || []);
+      
+      // Calculate actual attendance stats for today
+      if (members && members.length > 0) {
+        const today = new Date().toISOString().split('T')[0];
+        const attendancePromises = members.map(m => 
+          attendanceAPI.getAll(m.id, today).catch(() => [])
+        );
+        const attendanceResults = await Promise.all(attendancePromises);
+        
+        let presentCount = 0;
+        let absentCount = 0;
+        let notMarkedCount = 0;
+        
+        attendanceResults.forEach((attendance) => {
+          if (attendance && attendance.length > 0) {
+            const record = attendance[0];
+            if (record.status === 'present' || record.attendance_status === 'full_day' || record.attendance_status === 'half_day') {
+              presentCount++;
+            } else if (record.status === 'absent' || record.attendance_status === 'absent') {
+              absentCount++;
+            } else {
+              notMarkedCount++;
+            }
+          } else {
+            notMarkedCount++;
+          }
+        });
+        
+        setTeamAttendanceStats({ present: presentCount, absent: absentCount, notMarked: notMarkedCount });
+      }
     } catch (error) {
       console.error('Error loading team members:', error);
     } finally {
