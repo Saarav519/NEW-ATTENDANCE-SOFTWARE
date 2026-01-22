@@ -114,12 +114,29 @@ const EmployeeDashboard = ({ user }) => {
         const html5QrCode = new Html5Qrcode("qr-reader");
         scannerRef.current = html5QrCode;
         
+        // Configure camera with higher resolution for better QR scanning
+        const cameraConfig = {
+          facingMode: "environment",
+          // Request higher resolution for clearer image
+          advanced: [
+            { width: { min: 1280, ideal: 1920, max: 2560 } },
+            { height: { min: 720, ideal: 1080, max: 1440 } },
+            { focusMode: "continuous" },
+            { exposureMode: "continuous" }
+          ]
+        };
+        
         await html5QrCode.start(
-          { facingMode: "environment" }, // Use back camera only
+          cameraConfig,
           {
-            fps: 10,
-            qrbox: { width: 250, height: 250 },
-            aspectRatio: 1.0
+            fps: 15, // Increased FPS for better scanning
+            qrbox: { width: 280, height: 280 }, // Slightly larger scan area
+            aspectRatio: 1.0,
+            disableFlip: false,
+            // Higher resolution scanning
+            experimentalFeatures: {
+              useBarCodeDetectorIfSupported: true
+            }
           },
           async (decodedText) => {
             // Prevent duplicate processing
@@ -147,6 +164,30 @@ const EmployeeDashboard = ({ user }) => {
       } catch (err) {
         console.error('Scanner error:', err);
         isScannerRunning.current = false;
+        // Fallback to basic camera config if advanced fails
+        try {
+          const html5QrCode = new Html5Qrcode("qr-reader");
+          scannerRef.current = html5QrCode;
+          await html5QrCode.start(
+            { facingMode: "environment" },
+            { fps: 15, qrbox: { width: 280, height: 280 }, aspectRatio: 1.0 },
+            async (decodedText) => {
+              if (isProcessingQR) return;
+              setIsProcessingQR(true);
+              if (isScannerRunning.current) {
+                isScannerRunning.current = false;
+                try { await html5QrCode.stop(); } catch (e) {}
+              }
+              await handleQRScanned(decodedText);
+              setIsProcessingQR(false);
+            },
+            () => {}
+          );
+          isScannerRunning.current = true;
+        } catch (fallbackErr) {
+          console.error('Fallback scanner error:', fallbackErr);
+          toast.error('Unable to access camera. Please check permissions.');
+        }
       }
     }, 100);
   };
