@@ -566,13 +566,14 @@ const EmployeeDashboard = ({ user }) => {
                   id="qr-reader" 
                   className="w-full rounded-lg overflow-hidden bg-black"
                   style={{ 
-                    minHeight: '300px',
+                    minHeight: '320px',
                   }}
                 ></div>
                 <style>{`
                   #qr-reader video {
                     width: 100% !important;
                     height: auto !important;
+                    min-height: 300px !important;
                     object-fit: cover !important;
                     border-radius: 8px;
                   }
@@ -580,18 +581,40 @@ const EmployeeDashboard = ({ user }) => {
                     background: transparent !important;
                   }
                   #qr-reader__dashboard {
-                    display: none !important;
+                    padding: 8px !important;
+                  }
+                  #qr-reader__dashboard_section {
+                    padding: 4px !important;
+                  }
+                  #qr-reader__dashboard_section_csr button {
+                    background: #1E2A5E !important;
+                    color: white !important;
+                    border-radius: 8px !important;
+                    padding: 8px 16px !important;
+                    font-size: 14px !important;
                   }
                   #qr-reader img[alt="Info icon"] {
                     display: none !important;
                   }
+                  #qr-reader__status_span {
+                    display: none !important;
+                  }
+                  #qr-reader select {
+                    padding: 8px !important;
+                    border-radius: 6px !important;
+                    border: 1px solid #ddd !important;
+                    font-size: 14px !important;
+                  }
                 `}</style>
-                <div className="text-center mt-3 space-y-1">
+                <div className="text-center mt-3 space-y-2">
                   <p className="text-green-600 text-sm font-medium">
-                    ⚡ Fast Scan Mode Active
+                    📸 Camera Active - Point at QR Code
                   </p>
                   <p className="text-gray-500 text-xs">
-                    Point camera at QR code • Auto-detects instantly
+                    Hold your phone steady • Keep QR code within the frame
+                  </p>
+                  <p className="text-blue-600 text-xs">
+                    💡 Tip: Use torch button if lighting is poor
                   </p>
                 </div>
               </>
