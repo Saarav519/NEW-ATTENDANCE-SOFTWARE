@@ -183,9 +183,6 @@ const Team = () => {
     });
   };
 
-  const presentCount = teamMembers.length - 1; // Mock for now
-  const absentCount = 1;
-
   return (
     <div className="space-y-4">
       {/* Header */}
