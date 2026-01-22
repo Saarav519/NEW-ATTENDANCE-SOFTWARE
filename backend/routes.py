@@ -2897,6 +2897,28 @@ async def reject_advance(advance_id: str, rejected_by: str):
     advance = await db.advances.find_one({"id": advance_id}, {"_id": 0})
     return advance
 
+# Delete advance (only pending status, by owner)
+@router.delete("/advances/{advance_id}")
+async def delete_advance(advance_id: str, emp_id: str):
+    """Delete an advance request - only allowed for pending advances by the owner"""
+    advance = await db.advances.find_one({"id": advance_id}, {"_id": 0})
+    if not advance:
+        raise HTTPException(status_code=404, detail="Advance not found")
+    
+    # Check ownership
+    if advance["emp_id"] != emp_id:
+        raise HTTPException(status_code=403, detail="You can only delete your own advances")
+    
+    # Check status - can only delete pending advances
+    if advance["status"] != AdvanceStatus.PENDING:
+        raise HTTPException(status_code=400, detail="Cannot delete approved or rejected advances")
+    
+    result = await db.advances.delete_one({"id": advance_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Advance not found")
+    
+    return {"message": "Advance deleted successfully"}
+
 # ==================== SHIFT TEMPLATE ROUTES ====================
 
 @router.get("/shift-templates")
