@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Any
 
 # Configuration
-BASE_URL = "https://timetrack-plus-3.preview.emergentagent.com/api"
+BASE_URL = "https://audixhr.preview.emergentagent.com/api"
 ADMIN_USER = "ADMIN001"
 ADMIN_PASSWORD = "admin123"
 
