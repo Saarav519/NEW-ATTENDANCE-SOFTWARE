@@ -106,6 +106,20 @@ Build a professional company profile webpage for "AudiX Solutions & Co." (an aud
   - Backend: `DELETE /api/audit-expenses/{expense_id}?emp_id={emp_id}`
   - Frontend: Delete button already existed in AuditExpenses.jsx, updated to check ownership and include revalidation status
 
+#### ✅ Admin Dashboard & Employee Management Fixes (January 22, 2026)
+- **Fixed Pending Advances Count**: Dashboard now shows dynamic count instead of hardcoded "1"
+  - Added `advanceAPI` to Dashboard imports and stats loading
+  - Advances now correctly shows 0 when no pending advances exist
+- **Admin Employee Delete**: Added ability to delete employees
+  - Backend: `DELETE /api/users/{user_id}?deleted_by={admin_id}` 
+  - Prevents deletion of admin users
+  - Confirmation dialog before deletion
+- **Admin Employee Full Edit**: Expanded edit dialog to include ALL fields
+  - Name, Email, Phone, Department, Designation
+  - Role (Employee/Team Lead), Salary, Salary Type
+  - Bank Details (Bank Name, Account Number, IFSC Code)
+  - Team Leader assignment with change reason
+
 ## Current Status
 ✅ **FULLY FUNCTIONAL** - All logins working, system operational, payslip PDF generation working with full details
 
