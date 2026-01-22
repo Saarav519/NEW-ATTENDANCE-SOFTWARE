@@ -211,6 +211,22 @@ const EmployeeAttendance = () => {
     }
   };
 
+  // Export attendance data to Excel
+  const handleExport = () => {
+    if (attendance.length === 0) {
+      toast.error('No attendance data to export');
+      return;
+    }
+    try {
+      const monthName = months.find(m => m.value === selectedMonth)?.label || 'Unknown';
+      exportAttendanceToExcel(attendance, employee?.name || empId, monthName, selectedYear);
+      toast.success('Attendance exported to Excel!');
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Failed to export attendance');
+    }
+  };
+
   const getStatusColor = (status) => {
     const colors = {
       full_day: 'bg-green-100 text-green-800 border-green-200',
