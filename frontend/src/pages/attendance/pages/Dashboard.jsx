@@ -1204,7 +1204,7 @@ const AdminDashboard = ({ user }) => {
                 <span className="bg-blue-500 text-white text-sm px-3 py-1 rounded-full font-bold">{stats.pendingBills}</span>
               </div>
               <div 
-                onClick={() => navigate('/attendance/advances')}
+                onClick={() => navigate('/attendance/bills')}
                 className="flex items-center justify-between p-4 bg-purple-50 rounded-xl cursor-pointer hover:bg-purple-100 transition-colors"
               >
                 <div className="flex items-center gap-3">
@@ -1213,7 +1213,7 @@ const AdminDashboard = ({ user }) => {
                   </div>
                   <span className="font-medium">Advances</span>
                 </div>
-                <span className="bg-purple-500 text-white text-sm px-3 py-1 rounded-full font-bold">1</span>
+                <span className="bg-purple-500 text-white text-sm px-3 py-1 rounded-full font-bold">{stats.pendingAdvances}</span>
               </div>
             </div>
           </CardContent>
