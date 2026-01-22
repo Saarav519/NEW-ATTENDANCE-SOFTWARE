@@ -204,7 +204,7 @@ const Team = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-2">
         <Card>
           <CardContent className="p-3 text-center">
             <div className="w-10 h-10 mx-auto mb-2 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -219,7 +219,7 @@ const Team = () => {
             <div className="w-10 h-10 mx-auto mb-2 bg-green-100 rounded-xl flex items-center justify-center">
               <UserCheck size={20} className="text-green-600" />
             </div>
-            <p className="text-xl font-bold text-green-600">{presentCount}</p>
+            <p className="text-xl font-bold text-green-600">{teamAttendanceStats.present}</p>
             <p className="text-[10px] text-gray-500">Present</p>
           </CardContent>
         </Card>
@@ -228,8 +228,17 @@ const Team = () => {
             <div className="w-10 h-10 mx-auto mb-2 bg-red-100 rounded-xl flex items-center justify-center">
               <UserX size={20} className="text-red-600" />
             </div>
-            <p className="text-xl font-bold text-red-600">{absentCount}</p>
+            <p className="text-xl font-bold text-red-600">{teamAttendanceStats.absent}</p>
             <p className="text-[10px] text-gray-500">Absent</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 text-center">
+            <div className="w-10 h-10 mx-auto mb-2 bg-gray-100 rounded-xl flex items-center justify-center">
+              <Clock size={20} className="text-gray-600" />
+            </div>
+            <p className="text-xl font-bold text-gray-600">{teamAttendanceStats.notMarked}</p>
+            <p className="text-[10px] text-gray-500">Not Marked</p>
           </CardContent>
         </Card>
       </div>
