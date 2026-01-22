@@ -551,10 +551,28 @@ const EmployeeAttendance = () => {
               </table>
             </div>
             
-            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
-              <p><strong>Tips:</strong></p>
+            <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700">
+              <p><strong>Color Legend:</strong></p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-green-500 rounded"></div>
+                  <span>Full Day (Present)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-yellow-500 rounded"></div>
+                  <span>Half Day</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-red-500 rounded"></div>
+                  <span>Absent</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-orange-500 rounded"></div>
+                  <span>Leave</span>
+                </div>
+              </div>
+              <p className="mt-2"><strong>Tips:</strong></p>
               <ul className="list-disc list-inside mt-1 space-y-1">
-                <li>Green left border indicates existing attendance record</li>
                 <li>Use checkboxes to select multiple dates, then click "Mark Selected" for bulk entry</li>
                 <li>Sundays are highlighted in blue</li>
               </ul>
