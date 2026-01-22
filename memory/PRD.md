@@ -79,8 +79,23 @@ Build a professional company profile webpage for "AudiX Solutions & Co." (an aud
 - Fixed footer logo visibility
 - Database cleaned and seeded with 3 users only
 
+#### ✅ Payslip PDF Format Fix (January 22, 2026)
+- **Fixed Frontend PDF Generation** - Rewrote `downloadPayslipPDF` function in `/app/frontend/src/pages/attendance/pages/Payslip.jsx`
+- **PDF Layout**: 
+  - Company Logo at top (loaded from `/api/uploads/company_logo.png`)
+  - "AUDIX SOLUTIONS & CO." header with "Chartered Accountants"
+  - "PAYSLIP - MONTH - YEAR" title
+  - Employee info section with name, ID, department, status, paid date
+  - Attendance summary (Full Days, Half Days, Leave, Absent)
+  - Side-by-side Earnings and Deductions tables
+  - NET PAY highlighted box
+  - Company stamp/signature at bottom (loaded from `/api/uploads/company_stamp.png`)
+  - Footer with generation date
+- **Added static file endpoint** - `/api/uploads/{filename}` to serve logo and signature images
+- **Assets uploaded**: `company_logo.png` and `company_stamp.png` in `/app/backend/uploads/`
+
 ## Current Status
-✅ **FULLY FUNCTIONAL** - All logins working, system operational
+✅ **FULLY FUNCTIONAL** - All logins working, system operational, payslip PDF generation working
 
 ## Upcoming Tasks (P2-P3)
 1. **GoDaddy Hosting Discussion** - User's shared hosting incompatible with Python/MongoDB
