@@ -178,7 +178,7 @@ const Team = () => {
       conveyance_amount: '',
       date: today,
       shift_type: 'day',
-      shift_start: '10:00',
+      shift_start: '09:45',
       shift_end: '19:00'
     });
   };
