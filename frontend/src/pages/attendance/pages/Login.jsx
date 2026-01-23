@@ -221,6 +221,65 @@ const Login = () => {
           © 2025 Audix Solutions. All rights reserved.
         </p>
       </div>
+      
+      {/* Password Reset Dialog */}
+      <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound size={20} className="text-[#1E2A5E]" />
+              Reset Password
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label>User ID</Label>
+              <Input
+                placeholder="Enter your User ID"
+                value={resetUserId}
+                onChange={(e) => setResetUserId(e.target.value.toUpperCase())}
+                data-testid="reset-user-id"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>New Password</Label>
+              <Input
+                type="password"
+                placeholder="Enter new password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                data-testid="reset-new-password"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Confirm Password</Label>
+              <Input
+                type="password"
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                data-testid="reset-confirm-password"
+              />
+            </div>
+            {resetError && (
+              <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg">
+                {resetError}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowResetDialog(false)}>Cancel</Button>
+            <Button 
+              onClick={handlePasswordReset} 
+              disabled={resetLoading}
+              className="bg-[#1E2A5E] hover:bg-[#2D3A8C]"
+              data-testid="reset-submit-btn"
+            >
+              {resetLoading ? 'Resetting...' : 'Reset Password'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
