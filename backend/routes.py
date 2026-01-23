@@ -652,10 +652,11 @@ async def direct_punch_in(emp_id: str, location: str = "Office", shift_type: str
     if existing:
         return AttendanceResponse(**existing)
     
-    punch_in_time = datetime.now(timezone.utc).strftime("%H:%M")
+    actual_punch_time = datetime.now(timezone.utc).strftime("%H:%M")
     
     # Calculate attendance status based on punch-in time and shift
-    attendance_status = calculate_attendance_status(punch_in_time, shift_start, shift_end, shift_type)
+    # Returns (status, recorded_time) - recorded_time is shift_start for full day within grace period
+    attendance_status, punch_in_time = calculate_attendance_status(actual_punch_time, shift_start, shift_end, shift_type)
     
     # Determine conveyance based on attendance status
     if attendance_status == "full_day":
@@ -714,7 +715,6 @@ async def direct_punch_in(emp_id: str, location: str = "Office", shift_type: str
     # Get user name for notification
     user = await db.users.find_one({"id": emp_id}, {"_id": 0})
     emp_name = user.get("name", emp_id) if user else emp_id
-    punch_in_time = attendance_doc.get("punch_in", "")
     
     # Broadcast real-time attendance update to admins
     await manager.broadcast_to_role("admin", {
