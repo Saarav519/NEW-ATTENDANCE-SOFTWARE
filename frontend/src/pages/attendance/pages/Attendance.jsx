@@ -107,6 +107,7 @@ const Attendance = () => {
   const presentCount = dateAttendance.filter(e => e.attendance.attendanceStatus === 'full_day').length;
   const halfDayCount = dateAttendance.filter(e => e.attendance.attendanceStatus === 'half_day').length;
   const absentCount = dateAttendance.filter(e => e.attendance.attendanceStatus === 'absent').length;
+  const leaveCount = dateAttendance.filter(e => e.attendance.attendanceStatus === 'leave').length;
   const notMarkedCount = dateAttendance.filter(e => e.attendance.status === 'not-marked').length;
 
   // Open mark attendance dialog
