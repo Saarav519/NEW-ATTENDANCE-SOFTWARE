@@ -57,6 +57,53 @@ const Login = () => {
     setPassword(pass);
   };
 
+  // Handle Password Reset
+  const handlePasswordReset = async () => {
+    setResetError('');
+    
+    if (!resetUserId.trim()) {
+      setResetError('Please enter your User ID');
+      return;
+    }
+    if (!newPassword || newPassword.length < 4) {
+      setResetError('Password must be at least 4 characters');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setResetError('Passwords do not match');
+      return;
+    }
+    
+    setResetLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/users/self-reset-password`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: resetUserId,
+          new_password: newPassword
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        toast.success('Password reset successfully! Please login with new password.');
+        setShowResetDialog(false);
+        setResetUserId('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setUserId(resetUserId);
+      } else {
+        setResetError(data.detail || 'Failed to reset password');
+      }
+    } catch (err) {
+      setResetError('Failed to reset password. Please try again.');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1E2A5E] to-[#2D3A8C] flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
