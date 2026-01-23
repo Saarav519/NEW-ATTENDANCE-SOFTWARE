@@ -640,10 +640,14 @@ async def punch_in(data: AttendanceCreate, emp_id: str):
 
 # Direct punch-in for Team Leaders (without QR)
 @router.post("/attendance/direct-punch-in", response_model=AttendanceResponse)
-async def direct_punch_in(emp_id: str, location: str = "Office", shift_type: str = "day", shift_start: str = "10:00", shift_end: str = "19:00", conveyance_amount: float = 200):
+async def direct_punch_in(emp_id: str, location: str = "Office", shift_type: str = "day", shift_start: str = "09:45", shift_end: str = "19:00", conveyance_amount: float = 200):
     """
     Direct punch-in for Team Leaders without QR code.
     Same attendance rules apply (full_day/half_day/absent based on punch time).
+    Shift: 09:45 - 19:00
+    - Punch between 09:45 - 10:15 → Full Day (time recorded as 09:45)
+    - Punch between 10:16 - 12:45 → Half Day
+    - Punch after 12:45 → Absent
     """
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     
