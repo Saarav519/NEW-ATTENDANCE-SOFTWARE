@@ -224,7 +224,8 @@ const Reports = () => {
     }
   };
 
-  const total = stats.attendanceSummary.present + stats.attendanceSummary.absent + stats.attendanceSummary.halfDay + stats.attendanceSummary.leave || 1;
+  const total = stats.attendanceSummary.present + stats.attendanceSummary.absent + stats.attendanceSummary.halfDay + stats.attendanceSummary.leave;
+  const chartTotal = total || 1; // For chart percentage calculation to avoid division by zero
 
   if (loading) {
     return (
