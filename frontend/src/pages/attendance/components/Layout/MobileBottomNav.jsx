@@ -60,6 +60,7 @@ const MobileBottomNav = () => {
         ],
         more: [
           { path: '/attendance/payslip', icon: DollarSign, label: 'Payslip' },
+          { path: '/attendance/holidays', icon: Gift, label: 'Holidays' },
           { path: '/attendance/profile', icon: User, label: 'Profile' },
         ]
       };
