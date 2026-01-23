@@ -351,22 +351,22 @@ const Reports = () => {
             <div className="flex-1">
               <div className="flex items-end gap-2 h-40">
                 <div className="flex-1 flex flex-col items-center">
-                  <div className="w-full bg-green-500 rounded-t" style={{ height: `${(stats.attendanceSummary.present / total) * 100}%`, minHeight: '20px' }}></div>
+                  <div className="w-full bg-green-500 rounded-t" style={{ height: `${(stats.attendanceSummary.present / chartTotal) * 100}%`, minHeight: '20px' }}></div>
                   <p className="text-xs mt-2 text-gray-600">Full Day</p>
                   <p className="text-lg font-bold text-green-600">{stats.attendanceSummary.present}</p>
                 </div>
                 <div className="flex-1 flex flex-col items-center">
-                  <div className="w-full bg-yellow-500 rounded-t" style={{ height: `${(stats.attendanceSummary.halfDay / total) * 100}%`, minHeight: '20px' }}></div>
+                  <div className="w-full bg-yellow-500 rounded-t" style={{ height: `${(stats.attendanceSummary.halfDay / chartTotal) * 100}%`, minHeight: '20px' }}></div>
                   <p className="text-xs mt-2 text-gray-600">Half Day</p>
                   <p className="text-lg font-bold text-yellow-600">{stats.attendanceSummary.halfDay}</p>
                 </div>
                 <div className="flex-1 flex flex-col items-center">
-                  <div className="w-full bg-orange-500 rounded-t" style={{ height: `${(stats.attendanceSummary.leave / total) * 100}%`, minHeight: '20px' }}></div>
+                  <div className="w-full bg-orange-500 rounded-t" style={{ height: `${(stats.attendanceSummary.leave / chartTotal) * 100}%`, minHeight: '20px' }}></div>
                   <p className="text-xs mt-2 text-gray-600">Leave</p>
                   <p className="text-lg font-bold text-orange-600">{stats.attendanceSummary.leave}</p>
                 </div>
                 <div className="flex-1 flex flex-col items-center">
-                  <div className="w-full bg-red-500 rounded-t" style={{ height: `${(stats.attendanceSummary.absent / total) * 100}%`, minHeight: '20px' }}></div>
+                  <div className="w-full bg-red-500 rounded-t" style={{ height: `${(stats.attendanceSummary.absent / chartTotal) * 100}%`, minHeight: '20px' }}></div>
                   <p className="text-xs mt-2 text-gray-600">Absent</p>
                   <p className="text-lg font-bold text-red-600">{stats.attendanceSummary.absent}</p>
                 </div>
