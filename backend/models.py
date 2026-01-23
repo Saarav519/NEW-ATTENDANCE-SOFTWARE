@@ -106,8 +106,8 @@ class QRCodeBase(BaseModel):
     date: str  # YYYY-MM-DD format
     created_by: str  # Team lead ID
     shift_type: ShiftType = ShiftType.DAY
-    shift_start: str = "10:00"  # HH:MM format (24-hour)
-    shift_end: str = "19:00"    # HH:MM format (24-hour)
+    shift_start: str = "09:45"  # HH:MM format (24-hour) - Shift starts at 9:45 AM
+    shift_end: str = "19:00"    # HH:MM format (24-hour) - Shift ends at 7:00 PM
 
 class QRCodeCreate(QRCodeBase):
     pass
