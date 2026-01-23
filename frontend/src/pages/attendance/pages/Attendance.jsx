@@ -228,48 +228,59 @@ const Attendance = () => {
       {canMarkAttendance && (
         <>
           {/* Stats - Mobile Responsive */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3">
             <Card>
-              <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Calendar size={20} className="text-blue-600" />
+              <CardContent className="p-2 sm:p-3 flex items-center gap-2">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <UserCheck size={16} className="text-green-600" />
                 </div>
                 <div>
-                  <p className="text-xs sm:text-sm text-gray-500">Total</p>
-                  <p className="text-lg sm:text-2xl font-bold">{employees.length}</p>
+                  <p className="text-[10px] sm:text-xs text-gray-500">Full Day</p>
+                  <p className="text-base sm:text-xl font-bold text-green-600">{presentCount}</p>
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <UserCheck size={20} className="text-green-600" />
+              <CardContent className="p-2 sm:p-3 flex items-center gap-2">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-yellow-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Clock size={16} className="text-yellow-600" />
                 </div>
                 <div>
-                  <p className="text-xs sm:text-sm text-gray-500">Present</p>
-                  <p className="text-lg sm:text-2xl font-bold text-green-600">{presentCount}</p>
+                  <p className="text-[10px] sm:text-xs text-gray-500">Half Day</p>
+                  <p className="text-base sm:text-xl font-bold text-yellow-600">{halfDayCount}</p>
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Clock size={20} className="text-yellow-600" />
+              <CardContent className="p-2 sm:p-3 flex items-center gap-2">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <CalendarOff size={16} className="text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-xs sm:text-sm text-gray-500">Half Day</p>
-                  <p className="text-lg sm:text-2xl font-bold text-yellow-600">{halfDayCount}</p>
+                  <p className="text-[10px] sm:text-xs text-gray-500">Leave</p>
+                  <p className="text-base sm:text-xl font-bold text-orange-600">{leaveCount}</p>
                 </div>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <UserX size={20} className="text-red-600" />
+              <CardContent className="p-2 sm:p-3 flex items-center gap-2">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <UserX size={16} className="text-red-600" />
                 </div>
                 <div>
-                  <p className="text-xs sm:text-sm text-gray-500">Absent</p>
-                  <p className="text-lg sm:text-2xl font-bold text-red-600">{absentCount}</p>
+                  <p className="text-[10px] sm:text-xs text-gray-500">Absent</p>
+                  <p className="text-base sm:text-xl font-bold text-red-600">{absentCount}</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-2 sm:p-3 flex items-center gap-2">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Calendar size={16} className="text-gray-600" />
+                </div>
+                <div>
+                  <p className="text-[10px] sm:text-xs text-gray-500">Not Marked</p>
+                  <p className="text-base sm:text-xl font-bold text-gray-600">{notMarkedCount}</p>
                 </div>
               </CardContent>
             </Card>
