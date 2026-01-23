@@ -542,15 +542,16 @@ async def punch_in(data: AttendanceCreate, emp_id: str):
         # Return the existing attendance record
         return AttendanceResponse(**existing)
     
-    punch_in_time = datetime.now(timezone.utc).strftime("%H:%M")
+    actual_punch_time = datetime.now(timezone.utc).strftime("%H:%M")
     
     # Get shift info from QR code (with defaults for backward compatibility)
     shift_type = qr_info.get("shift_type", qr_code.get("shift_type", "day"))
-    shift_start = qr_info.get("shift_start", qr_code.get("shift_start", "10:00"))
+    shift_start = qr_info.get("shift_start", qr_code.get("shift_start", "09:45"))
     shift_end = qr_info.get("shift_end", qr_code.get("shift_end", "19:00"))
     
     # Calculate attendance status based on punch-in time and shift
-    attendance_status = calculate_attendance_status(punch_in_time, shift_start, shift_end, shift_type)
+    # Returns (status, recorded_time) - recorded_time is 09:45 for full day within grace period
+    attendance_status, punch_in_time = calculate_attendance_status(actual_punch_time, shift_start, shift_end, shift_type)
     
     # Determine conveyance based on attendance status
     full_conveyance = qr_code["conveyance_amount"]
