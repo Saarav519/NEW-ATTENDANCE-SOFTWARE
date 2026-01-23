@@ -404,11 +404,11 @@ const Team = () => {
               
               {/* Attendance Rules Info */}
               <div className="bg-blue-50 rounded-lg p-3 text-xs text-blue-800">
-                <p className="font-semibold mb-1">Attendance Rules:</p>
+                <p className="font-semibold mb-1">Attendance Rules (Shift: 9:45 AM - 7:00 PM):</p>
                 <ul className="list-disc list-inside space-y-1">
-                  <li>On time (within 30 min) → <span className="text-green-600 font-medium">Full Day</span></li>
-                  <li>Late (30 min - 3 hours) → <span className="text-yellow-600 font-medium">Half Day</span></li>
-                  <li>Very Late (after 3 hours) → <span className="text-red-600 font-medium">Absent</span></li>
+                  <li>Scan 9:45 - 10:15 AM → <span className="text-green-600 font-medium">Full Day</span> (recorded as 9:45)</li>
+                  <li>Scan 10:16 AM - 12:45 PM → <span className="text-yellow-600 font-medium">Half Day</span></li>
+                  <li>Scan after 12:45 PM → <span className="text-red-600 font-medium">Absent</span></li>
                 </ul>
               </div>
               
