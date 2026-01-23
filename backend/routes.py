@@ -2627,7 +2627,7 @@ async def seed_database():
             "id": "SHIFT001",
             "name": "Day Shift (Standard)",
             "shift_type": "day",
-            "shift_start": "10:00",
+            "shift_start": "09:45",
             "shift_end": "19:00",
             "grace_period_minutes": 30,
             "half_day_cutoff_hours": 3,
