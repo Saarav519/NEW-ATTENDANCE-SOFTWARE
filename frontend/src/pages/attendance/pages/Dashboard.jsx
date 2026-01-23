@@ -874,12 +874,12 @@ const TeamLeadDashboard = ({ user }) => {
                   setPunchForm({
                     ...punchForm,
                     shift_type: type,
-                    shift_start: type === 'day' ? '10:00' : '21:00',
+                    shift_start: type === 'day' ? '09:45' : '21:00',
                     shift_end: type === 'day' ? '19:00' : '06:00'
                   });
                 }}
               >
-                <option value="day">Day Shift (10 AM - 7 PM)</option>
+                <option value="day">Day Shift (9:45 AM - 7 PM)</option>
                 <option value="night">Night Shift (9 PM - 6 AM)</option>
               </select>
             </div>
