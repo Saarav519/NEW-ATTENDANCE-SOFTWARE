@@ -28,6 +28,7 @@ const MobileBottomNav = () => {
           { path: '/attendance/employees', icon: Users, label: 'Employees' },
           { path: '/attendance/leaves', icon: CalendarOff, label: 'Leaves' },
           { path: '/attendance/bills', icon: Receipt, label: 'Bills' },
+          { path: '/attendance/holidays', icon: Gift, label: 'Holidays' },
           { path: '/attendance/reports', icon: BarChart3, label: 'Reports' },
           { path: '/attendance/profile', icon: User, label: 'Profile' },
         ]
