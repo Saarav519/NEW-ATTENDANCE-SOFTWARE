@@ -12,7 +12,7 @@ import {
 } from '../components/ui/dialog';
 import {
   Calendar, Clock, UserCheck, UserX, LogIn, LogOut,
-  ChevronLeft, ChevronRight, Loader2, MapPin, IndianRupee, Edit
+  ChevronLeft, ChevronRight, Loader2, MapPin, IndianRupee, Edit, CalendarOff
 } from 'lucide-react';
 import { usersAPI, attendanceAPI } from '../services/api';
 import toast from 'react-hot-toast';
