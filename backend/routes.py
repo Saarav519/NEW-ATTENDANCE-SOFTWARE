@@ -1159,7 +1159,7 @@ async def approve_leave(leave_id: str, approved_by: str):
                 "conveyance_amount": leave_conveyance,  # No conveyance on leave
                 "daily_duty_amount": full_day_duty,
                 "shift_type": "day",
-                "shift_start": "10:00",
+                "shift_start": "09:45",
                 "shift_end": "19:00"
             }
             await db.attendance.insert_one(attendance_doc)
