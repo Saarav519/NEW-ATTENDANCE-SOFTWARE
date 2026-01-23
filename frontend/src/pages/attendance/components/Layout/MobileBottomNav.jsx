@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   Home, Calendar, FileText, Receipt, User, Users, 
   DollarSign, CreditCard, Briefcase, Clock, MoreHorizontal,
-  ClipboardList, X, CalendarOff, Wallet, BarChart3
+  ClipboardList, X, CalendarOff, Wallet, BarChart3, Gift
 } from 'lucide-react';
 
 const MobileBottomNav = () => {
