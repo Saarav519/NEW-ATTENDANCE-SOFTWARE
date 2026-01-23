@@ -33,13 +33,13 @@ const Team = () => {
     conveyance_amount: '',
     date: today,
     shift_type: 'day',
-    shift_start: '10:00',
+    shift_start: '09:45',
     shift_end: '19:00'
   });
 
   // Preset shifts
   const shiftPresets = {
-    day: { start: '10:00', end: '19:00', label: 'Day Shift (10:00 AM - 7:00 PM)' },
+    day: { start: '09:45', end: '19:00', label: 'Day Shift (9:45 AM - 7:00 PM)' },
     night: { start: '21:00', end: '06:00', label: 'Night Shift (9:00 PM - 6:00 AM)' }
   };
 
