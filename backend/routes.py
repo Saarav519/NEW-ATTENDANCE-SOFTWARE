@@ -12,6 +12,14 @@ import base64
 import csv
 import io
 import zipfile
+import pytz
+
+# Set IST timezone for India
+IST = pytz.timezone('Asia/Kolkata')
+
+def get_ist_now():
+    """Get current time in IST timezone"""
+    return datetime.now(IST)
 
 from models import (
     UserCreate, UserResponse, UserLogin, LoginResponse, UserRole, UserStatus,
