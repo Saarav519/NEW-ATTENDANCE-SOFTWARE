@@ -263,6 +263,7 @@ export const sidebarNavItems = {
     { id: "leaves", label: "Leaves", icon: "CalendarOff", path: "leaves" },
     { id: "bills", label: "Bills & Advances", icon: "Receipt", path: "bills" },
     { id: "audit-expenses", label: "Audit Expenses", icon: "Plane", path: "audit-expenses" },
+    { id: "holidays", label: "Holidays", icon: "Gift", path: "holidays" },
     { id: "payslip", label: "Payslip", icon: "FileText", path: "payslip" },
     { id: "profile", label: "Profile", icon: "User", path: "profile" },
   ],
@@ -271,6 +272,7 @@ export const sidebarNavItems = {
     { id: "attendance", label: "Attendance", icon: "CalendarCheck", path: "attendance-details" },
     { id: "leaves", label: "Leaves", icon: "CalendarOff", path: "leaves" },
     { id: "bills", label: "Bills & Advances", icon: "Receipt", path: "bills" },
+    { id: "holidays", label: "Holidays", icon: "Gift", path: "holidays" },
     { id: "payslip", label: "Payslip", icon: "FileText", path: "payslip" },
     { id: "profile", label: "Profile", icon: "User", path: "profile" },
   ]
