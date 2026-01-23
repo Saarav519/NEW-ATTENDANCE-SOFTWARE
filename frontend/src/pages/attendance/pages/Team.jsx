@@ -365,7 +365,7 @@ const Team = () => {
                     <SelectItem value="day">
                       <div className="flex items-center gap-2">
                         <Sun size={16} className="text-yellow-500" />
-                        Day Shift (10:00 AM - 7:00 PM)
+                        Day Shift (9:45 AM - 7:00 PM)
                       </div>
                     </SelectItem>
                     <SelectItem value="night">
