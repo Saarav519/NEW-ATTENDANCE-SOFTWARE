@@ -658,14 +658,15 @@ async def direct_punch_in(emp_id: str, location: str = "Office", shift_type: str
     - Punch between 10:16 - 12:45 → Half Day
     - Punch after 12:45 → Absent
     """
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today = get_ist_now().strftime("%Y-%m-%d")
     
     # Check if already punched in today
     existing = await db.attendance.find_one({"emp_id": emp_id, "date": today}, {"_id": 0})
     if existing:
         return AttendanceResponse(**existing)
     
-    actual_punch_time = datetime.now(timezone.utc).strftime("%H:%M")
+    # Use IST time for punch-in calculation
+    actual_punch_time = get_ist_now().strftime("%H:%M")
     
     # Calculate attendance status based on punch-in time and shift
     # Returns (status, recorded_time) - recorded_time is shift_start for full day within grace period
