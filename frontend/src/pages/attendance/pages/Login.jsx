@@ -185,6 +185,15 @@ const Login = () => {
                 'Sign In'
               )}
             </Button>
+            
+            {/* Forgot Password Link */}
+            <button
+              type="button"
+              onClick={() => setShowResetDialog(true)}
+              className="w-full text-center text-sm text-[#1E2A5E] hover:underline mt-2"
+            >
+              Forgot Password?
+            </button>
           </form>
 
           {/* Quick Login Options */}
