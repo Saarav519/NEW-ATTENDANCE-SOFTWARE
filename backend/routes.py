@@ -360,6 +360,32 @@ async def reset_password(user_id: str, new_password: str, reset_by: str):
     
     return {"message": f"Password reset successfully for {user['name']}", "success": True}
 
+# Self password reset - any user can reset their own password
+@router.put("/users/self-reset-password")
+async def self_reset_password(request_data: dict):
+    """Self-service password reset - user resets their own password"""
+    user_id = request_data.get("user_id")
+    new_password = request_data.get("new_password")
+    
+    if not user_id or not new_password:
+        raise HTTPException(status_code=400, detail="User ID and new password are required")
+    
+    # Find the user
+    user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User ID not found. Please check and try again.")
+    
+    # Update password
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"password": new_password}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": "Password reset successfully", "success": True}
+
 @router.delete("/users/{user_id}")
 async def delete_user(user_id: str, deleted_by: str):
     """Delete a user - Only Admin can delete users"""
