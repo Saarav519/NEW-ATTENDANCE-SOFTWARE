@@ -83,19 +83,20 @@ def parse_time(time_str: str) -> time:
     h, m = map(int, time_str.split(':'))
     return time(h, m)
 
-def calculate_attendance_status(scan_time_str: str, shift_start: str, shift_end: str, shift_type: str) -> str:
+def calculate_attendance_status(scan_time_str: str, shift_start: str, shift_end: str, shift_type: str) -> tuple:
     """
     Calculate attendance status based on scan time and shift timings.
+    Returns (attendance_status, recorded_time)
     
-    Rules:
-    - Scan on or before (shift_start + 30 min) → Full Day
-    - Scan between (shift_start + 30 min) and (shift_start + 3 hours) → Half Day
-    - Scan after (shift_start + 3 hours) → Absent
+    New Rules (Shift 09:45 - 19:00):
+    - Scan between 09:45 - 10:15 → Full Day (time recorded as 09:45)
+    - Scan between 10:16 - 12:45 (3 hours from 09:45) → Half Day
+    - Scan after 12:45 → Absent
     """
     scan_time = parse_time(scan_time_str)
     shift_start_time = parse_time(shift_start)
     
-    # Calculate grace period (30 minutes after shift start)
+    # Calculate grace period (30 minutes after shift start) for Full Day
     grace_minutes = shift_start_time.hour * 60 + shift_start_time.minute + 30
     grace_hour = grace_minutes // 60
     grace_min = grace_minutes % 60
@@ -107,10 +108,12 @@ def calculate_attendance_status(scan_time_str: str, shift_start: str, shift_end:
     halfday_min = halfday_minutes % 60
     halfday_time = time(halfday_hour % 24, halfday_min)
     
+    # Default recorded time is actual scan time
+    recorded_time = scan_time_str
+    
     # Handle night shift where times cross midnight
     if shift_type == "night":
         # For night shift, we need different logic
-        # Night shift: e.g., 21:00 - 06:00
         scan_minutes = scan_time.hour * 60 + scan_time.minute
         shift_start_minutes = shift_start_time.hour * 60 + shift_start_time.minute
         
@@ -124,19 +127,22 @@ def calculate_attendance_status(scan_time_str: str, shift_start: str, shift_end:
         halfday_limit = shift_start_minutes + 180
         
         if scan_minutes <= grace_limit:
-            return "full_day"
+            recorded_time = shift_start  # Record as shift start time
+            return ("full_day", recorded_time)
         elif scan_minutes <= halfday_limit:
-            return "half_day"
+            return ("half_day", recorded_time)
         else:
-            return "absent"
+            return ("absent", recorded_time)
     else:
         # Day shift logic
         if scan_time <= grace_time:
-            return "full_day"
+            # Within grace period - Full Day, record as shift start time
+            recorded_time = shift_start
+            return ("full_day", recorded_time)
         elif scan_time <= halfday_time:
-            return "half_day"
+            return ("half_day", recorded_time)
         else:
-            return "absent"
+            return ("absent", recorded_time)
 
 # ==================== AUTH ROUTES ====================
 
