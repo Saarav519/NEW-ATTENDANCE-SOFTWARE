@@ -4,7 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Eye, EyeOff, Lock, User, Shield, Users, UserCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
+import { Eye, EyeOff, Lock, User, Shield, Users, UserCircle, KeyRound } from 'lucide-react';
+import toast from 'react-hot-toast';
+
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const Login = () => {
   const [userId, setUserId] = useState('');
@@ -14,6 +18,14 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const { login, user } = useAuth();
   const navigate = useNavigate();
+  
+  // Password Reset State
+  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [resetUserId, setResetUserId] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetError, setResetError] = useState('');
 
   if (user) {
     return <Navigate to="/attendance/dashboard" replace />;
