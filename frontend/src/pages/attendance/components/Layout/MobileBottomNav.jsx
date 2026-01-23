@@ -45,6 +45,7 @@ const MobileBottomNav = () => {
           { path: '/attendance/my-attendance', icon: Clock, label: 'My Attendance' },
           { path: '/attendance/payslip', icon: DollarSign, label: 'Payslip' },
           { path: '/attendance/team', icon: Users, label: 'Team' },
+          { path: '/attendance/holidays', icon: Gift, label: 'Holidays' },
           { path: '/attendance/profile', icon: User, label: 'Profile' },
         ]
       };
