@@ -542,7 +542,7 @@ async def punch_in(data: AttendanceCreate, emp_id: str):
     if not qr_code.get("is_active", False):
         raise HTTPException(status_code=400, detail="This QR code has expired. Please ask your Team Leader for a new one.")
     
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today = get_ist_now().strftime("%Y-%m-%d")
     
     # Check if already punched in today - return existing record instead of error
     existing = await db.attendance.find_one({"emp_id": emp_id, "date": today}, {"_id": 0})
@@ -550,7 +550,8 @@ async def punch_in(data: AttendanceCreate, emp_id: str):
         # Return the existing attendance record
         return AttendanceResponse(**existing)
     
-    actual_punch_time = datetime.now(timezone.utc).strftime("%H:%M")
+    # Use IST time for punch-in calculation
+    actual_punch_time = get_ist_now().strftime("%H:%M")
     
     # Get shift info from QR code (with defaults for backward compatibility)
     shift_type = qr_info.get("shift_type", qr_code.get("shift_type", "day"))
